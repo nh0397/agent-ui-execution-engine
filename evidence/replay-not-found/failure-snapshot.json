@@ -1,0 +1,85 @@
+{
+  "observation": {
+    "text": "Customer Service DeskHome Search resultsCustomer not found Synthetic demonstration data \u00b7 Scenario: normal",
+    "controls": [
+      {
+        "role": "link",
+        "name": "Home",
+        "readonly": false,
+        "filled": false,
+        "pattern": null
+      },
+      {
+        "role": "heading",
+        "name": "Search results",
+        "readonly": false,
+        "filled": false,
+        "pattern": null
+      }
+    ],
+    "app": "customer-service",
+    "app_version": "1",
+    "document_id": 2
+  },
+  "dom": {
+    "tag": "BODY",
+    "role": null,
+    "label": null,
+    "children": [
+      {
+        "tag": "HEADER",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "STRONG",
+            "role": null,
+            "label": null,
+            "children": [
+              "Customer Service Desk"
+            ]
+          },
+          {
+            "tag": "A",
+            "role": null,
+            "label": null,
+            "children": [
+              "Home"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "MAIN",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "H1",
+            "role": null,
+            "label": null,
+            "children": [
+              "Search results"
+            ]
+          },
+          {
+            "tag": "P",
+            "role": "alert",
+            "label": null,
+            "children": [
+              "Customer not found"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "FOOTER",
+        "role": null,
+        "label": null,
+        "children": [
+          "Synthetic demonstration data \u00b7 Scenario: normal"
+        ]
+      }
+    ]
+  }
+}

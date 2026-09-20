@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="application-name" content="customer-service"><meta name="application-version" content="1">
+<title>Customer Service Desk</title>
+<style>
+body{margin:0;background:#f3f5f8;color:#16253b;font:16px/1.55 system-ui,sans-serif}header{background:#142d49;color:white;padding:18px 8%;display:flex;justify-content:space-between}header a{color:white}main{max-width:800px;margin:48px auto;padding:32px;background:white;border:1px solid #dbe2eb;border-radius:12px}h1{font-size:28px;margin-top:0}label{display:block;margin:20px 0 5px;font-weight:600}input{display:block;box-sizing:border-box;width:100%;padding:12px;border:1px solid #8a9cb1;border-radius:6px;font:inherit}button,.button{display:inline-block;background:#176957;color:white;padding:12px 22px;margin-top:24px;border:0;border-radius:6px;font:inherit;cursor:pointer;text-decoration:none}a{color:#165e9a}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:12px;border-bottom:1px solid #dbe2eb}.note{color:#58687b;font-size:14px}.alert{border-left:4px solid #b45f10;padding:12px;background:#fff6e8}dt{font-weight:600;margin-top:12px}dd{margin:0}footer{max-width:800px;margin:20px auto;color:#65758b;font-size:13px}@media(max-width:850px){main{margin:24px 16px;padding:24px}}
+</style></head><body><header><strong>Customer Service Desk</strong><a href="/">Home</a></header><main>
+{% if page == 'home' %}
+<h1>Find a customer</h1><p>Look up a customer record to review their profile and manage their mailing address.</p>
+<form action="/customers" method="get"><label for="customer_id">Customer ID</label><input id="customer_id" name="customer_id" pattern="C-[0-9]+" required><button>Search customers</button></form>
+<p class="note">Sample records: C-104 and C-205.</p>
+{% elif page == 'results' %}
+<h1>Search results</h1>{% if customer %}<table><tr><th>Customer ID</th><th>Name</th><th>Action</th></tr><tr><td>{{ customer.id }}</td><td data-sensitive>{{ customer.name }}</td><td><a href="/customers/{{ customer.id }}">Open customer</a></td></tr></table>{% else %}<p role="alert">Customer not found</p>{% endif %}
+{% elif page == 'detail' %}
+<h1>Customer profile</h1><p>Customer ID: {{ customer.id }}</p><dl><dt>Name</dt><dd data-sensitive>{{ customer.name }}</dd><dt>Mailing address</dt><dd data-sensitive>{{ customer.street }}, {{ customer.city }} {{ customer.postal }}</dd></dl><a class="button" href="/customers/{{ customer.id }}/edit">Edit mailing address</a>
+{% elif page == 'edit' %}
+<h1>Edit mailing address</h1><p>Customer ID: {{ customer.id }}</p><form action="/customers/{{ customer.id }}/review" method="post"><input type="hidden" name="csrf" value="{{ csrf }}">
+{% for key, label in [('street','Street address'),('city','City'),('postal','Postal code')] %}<label for="{{ key }}">{{ label }}</label><input data-sensitive id="{{ key }}" name="{{ key }}" value="{{ customer[key] }}" {% if key == 'postal' %}pattern="[0-9]{5}"{% endif %} required>{% endfor %}<button>Review changes</button></form>
+{% elif page == 'review' %}
+<h1>Review address change</h1><p>Customer ID: {{ draft.customer_id }}</p><dl>{% for key,label in [('street','Street address'),('city','City'),('postal','Postal code')] %}<dt>{{ label }}</dt><dd data-sensitive>{{ draft[key] }}</dd>{% endfor %}</dl><p class="alert">Saving changes updates this customer's record. Review the customer and address before continuing.</p><form action="/save" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button>Save address</button></form>
+{% elif page == 'confirmation' %}
+<h1>Address updated</h1><label for="saved_customer">Saved customer ID</label><input id="saved_customer" readonly value="{{ customer.id }}"><label for="reference">Confirmation reference</label><input id="reference" readonly value="{{ reference }}">{% for key,label in [('street','Saved street address'),('city','Saved city'),('postal','Saved postal code')] %}<label for="{{ key }}">{{ label }}</label><input data-sensitive id="{{ key }}" readonly value="{{ customer[key] }}">{% endfor %}
+{% elif page == 'expired' %}
+<h1>Session expired</h1><p role="alert">Session expired</p><p>A human operator must restore this demonstration session.</p><form action="/restore" method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><button>Restore session</button></form>
+{% elif page == 'transient' %}
+<h1>Temporarily unavailable</h1><p role="alert">Temporary load failure</p><a class="button" href="/customers?customer_id={{ customer_id | urlencode }}">Retry search</a>
+{% elif page == 'uncertain' %}
+<h1>Response interrupted</h1><p role="alert">Save result uncertain</p><p>Check the recorded result before attempting another save.</p><a class="button" href="/confirmation/{{ reference }}">Check saved result</a>
+{% elif page == 'invalid' %}<h1>Address validation</h1><p role="alert">Invalid address</p><p>All address fields are required. Postal code must contain five digits.</p>
+{% elif page == 'conflict' %}<h1>Concurrent update</h1><p role="alert">Record changed during review</p>
+{% elif page == 'denied' %}<h1>Access denied</h1><p role="alert">Permission denied</p>{% endif %}
+</main><footer>Synthetic demonstration data · Scenario: {{ scenario }}</footer></body></html>

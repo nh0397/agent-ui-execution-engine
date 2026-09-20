@@ -1,0 +1,17 @@
+{
+  "name": "update_customer_address",
+  "description": "Update the specified customer's mailing address and verify the saved fields.",
+  "inputs": {
+    "customer_id": {"pattern": "C-[0-9]+"},
+    "street": {"sensitive": true}, "city": {"sensitive": true},
+    "postal": {"sensitive": true, "pattern": "[0-9]{5}"}
+  },
+  "outputs": {
+    "customer_id": {"equals_input": "customer_id"},
+    "confirmation_reference": {"pattern": "UPD-[A-F0-9]+"},
+    "street": {"sensitive": true, "equals_input": "street"},
+    "city": {"sensitive": true, "equals_input": "city"},
+    "postal": {"sensitive": true, "equals_input": "postal"}
+  },
+  "success": {"by": "role", "role": "heading", "name": "Address updated"}
+}

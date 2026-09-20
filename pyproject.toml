@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-ui-execution-engine"
+version = "0.1.0"
+description = "Goal-driven UI discovery and deterministic capability replay"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.141.1", "uvicorn==0.53.0", "jinja2==3.1.6",
+  "python-multipart==0.0.32", "pydantic==2.13.5", "playwright==1.63.0",
+  "httpx==0.28.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.1.1"]
+postgres = ["psycopg[binary]==3.2.9"]
+
+[project.scripts]
+ui-engine = "engine.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["engine*", "demo*"]
+
+[tool.setuptools.package-data]
+demo = ["templates/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,27 @@
+{
+  "backend": "standalone SQLite demo",
+  "human_handoff": "pending; headed session was not visible to user",
+  "runs": {
+    "discovery": {
+      "run_id": "a98eee4f-b1c0-48e2-b403-a74b46457a9c",
+      "status": "success",
+      "code": "completed",
+      "actions": 14,
+      "model_decisions": 14
+    },
+    "replay": {
+      "run_id": "37af0359-5a55-48d6-a723-b36af9504c78",
+      "status": "success",
+      "code": "completed",
+      "actions": 14,
+      "model_decisions": 0
+    },
+    "replay-not-found": {
+      "run_id": "b7e8d58e-11af-4870-86b8-431a8396bed1",
+      "status": "business_outcome",
+      "code": "Customer not found",
+      "actions": 2,
+      "model_decisions": 0
+    }
+  }
+}

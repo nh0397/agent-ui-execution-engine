@@ -1,0 +1,49 @@
+# Secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+*.pem
+*.key
+
+# Python environments and generated files
+.venv/
+.browsers/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Local application data and browser sessions
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+browser-profile/
+browser-profiles/
+playwright/.auth/
+storage-state*.json
+storage_state*.json
+
+# Unreviewed run output; sanitized submission evidence belongs in evidence/
+work/
+tmp/
+runs/
+test-results/
+playwright-report/
+*.log
+
+# Editor and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,41 @@
+name: agent-ui-execution-engine
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: service_desk
+      POSTGRES_USER: demo
+      POSTGRES_PASSWORD: ${DEMO_DB_PASSWORD:?Run python -m demo.setup first}
+    volumes:
+      - demo-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demo -d service_desk"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    networks: [demo-network]
+
+  app:
+    build: .
+    environment:
+      DEMO_DATABASE_URL: postgresql://demo:${DEMO_DB_PASSWORD:?Run python -m demo.setup first}@db:5432/service_desk
+      DEMO_SCENARIO: ${DEMO_SCENARIO:-normal}
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [demo-network]
+
+volumes:
+  demo-data:
+
+networks:
+  demo-network:
+    internal: true

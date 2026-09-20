@@ -1,0 +1,18 @@
+{
+  "app": "customer-service", "version": "1",
+  "origins": ["http://127.0.0.1:8000"],
+  "routes": ["/", "/customers", "/customers/C-[0-9]+", "/customers/C-[0-9]+/edit", "/customers/C-[0-9]+/review", "/save", "/confirmation/UPD-[A-F0-9]+", "/restore"],
+  "allowed_actions": ["click", "fill", "read", "check"],
+  "risky_targets": ["Save address"],
+  "automated_post_routes": ["/customers/C-[0-9]+/review", "/save"],
+  "risky_post_routes": ["/save"],
+  "conditions": [
+    {"text": "Customer not found", "category": "business"},
+    {"text": "Invalid address", "category": "business"},
+    {"text": "Record changed during review", "category": "business"},
+    {"text": "Permission denied", "category": "failure"},
+    {"text": "Session expired", "category": "intervene"},
+    {"text": "Temporary load failure", "category": "recover", "recovery": {"kind": "click", "target": {"by": "role", "role": "link", "name": "Retry search"}, "reason": "Retry known transient read failure"}},
+    {"text": "Save result uncertain", "category": "recover", "recovery": {"kind": "click", "target": {"by": "role", "role": "link", "name": "Check saved result"}, "reason": "Reconcile saved state without resubmitting"}}
+  ]
+}
