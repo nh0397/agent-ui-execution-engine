@@ -42,6 +42,10 @@ test-results/
 playwright-report/
 *.log
 
+# Frontend dependencies and generated evidence
+node_modules/
+frontend/src/generated/
+
 # Editor and OS files
 .idea/
 .vscode/

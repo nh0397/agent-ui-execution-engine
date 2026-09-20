@@ -1,0 +1,10 @@
+{
+  "status": "failure",
+  "run_id": "1f769f83-fd81-463c-b978-97beedca3bf9",
+  "code": "Permission denied",
+  "outputs": {},
+  "step": 4,
+  "expected": "Declared action and workflow checkpoints",
+  "observed": "Permission denied",
+  "human_assisted": false
+}

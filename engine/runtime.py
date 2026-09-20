@@ -26,7 +26,7 @@ class BusinessOutcome(Exception):
 
 
 class Runtime:
-    def __init__(self, spec, inputs, profile, entry, directory, headed=False, approve_writes=False, operator_port=None):
+    def __init__(self, spec, inputs, profile, entry, directory, headed=False, approve_writes=False, operator_port=None, control=None):
         validate_values(spec.inputs, inputs)
         self.spec, self.inputs, self.profile = spec, inputs, profile
         self.run_id = str(uuid.uuid4())
@@ -36,6 +36,7 @@ class Runtime:
         self.human_assisted = False
         self.headed, self.approve_writes = headed, approve_writes
         self.operator_port = operator_port
+        self.control = control
         self.surface = BrowserSurface(Policy(profile), self.evidence, headed)
         self.start = time.monotonic()
         self.evidence.event("run_started", run_id=self.run_id, session_id=self.surface.session_id, capability=spec.name, write_approval=approve_writes)
@@ -44,6 +45,7 @@ class Runtime:
             observation = self.surface.observe()
             if observation["app"] != profile.app or observation["app_version"] != profile.version:
                 raise PolicyError("Application compatibility check failed")
+            self.publish()
         except Exception as exc:
             self.evidence.event("startup_failed", reason=type(exc).__name__)
             try:
@@ -53,17 +55,29 @@ class Runtime:
             self.surface.close()
             raise
 
+    def publish(self):
+        if self.control is not None:
+            self.control.state = {"owner": self.surface.owner, "step": self.step, "session_id": self.surface.session_id}
+            self.control.frame = self.surface.page.screenshot(type="jpeg", quality=75)
+
+    def check_cancel(self):
+        if self.control is not None and self.control.cancel.is_set():
+            raise PolicyError("Run cancelled by operator")
+
     def intervene(self, reason, expected=None):
         self.evidence.event("intervention_requested", step=self.step, reason=reason, expected=expected, state=self.surface.observe())
-        if not self.headed and self.operator_port is None:
+        if not self.headed and self.operator_port is None and self.control is None:
             raise PolicyError("Human intervention requires a headed run")
         self.surface.owner = "human"
         self.human_assisted = True
         self.evidence.event("ownership", owner="human", session_id=self.surface.session_id)
         print(f"\nHuman control: {reason}. Expected before resume: {expected or 'safe state'}.\nOperate this browser, then type resume or abort here.")
         answer = []
-        bridge = None
-        if self.operator_port is not None:
+        bridge = self.control
+        if self.control is not None:
+            self.control.intervention = {"reason": reason, "expected": expected, "capability": self.spec.name}
+            self.publish()
+        if bridge is None and self.operator_port is not None:
             from engine.operator import OperatorBridge
             bridge = OperatorBridge(self.operator_port)
             print(f"Live operator view: http://127.0.0.1:{self.operator_port}", flush=True)
@@ -77,14 +91,15 @@ class Runtime:
         until = time.monotonic() + 300
         try:
             while not answer and time.monotonic() < until:
+                self.check_cancel()
                 # All browser access remains on its owning thread. HTTP handlers only enqueue commands.
                 self.surface.page.wait_for_timeout(100)
                 if bridge is not None:
-                    bridge.frame = self.surface.page.screenshot()
+                    bridge.frame = self.surface.page.screenshot(type="jpeg", quality=75) if self.control is not None else self.surface.page.screenshot()
                     while not bridge.commands.empty():
                         command = bridge.commands.get_nowait()
                         kind = command["kind"]
-                        self.evidence.event("operator_command", kind=kind, session_id=self.surface.session_id)
+                        self.evidence.event("operator_command", kind=kind, operator_id=command.get("operator_id"), session_id=self.surface.session_id)
                         if kind in ("resume", "abort"):
                             answer.append(kind)
                             break
@@ -101,7 +116,7 @@ class Runtime:
                         elif kind == "scroll":
                             self.surface.page.mouse.wheel(0, max(-1000, min(1000, int(command["delta"]))))
         finally:
-            if bridge is not None:
+            if bridge is not None and self.control is None:
                 bridge.close()
         if not answer or answer[0] != "resume":
             raise PolicyError("Intervention aborted or expired")
@@ -109,9 +124,13 @@ class Runtime:
         if expected and not self.surface.visible(Target.model_validate(expected)):
             raise PolicyError("Resume checkpoint not satisfied")
         self.surface.owner = "automation"
+        if self.control is not None:
+            self.control.intervention = None
+            self.publish()
         self.evidence.event("ownership", owner="automation", session_id=self.surface.session_id, state=self.surface.observe())
 
     def conditions(self, expected=None):
+        self.check_cancel()
         for attempt in range(3):
             # Exact alert targeting avoids accidental matches in help text or other controls.
             condition = next((c for c in self.profile.conditions if self.surface.has_alert(c.text)), None)
@@ -126,12 +145,15 @@ class Runtime:
                 self.intervene(condition.text, expected)
             elif condition.recovery and attempt < 2:
                 self.surface.write_authorized = False
+                self.evidence.event("recovery_action", action=condition.recovery.model_dump(), attempt=attempt)
                 self.surface.execute(condition.recovery, self.inputs)
+                self.publish()
             else:
                 raise PolicyError("Recovery budget exhausted")
         raise PolicyError("Recovery budget exhausted")
 
     def act(self, action):
+        self.check_cancel()
         if time.monotonic() - self.start > 900:
             raise PolicyError("Run deadline exceeded")
         risky = action.target.name in self.profile.risky_targets
@@ -153,6 +175,7 @@ class Runtime:
                 raise PolicyError("Extracted output does not match its declared input")
             self.outputs[action.output_key] = value
         self.step += 1
+        self.publish()
 
     def finish(self):
         if not self.surface.visible(self.spec.success):

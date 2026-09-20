@@ -1,6 +1,7 @@
 .git
 .venv
 .browsers
+frontend
 .env
 .env.*
 work

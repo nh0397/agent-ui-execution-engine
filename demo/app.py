@@ -26,9 +26,22 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
     with db() as conn:
         conn.execute("CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, name TEXT, street TEXT, city TEXT, postal TEXT, revision INTEGER DEFAULT 0)")
         conn.execute("CREATE TABLE IF NOT EXISTS updates (token TEXT PRIMARY KEY, customer TEXT, reference TEXT)")
+        conn.execute("CREATE TABLE IF NOT EXISTS accounts (id TEXT PRIMARY KEY, customer TEXT, kind TEXT, balance INTEGER)")
+        conn.execute("CREATE TABLE IF NOT EXISTS transactions (id TEXT PRIMARY KEY, account TEXT, description TEXT, amount INTEGER, posted TEXT)")
         conn.executemany("INSERT INTO customers(id,name,street,city,postal) VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING", [
             ("C-104", "Alex Example", "10 Sample Lane", "Exampleton", "10001"),
             ("C-205", "Jordan Sample", "20 Demo Road", "Testville", "20002"),
+            ("C-306", "Casey Demo", "30 Cedar Way", "Sampleton", "30003"),
+        ])
+        conn.executemany("INSERT INTO accounts VALUES (?,?,?,?) ON CONFLICT(id) DO NOTHING", [
+            ("AC-4104", "C-104", "Everyday checking", 824550), ("AC-5104", "C-104", "Savings", 1523000),
+            ("AC-4205", "C-205", "Everyday checking", 420075), ("AC-4306", "C-306", "Savings", 960000),
+        ])
+        conn.executemany("INSERT INTO transactions VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING", [
+            ("TX-101", "AC-4104", "Synthetic payroll deposit", 250000, "2026-09-18"),
+            ("TX-102", "AC-4104", "Sample grocery purchase", -8245, "2026-09-18"),
+            ("TX-103", "AC-4205", "Demo utility payment", -12500, "2026-09-17"),
+            ("TX-104", "AC-4306", "Synthetic savings deposit", 100000, "2026-09-16"),
         ])
 
     @app.middleware("http")
@@ -38,7 +51,9 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
         sid = request.cookies.get("demo_session", "")
         if sid not in sessions:
             sid = secrets.token_urlsafe(24)
-            sessions[sid] = {"csrf": secrets.token_urlsafe(24), "restored": False, "draft": None, "transient": False}
+            sessions[sid] = {"csrf": secrets.token_urlsafe(24), "restored": False, "draft": None, "transient": False, "scenario": fault}
+        if request.url.path == "/" and request.query_params.get("scenario") in {"normal", "slow", "transient", "session-expired", "permission-denied", "uncertain-save"}:
+            sessions[sid]["scenario"] = request.query_params["scenario"]
         request.state.session = sessions[sid]
         response = await call_next(request)
         response.set_cookie("demo_session", sid, httponly=True, samesite="strict")
@@ -48,11 +63,11 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
 
     def render(request, page, **context):
         return templates.TemplateResponse(request=request, name="page.html", context={
-            "page": page, "csrf": request.state.session["csrf"], "scenario": fault, **context,
+            "page": page, "csrf": request.state.session["csrf"], "scenario": request.state.session["scenario"], **context,
         })
 
     def guard(request):
-        if fault == "session-expired" and not request.state.session["restored"]:
+        if request.state.session["scenario"] == "session-expired" and not request.state.session["restored"]:
             return render(request, "expired")
         return None
 
@@ -64,7 +79,23 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
 
     @app.get("/")
     def home(request: Request):
-        return render(request, "home")
+        with db() as conn:
+            directory = conn.execute("SELECT id,name FROM customers ORDER BY id").fetchall()
+            total = conn.execute("SELECT SUM(balance) AS balance FROM accounts").fetchone()["balance"]
+            account_count = conn.execute("SELECT COUNT(*) AS count FROM accounts").fetchone()["count"]
+        return render(request, "home", directory=directory, total=total, account_count=account_count)
+
+    @app.get("/accounts")
+    def accounts(request: Request):
+        with db() as conn:
+            records = conn.execute("SELECT accounts.*,customers.name FROM accounts JOIN customers ON customer=customers.id ORDER BY accounts.id").fetchall()
+        return render(request, "accounts", accounts=records)
+
+    @app.get("/activity")
+    def activity(request: Request):
+        with db() as conn:
+            records = conn.execute("SELECT * FROM transactions ORDER BY posted DESC").fetchall()
+        return render(request, "activity", transactions=records)
 
     @app.get("/health")
     def health():
@@ -77,9 +108,9 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
         blocked = guard(request)
         if blocked is not None:
             return blocked
-        if fault == "slow":
+        if request.state.session["scenario"] == "slow":
             time.sleep(1)
-        if fault == "transient" and not request.state.session["transient"]:
+        if request.state.session["scenario"] == "transient" and not request.state.session["transient"]:
             request.state.session["transient"] = True
             return render(request, "transient", customer_id=customer_id)
         with db() as conn:
@@ -100,7 +131,7 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
         blocked = guard(request)
         if blocked is not None:
             return blocked
-        if fault == "permission-denied":
+        if request.state.session["scenario"] == "permission-denied":
             return render(request, "denied")
         with db() as conn:
             customer = conn.execute("SELECT * FROM customers WHERE id=?", (customer_id,)).fetchone()
@@ -118,7 +149,7 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
             customer = conn.execute("SELECT * FROM customers WHERE id=?", (customer_id,)).fetchone()
         if not customer:
             return render(request, "results", customer=None)
-        if fault == "permission-denied":
+        if request.state.session["scenario"] == "permission-denied":
             return render(request, "denied")
         address = {k: str(data.get(k, "")).strip() for k in ("street", "city", "postal")}
         if not all(address.values()) or len(address["postal"]) != 5 or not address["postal"].isascii() or not address["postal"].isdigit():
@@ -134,7 +165,7 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
             return blocked
         data = await form(request)
         draft = request.state.session["draft"]
-        if data is None or not draft or fault == "permission-denied":
+        if data is None or not draft or request.state.session["scenario"] == "permission-denied":
             return render(request, "denied")
         with db() as conn:
             old = conn.execute("SELECT reference FROM updates WHERE token=?", (draft["token"],)).fetchone()
@@ -146,7 +177,7 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
                     return render(request, "conflict")
                 reference = "UPD-" + secrets.token_hex(6).upper()
                 conn.execute("INSERT INTO updates VALUES (?,?,?)", (draft["token"], draft["customer_id"], reference))
-        if fault == "uncertain-save" and not request.state.session.get("save_interrupted"):
+        if request.state.session["scenario"] == "uncertain-save" and not request.state.session.get("save_interrupted"):
             request.state.session["save_interrupted"] = True
             return render(request, "uncertain", reference=reference)
         return RedirectResponse(f"/confirmation/{reference}", status_code=303)

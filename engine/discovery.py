@@ -1,6 +1,7 @@
 """Runtime model access is confined to discovery; replay never imports this module."""
 import json
 import re
+import os
 from pathlib import Path
 
 import httpx
@@ -14,12 +15,20 @@ def available_actions(observation, spec, outputs, filled=(), inputs=None, read_v
     """Enumerate UI affordances, never a workflow sequence."""
     from engine.contracts import Action
     candidates = []
+    incomplete_forms = {c.get("form") for c in observation["controls"]
+                        if c.get("form") is not None and c.get("required") and not c["readonly"] and c["name"] not in filled}
     for control in observation["controls"]:
         target = {"by": "label" if control["role"] == "textbox" else "role", "name": control["name"], "role": control["role"]}
         if control["role"] in ("button", "link"):
+            if control.get("form") in incomplete_forms:
+                continue
             candidates.append(Action(kind="click", target=target, reason="Activate visible control"))
         elif control["role"] == "textbox" and not control["readonly"] and control["name"] not in filled:
-            for key in spec.inputs:
+            # Prefer lexical matches between declared input names and visible field labels.
+            # This constrains bindings, not action order. Unmatched legacy labels still go to the model.
+            words = set(re.findall(r"[a-z0-9]+", control["name"].lower()))
+            matches = [key for key in spec.inputs if words.intersection(re.findall(r"[a-z0-9]+", key.lower()))]
+            for key in matches or spec.inputs:
                 if inputs is not None and control.get("pattern") and not re.fullmatch(control["pattern"], inputs[key]):
                     continue
                 candidates.append(Action(kind="fill", target=target, input_key=key, reason="Fill visible field from input"))
@@ -58,7 +67,7 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
     filled_by_document = {}
     runtime.evidence.event("mode", mode="discovery", model=model, provider="ollama")
     try:
-        with httpx.Client(base_url="http://127.0.0.1:11434", timeout=180, trust_env=False) as client:
+        with httpx.Client(base_url=os.getenv("OLLAMA_URL", "http://127.0.0.1:11434"), timeout=180, trust_env=False) as client:
             for _ in range(30):
                 runtime.conditions()
                 observation = runtime.surface.observe()
@@ -76,6 +85,8 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                         return f"{a.kind} '{a.target.name}'{suffix}"
                     names = {description(a): a for a in candidates}
                     prompt = runtime.evidence.clean({"goal": goal, "observation": observation, "recent_actions": [description(a) for a in actions[-6:]], "outputs_still_required": [key for key in spec.outputs if key not in runtime.outputs], "available_actions": list(names)})
+                    if not names:
+                        raise PolicyError("No valid actions satisfy the remaining contract; review input bindings and current state")
                     schema = {"type": "object", "properties": {"choice": {"type": "string", "enum": ["HUMAN", *names]}, "reason": {"type": "string"}}, "required": ["choice", "reason"], "additionalProperties": False}
                     response = client.post("/api/chat", json={"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}})
                     response.raise_for_status()

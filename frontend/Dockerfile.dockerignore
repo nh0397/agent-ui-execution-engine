@@ -1,0 +1,11 @@
+**
+!frontend/
+!frontend/**
+!evidence/
+!evidence/**
+!capabilities/
+!capabilities/**
+frontend/node_modules/
+frontend/dist/
+frontend/src/generated/
+**/.env*

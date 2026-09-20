@@ -6,6 +6,8 @@ Discovery calls a local Ollama model on each step. The adapter observes current 
 
 Once the success checkpoint appears, discovery permits only output extraction, preventing further navigation or writes after the requested change. The replay module does not import the discovery module or its model client. Both runners share action execution, policy checks, outcome detection, and evidence. Ordinary modules and versioned files are sufficient for this initial system; queues and distributed services would add complexity without improving the demonstrated flow.
 
+The React dashboard calls a FastAPI execution API. A single-flight worker keeps each browser on its owning thread; HTTP handlers only enqueue operator commands. Polling exposes sanitized events and in-memory browser frames. Jobs, capabilities, and redacted results persist locally; unfinished jobs fail on restart. Three demo identities illustrate backend-enforced operator/viewer roles but are not production authentication. Archived evidence is separate from newly launched runs.
+
 # Artifact schema
 
 Pydantic rejects unknown fields and validates actions, targets, parameter declarations, results, and capabilities. Each capability has a schema version, capability version, application/version identity, typed string parameters, ordered actions, extraction bindings, a success target, and its originating discovery run ID. Field types are deliberately limited to strings in the initial contract; richer types would require a new supported schema extension.
@@ -32,7 +34,7 @@ Tenant origin and policy remain external to recorded actions. A future base capa
 
 The session controller records an intervention request containing the current goal/capability context, step, reason, expected checkpoint, and sanitized observation. It stops dispatching automation actions and changes ownership to human while preserving the same browser context and session ID. The operator can use a visible browser and terminal signals, or a loopback operator page showing live frames from that same browser. HTTP handlers enqueue operator commands; the original Playwright thread executes them. Playwright continues pumping events so supported human clicks, field changes, and navigation are recorded. Sensitive values are omitted.
 
-Resume validates the requested checkpoint and policy before returning ownership. A risky save without prior invocation approval is performed by the operator, followed by verification on the confirmation page. Headless runs fail clearly when human intervention is required. The terminal is intentionally minimal; actual human participation must be demonstrated independently of scripted event tests. Human interaction outside the instrumented page, such as native browser dialogs, is not fully recorded. This is not a remote operator console or operating-system input lock.
+Resume validates the requested checkpoint and policy before returning ownership. A risky save without prior invocation approval is performed by the operator, followed by confirmation verification. The dashboard shows the same browser image and forwards clicks, typing, keys, and scrolling through the backend queue; commands are rejected while automation owns the session. The terminal/loopback page remain CLI options. Runs without any handoff channel fail clearly. Full-stack scripted operator tests verify the mechanism but do not establish genuine human participation. Native-browser/OS interactions are not fully recorded.
 
 # Safety
 
@@ -42,6 +44,6 @@ Known sensitive inputs are redacted recursively before persistence or model tran
 
 # Cuts
 
-The implementation focuses on one workflow and one browser surface. It omits a hosted service, capability catalog, visual/desktop adapter, arbitrary JavaScript actions, sophisticated recovery planning, multi-tenant execution, and production authentication. Replay never uses an LLM fallback. Local model discovery has required iteration because models can choose poor bindings even when output is valid JSON; grounded action choices and independent output checks constrain this risk.
+The implementation focuses on one workflow and one browser surface. It includes a local capability catalog and execution API but omits public hosting, visual/desktop adapters, arbitrary JavaScript actions, sophisticated recovery planning, multi-tenant execution, and production authentication. Replay never uses an LLM fallback. Models can choose poor bindings despite valid JSON. Lexical field matching, native constraints, required-form completion, and independent output verification constrain this risk without prescribing action order. Labels without lexical overlap still require model interpretation.
 
 Next priorities are stronger capability/profile compatibility, scope-aware targeting for frames and repeated controls, schema support for additional data types, improved malformed-model-response recovery, and broader privacy testing. Evidence and README status must accurately distinguish completed checks from pending live demonstrations.

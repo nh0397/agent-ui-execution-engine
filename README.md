@@ -147,6 +147,53 @@ Runtime discovery connects to a local Ollama server at `http://127.0.0.1:11434`;
 
 ## Project status and setup
 
+### End-to-end workspace
+
+The React dashboard calls a FastAPI execution backend. Start discovery, watch the real browser, inspect the resulting capability, and replay it with new inputs. Run history, model decisions, ownership, screenshots, and outputs come from the backend. Historical records are separately labeled **Archived evidence**.
+
+The target is **Cedar Bank**, a synthetic banking workspace with three customers, checking/savings balances, transaction history, and address servicing. Its server-rendered interface represents a back-office application without a task API. The engine completes tasks only through browser controls.
+
+Three demo sessions are available: **Mira Chen** and **Sam Rivera** (operators), and **Taylor Morgan** (viewer). The backend enforces viewer restrictions, session cookies, CSRF tokens, and allowed origins. Anyone on the local machine can choose an operator identity: this is a local sandbox, not production authentication or tenant isolation. Do not expose the worker publicly.
+
+### One-command local setup
+
+Requires Python 3.11+, Node.js 24, and an existing Ollama installation with `mistral:latest` or `llama3.1:latest` for discovery. Replay does not need Ollama. From the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start-local.ps1 -OpenBrowser
+```
+
+This installs dependencies, builds the dashboard, prepares Chromium, and starts Cedar Bank at **http://127.0.0.1:8000** and the dashboard/API at **http://127.0.0.1:5174**. Local mode uses SQLite. Background-service logs are under `work/local/`. Healthy existing services are reused; restart the Python processes after changing backend code.
+
+**Try the complete flow:**
+
+1. Open **New workflow**, choose **Discover workflow**, and keep the customer-address goal and synthetic inputs.
+2. Select **Authorize the synthetic address save** for unattended discovery, then click **Start discovery**. The local model chooses UI actions; CPU discovery can take several minutes.
+3. After verified success, click **Replay this new capability**. The form changes to customer C-205 and another address. Start replay; it makes zero model decisions.
+4. For human handoff, leave save authorization unchecked. At **Your review is needed**, click **Save address** inside the live browser image, then **Resume automation**. You remain in the same browser context. Keyboard, text entry, and scrolling controls are alongside the image.
+5. Exercise transient search failure, interrupted save response, permission denial, or expired session in **Runtime scenario**. C-999 produces a business outcome. For session expiry, restore the session through the image and return to the displayed checkpoint before resuming.
+
+`work/dashboard/` stores jobs, discovered capabilities, and sanitized evidence. Inputs and raw browser images are not persisted by the API. Images remain in memory. A worker restart marks unfinished runs failed; it cannot restore a lost browser session. Only one run executes at a time. Cancellation takes effect at the next safe checkpoint, after any pending model request returns.
+
+### Execution API
+
+| Endpoint | Behavior |
+| --- | --- |
+| `POST /api/session` | Open a synthetic operator/viewer session and return a CSRF token. |
+| `GET /api/health` | Report backend, banking app, and model availability. |
+| `GET /api/capabilities` | List original and newly discovered typed capabilities. |
+| `POST /api/runs` | Validate inputs and launch real discovery/replay; return a job ID. |
+| `GET /api/runs` / `GET /api/runs/{id}` | Read progress, sanitized events, and final results. |
+| `GET /api/runs/{id}/frame` | View the current in-memory browser image. |
+| `POST /api/runs/{id}/control` | Queue clicks, typing, keys, scrolling, resume, or cancellation. |
+| `GET /api/runs/{id}/evidence` | Export sanitized execution evidence. |
+
+API documentation is at **http://127.0.0.1:5174/api/docs**. Writes use the session cookie, `X-CSRF-Token`, and an allowed `Origin`. `DEMO_ENTRY` configures the permitted target; run requests cannot choose an arbitrary domain. `OLLAMA_URL` configures the model server.
+
+For frontend development, run `npm ci` and `npm run dev` in `frontend/`; Vite proxies `/api` to the worker on port 5174. Build with `npm run build`. Then run `.\.venv\Scripts\python.exe -m pytest -q` from the repository root. Full-stack tests start isolated bank/API servers and run the real replay engine. Scripted operator tests verify the mechanism and are not genuine human demonstration evidence.
+
+### Complete local stack
+
 The first implementation includes the demo, typed contracts, a browser adapter, discovery and replay runners, policy checks, structured evidence, and human-control mechanisms. A genuine local-model run produced a 14-action capability, which replayed successfully with a different customer and address on the SQLite-backed demo. PostgreSQL container verification and actual human takeover evidence are still pending. This is an initial implementation, not a production-ready automation service.
 
 To start the demo app and database, open Docker Desktop with Linux containers enabled, then run this single command from the repository root in PowerShell:
@@ -155,9 +202,9 @@ To start the demo app and database, open Docker Desktop with Linux containers en
 powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -OpenBrowser
 ```
 
-The script creates local configuration if needed, preserves existing credentials and data, builds and starts both containers, waits for service health, and opens the app. If container startup fails, it prints service status and recent logs. It does not run discovery or replay automatically.
+The script creates local configuration if needed, preserves existing data, builds all four containers, waits for health, and opens the dashboard. Startup failures print status and recent logs. Launch discovery or replay from the dashboard. The worker reaches Ollama at `host.docker.internal:11434`; your Ollama configuration must permit access from Docker. The health panel reports availability, and replay remains usable without a model.
 
-To run the automation engine as well, install Python 3.11 or later and prepare its local environment:
+The Compose worker includes Python and Chromium. To use the standalone CLI instead, prepare its local environment:
 
 ```powershell
 python -m venv .venv
@@ -166,7 +213,7 @@ $env:PLAYWRIGHT_BROWSERS_PATH = "$PWD/.browsers"
 .\.venv\Scripts\python.exe -m playwright install chromium
 ```
 
-Open **http://127.0.0.1:8000**. Compose runs two services: `app` and `db`. The app waits for PostgreSQL health, creates its schema, and seeds synthetic customers **C-104** and **C-205**. Existing customer changes survive restarts in the `demo-data` volume. The database has no published host port; only the app is exposed on localhost. `demo.setup` creates a random database password in ignored local configuration and preserves an existing file.
+Open the dashboard at **http://127.0.0.1:5173**, and Cedar Bank at **http://127.0.0.1:8000**. Compose runs `dashboard`, `worker`, `app`, and `db`. The app creates its schema and seeds customers **C-104**, **C-205**, and **C-306**. Changes survive restarts in `demo-data`; engine results persist in `execution-data`. The database and worker have no published host ports. Dashboard and bank ports bind to localhost. `demo.setup` generates a database password in ignored local configuration, preserving existing credentials.
 
 Verify the demo manually first: search for a customer, open their profile, edit the address, review, save, and inspect the confirmation. `docker compose ps` shows service health. `docker compose down` stops the services while retaining their database volume.
 
@@ -229,6 +276,7 @@ Set `DEMO_SCENARIO` back to `normal` and recreate the app to restore normal beha
 
 ```text
 engine/          Discovery, recording, replay, policy, and session control
+frontend/        React dashboard, demo profiles, and reviewed evidence browser
 demo/            Local application with synthetic data
 tests/           Automated verification
 evidence/        Reviewed capabilities, genuine run logs, and failure evidence

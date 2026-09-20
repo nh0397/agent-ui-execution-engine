@@ -1,0 +1,10 @@
+{
+  "status": "business_outcome",
+  "run_id": "57c9964a-4ea7-4e48-aff9-0598fba8f973",
+  "code": "Customer not found",
+  "outputs": {},
+  "step": 2,
+  "expected": "Declared action and workflow checkpoints",
+  "observed": "Customer not found",
+  "human_assisted": false
+}

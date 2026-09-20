@@ -1,6 +1,44 @@
 name: agent-ui-execution-engine
 
 services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "127.0.0.1:5173:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [demo-network]
+    depends_on:
+      worker:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: engine/Dockerfile
+    environment:
+      DEMO_ENTRY: http://app:8000
+      OLLAMA_URL: http://host.docker.internal:11434
+      DASHBOARD_STORAGE: /project/work/dashboard
+    volumes:
+      - execution-data:/project/work/dashboard
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/api/health', timeout=8)"]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [demo-network, model-network]
+
   db:
     image: postgres:16-alpine
     environment:
@@ -35,7 +73,9 @@ services:
 
 volumes:
   demo-data:
+  execution-data:
 
 networks:
+  model-network:
   demo-network:
     internal: true

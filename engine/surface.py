@@ -110,7 +110,8 @@ class BrowserSurface:
           const controls=[...document.querySelectorAll('a,button,input:not([type=hidden]),select,textarea,h1')].filter(visible).map(e=>({
             role:e.tagName==='A'?'link':e.tagName==='BUTTON'?'button':e.tagName==='H1'?'heading':'textbox',
             name:e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label') || e.textContent.trim(),
-            readonly:!!e.readOnly, filled:!!e.value, pattern:e.getAttribute('pattern')
+            readonly:!!e.readOnly, filled:!!e.value, pattern:e.getAttribute('pattern'),
+            required:!!e.required, form:e.form?[...document.forms].indexOf(e.form):null
           }));
           return {text:copy.textContent.replace(/\\s+/g,' ').trim(),controls,
             app:document.querySelector('meta[name=application-name]')?.content,

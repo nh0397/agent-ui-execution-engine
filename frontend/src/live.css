@@ -1,0 +1,254 @@
+.service-health {
+  align-self: center;
+  border: 1px solid #ffffff25;
+  border-radius: 9px;
+  padding: 22px;
+  background: #ffffff08;
+}
+.service-health h3 {
+  font-size: 14px;
+  color: #d5e7d6;
+  margin-bottom: 15px;
+}
+.service-health > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 9px 0;
+  font-size: 11px;
+  color: #c1d3c3;
+}
+.service-health > small {
+  display: block;
+  color: #b1c3b4;
+  line-height: 1.7;
+  font-size: 10px;
+  margin-top: 12px;
+}
+.badge.red {
+  background: #fae8e7;
+  color: #a4524a;
+}
+.evidence-indicator > span.offline {
+  background: #b47860;
+}
+.error-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 15px;
+  background: #faece8;
+  color: #9d513d;
+  border: 1px solid #ebcbbb;
+  border-radius: 7px;
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+.error-banner button {
+  border: 0;
+  background: none;
+}
+.cap-library {
+  display: grid;
+  gap: 20px;
+}
+.live-toolbar {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.live-toolbar select {
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+}
+.live-screen {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #f5f7f9;
+}
+.live-screen.controllable {
+  cursor: crosshair;
+  outline: 3px solid #d7b365;
+  outline-offset: -3px;
+}
+.last-frame {
+  padding: 10px;
+  background: #f5f7ef;
+  font-size: 10px;
+  color: #768068;
+  text-align: center;
+}
+.session-info dl {
+  font-size: 11px;
+  margin-top: 20px;
+}
+.session-info dt {
+  font-weight: 600;
+  margin-top: 10px;
+}
+.session-info dd {
+  margin: 5px 0;
+  color: #80906f;
+  overflow-wrap: anywhere;
+}
+.operator-tools {
+  border-top: 1px solid #e5eadc;
+  padding-top: 8px;
+  margin-top: 18px;
+}
+.operator-tools .button {
+  margin-top: 12px;
+}
+.key-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.key-buttons .button {
+  padding: 7px;
+  font-size: 10px;
+}
+.event-panel {
+  padding: 24px;
+  margin-top: 24px;
+}
+.live-events {
+  padding: 0;
+  list-style: none;
+  max-height: 370px;
+  overflow: auto;
+}
+.live-events li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid #e8ede1;
+  padding: 12px 0;
+  font-size: 10px;
+}
+.live-events time {
+  white-space: nowrap;
+  color: #859776;
+  font-size: 9px;
+}
+.live-events code {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  min-width: 0;
+  line-height: 1.7;
+  color: #748367;
+}
+.result-banner {
+  padding: 17px;
+  background: #f5f7ef;
+  border: 1px solid #e2e9d8;
+  border-radius: 7px;
+  font-size: 12px;
+}
+.result-banner.failure {
+  background: #fcf0ed;
+  border-color: #f1d7cb;
+}
+.result-banner.success {
+  background: #eff7e9;
+}
+.result-banner pre {
+  max-height: 250px;
+  overflow: auto;
+}
+.bank-launch {
+  padding: 45px;
+  text-align: center;
+}
+.bank-logo {
+  display: grid;
+  place-items: center;
+  width: 65px;
+  height: 65px;
+  font-size: 35px;
+  border-radius: 15px;
+  background: #173a52;
+  color: #e2f0df;
+  margin: 0 auto 25px;
+  font-weight: 700;
+}
+.bank-launch h2 {
+  font-size: 26px;
+}
+.bank-launch > p:not(.eyebrow) {
+  max-width: 620px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #7b8d71;
+  margin: 20px auto;
+}
+.bank-user-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 35px;
+}
+.bank-user-grid article {
+  padding: 25px;
+  border: 1px solid #e3e9db;
+  border-radius: 9px;
+  background: #fbfcf8;
+}
+.bank-user-grid .avatar {
+  margin: 0 auto 15px;
+}
+.bank-user-grid h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.bank-user-grid code {
+  font-size: 11px;
+  color: #7e9171;
+}
+.bank-user-grid small {
+  display: block;
+  font-size: 10px;
+  margin-top: 12px;
+  color: #8da27b;
+}
+.archive-run {
+  border-top: 1px solid #e3ebda;
+  padding: 17px 0;
+}
+.archive-run p {
+  font-size: 12px;
+  color: #80946d;
+  margin: 10px 0;
+}
+@media (max-width: 700px) {
+  .bank-user-grid {
+    grid-template-columns: 1fr;
+  }
+  .bank-launch {
+    padding: 24px;
+  }
+  .live-events li {
+    flex-wrap: wrap;
+  }
+  .live-events code {
+    width: 100%;
+  }
+  .service-health {
+    padding: 17px;
+  }
+  .sidebar nav {
+    overflow-x: auto;
+  }
+  .nav-item {
+    min-width: 50px;
+  }
+  .operator-tools .button {
+    font-size: 11px;
+  }
+}

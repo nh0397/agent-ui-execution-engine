@@ -1,0 +1,56 @@
+{
+  "application": "Cedar Bank",
+  "backend": "standalone SQLite",
+  "launch": "discovery and paired replay started through React UI and FastAPI; scenario replays through the same API",
+  "human_handoff": "mechanism verified by explicitly scripted full-stack tests; no person-operated demonstration claimed",
+  "runs": {
+    "discovery": {
+      "job_id": "f7bc2f3c-28b9-4bb6-9ede-fefe47321682",
+      "run_id": "76adfa44-3995-4651-8bc1-78d673361060",
+      "status": "success",
+      "code": "completed",
+      "actions": 14,
+      "model_decisions": 14
+    },
+    "replay": {
+      "job_id": "f4e44da0-812c-42b3-8a03-6a6906f0bf18",
+      "run_id": "f4d9b03d-93e8-46d2-989d-666e63042ce9",
+      "status": "success",
+      "code": "completed",
+      "actions": 14,
+      "model_decisions": 0
+    },
+    "transient": {
+      "job_id": "534390a4-76b7-4919-a4ff-562602edb0fa",
+      "run_id": "d00fc473-1665-4871-89f5-0e343ccabcb8",
+      "status": "success",
+      "code": "completed",
+      "actions": 14,
+      "model_decisions": 0
+    },
+    "uncertain-save": {
+      "job_id": "56f8045d-1cef-4fe1-8916-b6ea4f232a6c",
+      "run_id": "b62136f2-fd36-496f-beed-b42353aa4f67",
+      "status": "success",
+      "code": "completed",
+      "actions": 14,
+      "model_decisions": 0
+    },
+    "not-found": {
+      "job_id": "dfaedfb0-93bb-494d-9130-c754a086134d",
+      "run_id": "57c9964a-4ea7-4e48-aff9-0598fba8f973",
+      "status": "business_outcome",
+      "code": "Customer not found",
+      "actions": 2,
+      "model_decisions": 0
+    },
+    "permission-denied": {
+      "job_id": "47392bd7-f51d-48d7-b5aa-6aa9c8a1e92b",
+      "run_id": "1f769f83-fd81-463c-b978-97beedca3bf9",
+      "status": "failure",
+      "code": "Permission denied",
+      "actions": 4,
+      "model_decisions": 0
+    }
+  }
+}

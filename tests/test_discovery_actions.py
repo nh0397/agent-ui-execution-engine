@@ -37,3 +37,15 @@ def test_output_contract_excludes_wrong_field_binding():
     observation = {"controls": [{"name": "Result", "role": "textbox", "readonly": True}]}
     actions = available_actions(observation, spec, {}, inputs={"code": "123"}, read_values={"Result": "R-456"})
     assert [a.output_key for a in actions] == ["receipt"]
+
+
+def test_matching_field_and_required_form_block_early_submit():
+    spec = WorkflowSpec(name="delivery", description="Update delivery", inputs={"order_id": {}, "street": {}, "postal": {}}, outputs={}, success={"by": "text", "name": "Done"})
+    observation = {"controls": [
+        {"name": "Street address", "role": "textbox", "readonly": False, "required": True, "form": 0},
+        {"name": "Review", "role": "button", "readonly": False, "form": 0},
+    ]}
+    actions = available_actions(observation, spec, {})
+    assert [(a.kind, a.input_key) for a in actions] == [("fill", "street")]
+    actions = available_actions(observation, spec, {}, filled={"Street address"})
+    assert [a.kind for a in actions] == ["click"]
