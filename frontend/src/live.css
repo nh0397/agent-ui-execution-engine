@@ -294,3 +294,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+.agent-panel{max-width:980px;margin:0 auto;padding:32px}.agent-examples{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}.agent-turn{margin:24px 0;border:1px solid #dfe5df;border-radius:14px;overflow:hidden}.agent-question{background:#edf2ed;padding:18px 24px}.agent-answer{padding:20px 24px}.agent-turn small{font-size:11px;letter-spacing:.5px}.agent-match{border-left:3px solid #568471;padding:10px 20px;margin:16px 0;background:#f7f9f6}.agent-composer{border-top:1px solid #e2e6df;padding-top:20px}.agent-composer textarea{display:block;width:100%;padding:16px;margin:10px 0;border:1px solid #c8d3c9;border-radius:10px;font:inherit}.agent-composer label{font-weight:600}.agent-composer .button{margin-top:8px}

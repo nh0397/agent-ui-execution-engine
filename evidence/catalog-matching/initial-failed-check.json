@@ -1,0 +1,47 @@
+{
+  "provenance": "Genuine local Ollama catalog matching against scripted test capabilities. This is not LLM UI discovery or human participation evidence.",
+  "model": "mistral:latest",
+  "checks": [
+    {
+      "request": "Change a customer mailing address",
+      "expected": "address",
+      "result": {
+        "matches": [
+          "address"
+        ],
+        "model_used": true
+      }
+    },
+    {
+      "request": "How much money is in an account?",
+      "expected": "balance",
+      "result": {
+        "matches": [
+          "balance"
+        ],
+        "model_used": true
+      }
+    },
+    {
+      "request": "Freeze a misplaced debit card",
+      "expected": "freeze",
+      "result": {
+        "matches": [
+          "freeze"
+        ],
+        "model_used": true
+      }
+    },
+    {
+      "request": "Apply for a home mortgage",
+      "expected": null,
+      "result": {
+        "matches": [
+          "address",
+          "balance"
+        ],
+        "model_used": true
+      }
+    }
+  ]
+}

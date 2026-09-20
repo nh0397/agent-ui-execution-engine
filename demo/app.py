@@ -78,24 +78,30 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
         return data
 
     @app.get("/")
-    def home(request: Request):
+    def home(request: Request, page_number: int = 1):
+        page_number = max(1, min(page_number, 10000))
         with db() as conn:
-            directory = conn.execute("SELECT id,name FROM customers ORDER BY id").fetchall()
+            directory = conn.execute("SELECT id,name FROM customers ORDER BY id LIMIT 20 OFFSET ?", ((page_number-1)*20,)).fetchall()
+            customer_count = conn.execute("SELECT COUNT(*) AS count FROM customers").fetchone()["count"]
             total = conn.execute("SELECT SUM(balance) AS balance FROM accounts").fetchone()["balance"]
             account_count = conn.execute("SELECT COUNT(*) AS count FROM accounts").fetchone()["count"]
-        return render(request, "home", directory=directory, total=total, account_count=account_count)
+        return render(request, "home", directory=directory, total=total, account_count=account_count, customer_count=customer_count, page_number=page_number, more=page_number*20 < customer_count, listing_path="/")
 
     @app.get("/accounts")
-    def accounts(request: Request):
+    def accounts(request: Request, page_number: int = 1):
+        page_number = max(1, min(page_number, 10000))
         with db() as conn:
-            records = conn.execute("SELECT accounts.*,customers.name FROM accounts JOIN customers ON customer=customers.id ORDER BY accounts.id").fetchall()
-        return render(request, "accounts", accounts=records)
+            records = conn.execute("SELECT accounts.*,customers.name FROM accounts JOIN customers ON customer=customers.id ORDER BY accounts.id LIMIT 20 OFFSET ?", ((page_number-1)*20,)).fetchall()
+            count = conn.execute("SELECT COUNT(*) AS count FROM accounts").fetchone()["count"]
+        return render(request, "accounts", accounts=records, page_number=page_number, more=page_number*20 < count, listing_path="/accounts")
 
     @app.get("/activity")
-    def activity(request: Request):
+    def activity(request: Request, page_number: int = 1):
+        page_number = max(1, min(page_number, 10000))
         with db() as conn:
-            records = conn.execute("SELECT * FROM transactions ORDER BY posted DESC").fetchall()
-        return render(request, "activity", transactions=records)
+            records = conn.execute("SELECT * FROM transactions ORDER BY posted DESC,id LIMIT 20 OFFSET ?", ((page_number-1)*20,)).fetchall()
+            count = conn.execute("SELECT COUNT(*) AS count FROM transactions").fetchone()["count"]
+        return render(request, "activity", transactions=records, page_number=page_number, more=page_number*20 < count, listing_path="/activity")
 
     @app.get("/health")
     def health():
@@ -204,4 +210,8 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
         request.state.session["restored"] = True
         return RedirectResponse("/", status_code=303)
 
+    from demo.services import register_services
+    register_services(app, db, render, guard, form)
+    from demo.seed import seed_demo_records
+    seed_demo_records(db)
     return app

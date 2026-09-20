@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { request, type Run, type CatalogItem } from "./api";
 import { RecordingTools, RecordingDocument } from "./Recording";
+import { Agent } from "./Agent";
 import archive from "./generated/evidence.json";
 import "./live.css";
 const people = [
@@ -45,9 +46,18 @@ const pages = [
   "Run history",
   "Live session",
   "Banking app",
+  "Agent",
 ] as const;
 type Page = (typeof pages)[number];
-const icons = [LayoutDashboard, Workflow, Box, Activity, Monitor, ExternalLink];
+const icons = [
+  LayoutDashboard,
+  Workflow,
+  Box,
+  Activity,
+  Monitor,
+  ExternalLink,
+  Sparkles,
+];
 function Badge({
   children,
   tone = "neutral",
@@ -213,6 +223,7 @@ export default function LiveWorkspace() {
   const [csrf, setCsrf] = useState("");
   const [health, setHealth] = useState<{
     bank: boolean;
+    bank_url?: string;
     model: boolean;
     models?: string[];
   } | null>(null);
@@ -338,7 +349,7 @@ export default function LiveWorkspace() {
           method: "POST",
           body: JSON.stringify({
             mode,
-            goal,
+            goal: mode === "recording" ? workflowName : goal,
             inputs:
               mode === "recording"
                 ? {}
@@ -384,6 +395,8 @@ export default function LiveWorkspace() {
       street: "62 Test Street",
       city: "Demoville",
       postal: "54321",
+      account_id: "AC-4205",
+      card_id: "DC-205",
     };
     const schema = catalog.find((c) => c.id === id)?.capability.inputs || {};
     setInputs(
@@ -502,7 +515,9 @@ export default function LiveWorkspace() {
                         ? "Every action, accounted for."
                         : page === "Live session"
                           ? "Your workflow, live."
-                          : "Meet Cedar Bank."}
+                          : page === "Agent"
+                            ? "Ask your workflow agent."
+                            : "Meet Cedar Bank."}
               </h1>
               <p className="subtitle">
                 {page === "New workflow"
@@ -666,7 +681,7 @@ export default function LiveWorkspace() {
                   </p>
                   <a
                     className="button secondary"
-                    href="http://127.0.0.1:8000"
+                    href={health?.bank_url || "http://127.0.0.1:8000"}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -843,9 +858,11 @@ export default function LiveWorkspace() {
                         onChange={(e) => setApproved(e.target.checked)}
                       />
                       <span>
-                        <strong>Authorize the synthetic address save</strong>
+                        <strong>
+                          Authorize changes for this synthetic run
+                        </strong>
                         <small>
-                          Leave unchecked to review and save yourself in the
+                          Leave unchecked to approve changes yourself in the
                           live session.
                         </small>
                       </span>
@@ -858,7 +875,8 @@ export default function LiveWorkspace() {
                       !online ||
                       !!active ||
                       !health?.bank ||
-                      (mode === "replay" && !catalog.some((c) => c.id === capId)) ||
+                      (mode === "replay" &&
+                        !catalog.some((c) => c.id === capId)) ||
                       (mode === "discovery" && !health?.models?.includes(model))
                     }
                   >
@@ -928,7 +946,11 @@ export default function LiveWorkspace() {
               {catalog.length === 0 && (
                 <section className="panel capability-detail">
                   <h2>No saved workflows yet</h2>
-                  <p>Open New workflow to record a demonstration or start LLM discovery. Verified workflows appear here after they are published.</p>
+                  <p>
+                    Open New workflow to record a demonstration or start LLM
+                    discovery. Verified workflows appear here after they are
+                    published.
+                  </p>
                 </section>
               )}
               {catalog.map((item) => (
@@ -1339,12 +1361,13 @@ export default function LiveWorkspace() {
               <h2>Cedar Bank customer workspace</h2>
               <p>
                 A real database-backed application with customers, checking and
-                savings accounts, transaction history, and address servicing.
-                The automation engine operates its visible UI, not its database.
+                savings accounts, balance inquiries, debit-card controls,
+                transaction history, and address servicing. The automation
+                engine operates its visible UI, not its database.
               </p>
               <a
                 className="button primary"
-                href="http://127.0.0.1:8000"
+                href={health?.bank_url || "http://127.0.0.1:8000"}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -1370,6 +1393,18 @@ export default function LiveWorkspace() {
                 ))}
               </div>
             </section>
+          )}
+          {page === "Agent" && (
+            <Agent
+              catalog={catalog}
+              csrf={csrf}
+              viewer={viewer}
+              replay={prepareReplay}
+              record={() => {
+                setMode("recording");
+                setPage("New workflow");
+              }}
+            />
           )}
           <footer className="page-footer">
             <span>

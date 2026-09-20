@@ -13,3 +13,11 @@ Limits: no desktop adapter, production authentication, tenant isolation, or visu
 ## Human recording extension
 
 Final regression: 42 tests passed, with two dependency deprecation warnings. TypeScript validation and the production Vite build passed. A full-stack browser test recorded a parameterized workflow, downloaded 26 masked screenshots plus documentation, reviewed/published the draft, and replayed different inputs with zero model decisions. API tests verify automation rejects click/type commands, accepts a control request, and requires an operator to publish drafts. The scripted recorder example is in human-recorder-scripted-test/; no real-person demonstration is claimed.
+
+## Three services, larger dataset, and catalog matching
+
+- Full suite: 53 tests passed on 2026-09-20 after adding balance/card recording and replay, card CSRF/idempotency/concurrency checks, seed preservation/pagination, and agent UI routing checks. After adding the opposite-effect guard, its targeted suite passed all 5 tests (including one additional test).
+- SQLite counts verified: 1,003 customers, 1,004 accounts, 1,003 cards, 4,004 transactions.
+- Frontend TypeScript check and production build passed. Live browser checks verified the three-service bank homepage and empty-catalog agent response.
+- Genuine local-model catalog checks and the two failures encountered during development are preserved in catalog-matching/. These are distinct from LLM browser discovery evidence.
+- Current local dashboard: port 5176; bank: port 8003. Docker socket access was denied, so PostgreSQL execution of these additions was not verified in this turn.

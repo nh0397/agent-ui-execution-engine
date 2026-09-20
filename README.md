@@ -4,6 +4,14 @@ Turn an agent's intent into a reusable, verifiable workflow through a real user 
 
 For a hands-on first run, follow [Create and test your first workflow](WALKTHROUGH.md), including storage locations, recording, replay, and failure checks.
 
+## Banking services and workflow agent
+
+Cedar Bank supports mailing-address changes, account-balance inquiries, and debit-card freeze/unfreeze with review and confirmation. It seeds 1,000 additional synthetic members, their accounts and cards, and 4,000 transactions without overwriting existing edits. Directories are paginated.
+
+Record a demonstration in **New workflow → Record workflow**, bind field values to parameters, verify outputs, and publish the reviewed capability. In **Agent**, describe the task: local Ollama matches it against published capability metadata. Choose the proposed workflow, supply its inputs, and explicitly start replay. Missing matches offer recording. Catalog matching is probabilistic and includes a guard for known opposite effects; it never authorizes execution. Messages are independent searches, not multi-turn parameter extraction. The existing LLM UI discovery form still uses the address-update contract.
+
+Bank records live in SQLite or PostgreSQL. Workflow definitions remain versioned JSON files under `DASHBOARD_STORAGE/capabilities`; drafts, run logs and masked recording screenshots are separate files. A database-backed workflow catalog is not implemented.
+
 ## Current state: intent does not guarantee execution
 
 An AI agent can understand a request such as "update this customer's mailing address," but completing it requires access to the application where that information lives. In applications without a usable API, the work happens through screens: search for a record, open its details, fill fields, review a change, and verify the result.

@@ -46,9 +46,29 @@ def setup_replay(page):
     page.get_by_role('button',name='Replay capability').click()
     expect(page.get_by_role('button',name='Start replay',exact=True)).to_be_enabled(timeout=15000)
 
+
+@pytest.mark.parametrize('matched', [False, True])
+def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkeypatch, matched):
+    import engine.catalog_agent as agent
+    async def scripted_match(message, catalog, model):
+        assert message == 'Update the mailing address' and 'example' in catalog
+        return {'matches': ['example'] if matched else [], 'model_used': True}
+    monkeypatch.setattr(agent, 'match_capabilities', scripted_match)
+    page = dashboard
+    page.get_by_role('navigation').get_by_role('button', name='Agent', exact=True).click()
+    page.get_by_label('Describe your task').fill('Update the mailing address')
+    page.get_by_role('button', name='Find a workflow', exact=True).click()
+    action = page.get_by_role('button', name='Use this workflow' if matched else 'Record a new workflow', exact=True)
+    expect(action).to_be_visible(timeout=10000)
+    assert page.request.get(page.url.rstrip('/')+'/api/runs').json() == []
+    action.click()
+    expect(page.get_by_role('button', name='Start replay' if matched else 'Start recording', exact=True)).to_be_visible()
+    if matched:
+        expect(page.get_by_label('Input customer_id')).to_have_value('C-205')
+
 def test_dashboard_executes_replay_and_verifies_live_result(dashboard):
     page=dashboard;setup_replay(page)
-    page.get_by_label('Authorize the synthetic address save').check()
+    page.get_by_label('Authorize changes for this synthetic run').check()
     page.get_by_role('button',name='Start replay',exact=True).click()
     expect(page.locator('.result-banner.success')).to_be_visible(timeout=45000)
     expect(page.locator('.result-banner')).to_contain_text('C-104')
@@ -65,8 +85,8 @@ def test_scripted_operator_uses_same_live_session_and_resumes(dashboard):
     page.get_by_role('button',name='Start replay',exact=True).click()
     expect(page.get_by_role('heading',name='Your review is needed')).to_be_visible(timeout=45000)
     before=page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]
-    # The review page's four navigation links precede its Save button.
-    for _ in range(5): page.get_by_role('button',name='Tab',exact=True).click()
+    # The review page's five navigation links precede its Save button.
+    for _ in range(6): page.get_by_role('button',name='Tab',exact=True).click()
     page.get_by_role('button',name='Enter',exact=True).click()
     for _ in range(60):
         record=page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]
@@ -155,7 +175,7 @@ def test_dashboard_records_reviews_publishes_and_replays(dashboard, monkeypatch)
     expect(page.get_by_role('button',name='Published to capabilities')).to_be_disabled(timeout=10000)
     page.get_by_role('button',name='Replay this new capability').click()
     expect(page.get_by_label('Input customer_id')).to_have_value('C-205')
-    page.get_by_label('Authorize the synthetic address save').check()
+    page.get_by_label('Authorize changes for this synthetic run').check()
     page.get_by_role('button',name='Start replay',exact=True).click()
     expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
     replayed=page.request.get(base+'/api/runs').json()[0]

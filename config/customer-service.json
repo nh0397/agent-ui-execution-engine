@@ -14,7 +14,14 @@
     "/confirmation/UPD-[A-F0-9]+",
     "/restore",
     "/accounts",
-    "/activity"
+    "/activity",
+    "/accounts/search",
+    "/accounts/AC-[0-9]+",
+    "/cards",
+    "/cards/search",
+    "/cards/review",
+    "/cards/save",
+    "/cards/confirmation/CRD-[A-F0-9]+"
   ],
   "allowed_actions": [
     "click",
@@ -23,14 +30,19 @@
     "check"
   ],
   "risky_targets": [
-    "Save address"
+    "Save address",
+    "Freeze card",
+    "Unfreeze card"
   ],
   "automated_post_routes": [
     "/customers/C-[0-9]+/review",
-    "/save"
+    "/save",
+    "/cards/review",
+    "/cards/save"
   ],
   "risky_post_routes": [
-    "/save"
+    "/save",
+    "/cards/save"
   ],
   "conditions": [
     {
@@ -78,6 +90,18 @@
         },
         "reason": "Reconcile saved state without resubmitting"
       }
+    },
+    {
+      "text": "Account not found",
+      "category": "business"
+    },
+    {
+      "text": "Card not found",
+      "category": "business"
+    },
+    {
+      "text": "Card already in requested state",
+      "category": "business"
     }
   ]
 }

@@ -66,6 +66,12 @@ class LiveControl:
         self.intervention = None
 
 
+class AgentMessage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    message: str = Field(min_length=1, max_length=2000)
+    model: Literal["mistral:latest", "llama3.1:latest"] = "mistral:latest"
+
+
 def create_app(root: Path | None = None):
     root = Path(root or ROOT)
     if (root / ".browsers").exists():
@@ -181,7 +187,7 @@ def create_app(root: Path | None = None):
                         checks["models"] = [m["name"] for m in reply.json().get("models", [])]
                 except httpx.HTTPError:
                     checks[name] = False
-        return {"status": "ready", **checks}
+        return {"status": "ready", "bank_url": os.getenv("DEMO_PUBLIC_URL", entry if "127.0.0.1" in entry or "localhost" in entry else "http://127.0.0.1:8000"), **checks}
 
     @app.post("/api/session")
     async def choose_session(request: Request, response: Response):
@@ -214,6 +220,21 @@ def create_app(root: Path | None = None):
         if job_id not in jobs:
             raise HTTPException(404, "Run not found")
         return jobs[job_id]
+
+    @app.post("/api/agent/match")
+    async def agent_match(body: AgentMessage, request: Request):
+        session(request)
+        if not body.message.strip():
+            raise HTTPException(422, "Describe the task you want to perform")
+        from engine.catalog_agent import match_capabilities
+        saved = {key: Capability.model_validate_json(path.read_text(encoding="utf-8")) for key, path in catalog().items()}
+        try:
+            result = await match_capabilities(body.message.strip(), saved, body.model)
+        except httpx.HTTPError:
+            raise HTTPException(503, "The local model is unavailable or timed out. Start Ollama or choose a workflow directly in Capabilities.")
+        except (ValueError, KeyError, TypeError):
+            raise HTTPException(502, "The model could not return a valid catalog selection. Please try again.")
+        return {**result, "catalog_count": len(saved)}
 
     @app.get("/api/runs/{job_id}")
     def run_detail(job_id: str, request: Request):
