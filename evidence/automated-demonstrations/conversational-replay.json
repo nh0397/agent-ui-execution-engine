@@ -1,0 +1,8 @@
+{
+  "request": "Check the balance of AC-10002",
+  "run_id": "61e463c6-6150-43ec-9361-f939c5ceda13",
+  "status": "success",
+  "replay_model_decisions": 0,
+  "provenance": "Genuine local Ollama catalog matching and input extraction followed by browser replay; scripted browser operator",
+  "step_video_playback_verified": true
+}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Run } from "./api";
+import { request, type Run } from "./api";
 
 export function RecordingTools({
   run,
@@ -126,16 +126,56 @@ export function RecordingDocument({
   run,
   publish,
   viewer,
+  csrf,
 }: {
+  csrf: string;
   run: Run;
   publish: () => Promise<void>;
   viewer: boolean;
 }) {
+  const [building, setBuilding] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoError, setVideoError] = useState("");
+  async function buildVideo() {
+    setBuilding(true);
+    setVideoError("");
+    try {
+      await request(`/runs/${run.id}/video`, { method: "POST" }, csrf);
+      setVideoReady(true);
+    } catch (error) {
+      setVideoError((error as Error).message);
+    } finally {
+      setBuilding(false);
+    }
+  }
   const steps = run.recording?.steps || [];
   if (!steps.length && !run.draft) return null;
   return (
     <section className="panel event-panel">
       <h2>Recorded steps and screenshots</h2>
+      <h3>Watch this recording</h3>
+      <p>
+        A playable sequence of masked before/after frames. This is step
+        playback, not continuous motion capture.
+      </p>
+      {run.has_video || videoReady ? (
+        <video
+          controls
+          preload="metadata"
+          style={{ width: "100%", maxHeight: 540 }}
+          src={`/api/runs/${run.id}/video`}
+          aria-label="Recorded workflow video"
+        />
+      ) : (
+        <button
+          className="button secondary"
+          disabled={building || run.status === "running"}
+          onClick={() => void buildVideo()}
+        >
+          {building ? "Preparing video…" : "Create playback video"}
+        </button>
+      )}
+      {videoError && <p role="alert">{videoError}</p>}
       <p>
         Before and after each supported human gesture. Field values and marked
         sensitive regions are masked before saving.

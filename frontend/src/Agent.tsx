@@ -17,6 +17,7 @@ export function Agent({
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [initialRequest, setInitialRequest] = useState("");
   const [selected, setSelected] = useState<CatalogItem | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [approved, setApproved] = useState(false);
@@ -24,14 +25,45 @@ export function Agent({
   const missing = fields.find((field) => !values[field]);
   const say = (message: string, matches?: string[]) =>
     setMessages((old) => [...old, { role: "agent", text: message, matches }]);
-  function choose(item: CatalogItem) {
+  async function readValues(
+    item: CatalogItem,
+    message: string,
+    previous: Record<string, string>,
+  ) {
+    setBusy(true);
+    try {
+      const reply = await request<{ values: Record<string, string> }>(
+        "/agent/inputs",
+        {
+          method: "POST",
+          body: JSON.stringify({ capability_id: item.id, message }),
+        },
+        csrf,
+      );
+      const updated = { ...previous, ...reply.values };
+      setValues(updated);
+      const remaining = Object.keys(item.capability.inputs).filter(
+        (field) => !updated[field],
+      );
+      say(
+        remaining.length
+          ? `I still need ${remaining.map((field) => field.replaceAll("_", " ")).join(", ")}. You can give me those together in one message.`
+          : "I have the details. Please review them below before I run this workflow.",
+      );
+    } catch (error) {
+      say((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function choose(item: CatalogItem) {
     setSelected(item);
     setValues({});
     setApproved(false);
-    const first = Object.keys(item.capability.inputs)[0];
     say(
-      `Let's run ${item.capability.name}. ${first ? `What is the ${first.replaceAll("_", " ")}?` : "No inputs are needed. Review and start below."}`,
+      `I'll use ${item.capability.name}. Let me pick up the details from your request.`,
     );
+    await readValues(item, initialRequest, {});
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -42,36 +74,16 @@ export function Agent({
     if (input.toLowerCase() === "cancel") {
       setSelected(null);
       setValues({});
-      say("Cancelled this request. What would you like to do next?");
-      return;
-    }
-    if (selected && missing) {
-      const pattern = selected.capability.inputs[missing].pattern;
-      if (
-        input.length > 300 ||
-        (pattern && !new RegExp(`^(?:${pattern})$`).test(input))
-      ) {
-        say(
-          `That value doesn't match the required format${pattern ? ` (${pattern})` : ""}. Please enter ${missing} again.`,
-        );
-        return;
-      }
-      const updated = { ...values, [missing]: input };
-      setValues(updated);
-      const next = fields.find((field) => !updated[field]);
       say(
-        next
-          ? `What is the ${next.replaceAll("_", " ")}?`
-          : "I have the required inputs. Review them below and select Run workflow. I won't execute until you do.",
+        "Cleared the draft request. This does not stop a running execution; use its Cancel run control. What would you like to do next?",
       );
       return;
     }
     if (selected) {
-      say(
-        "Your workflow is ready below. Select Run workflow, or type cancel to start a different request.",
-      );
+      await readValues(selected, input, values);
       return;
     }
+    setInitialRequest(input);
     setBusy(true);
     try {
       const reply = await request<{ matches: string[]; catalog_count: number }>(
@@ -168,7 +180,7 @@ export function Agent({
                   <button
                     className="button primary"
                     disabled={viewer || !!selected || busy}
-                    onClick={() => choose(item)}
+                    onClick={() => void choose(item)}
                   >
                     Use this workflow
                   </button>
@@ -240,8 +252,8 @@ export function Agent({
         Record a workflow
       </button>
       <p className="muted">
-        Conversation stays in this page's memory. Local Ollama matches tasks;
-        input collection and replay are deterministic.
+        Conversation stays in this page’s memory. The local model understands
+        requests; you review extracted values before deterministic replay.
       </p>
     </section>
   );

@@ -251,10 +251,9 @@ export default function LiveWorkspace() {
   const [typing, setTyping] = useState("");
   const [frameTick, setFrameTick] = useState(0);
   const [imageError, setImageError] = useState(false);
-  const current =
-    runs.find((r) => r.id === selected) ||
-    runs.find((r) => r.status === "running") ||
-    runs[0];
+  const current = selected
+    ? runs.find((r) => r.id === selected)
+    : runs.find((r) => r.status === "running") || runs[0];
   const inputSchema =
     (mode === "replay"
       ? catalog.find((c) => c.id === capId)?.capability
@@ -425,19 +424,17 @@ export default function LiveWorkspace() {
         <div className="nav-label">WORKSPACE</div>
         <nav aria-label="Main navigation">
           {pages.map((name, i) => {
+            if (name !== "Overview" && name !== "Run history") return null;
             const Icon = icons[i];
             return (
               <button
                 key={name}
-                className={`nav-item ${page === name ? "active" : ""}`}
+                className={`nav-item ${(name === "Overview" ? page !== "Run history" : page === name) ? "active" : ""}`}
                 onClick={() => navigate(name)}
                 aria-current={page === name ? "page" : undefined}
               >
                 <Icon size={18} />
-                {name}
-                {name === "Live session" && active && (
-                  <span className="nav-count">1</span>
-                )}
+                {name === "Run history" ? "History" : name}
               </button>
             );
           })}
@@ -475,7 +472,7 @@ export default function LiveWorkspace() {
           <div>
             <span className="breadcrumb">Workspace</span>
             <span className="slash">/</span>
-            <strong>{page}</strong>
+            <strong>{page === "Run history" ? "History" : "Overview"}</strong>
           </div>
           <div className="top-actions">
             <span className="evidence-indicator">
@@ -523,7 +520,7 @@ export default function LiveWorkspace() {
                 disabled={viewer || !online}
               >
                 <Plus size={16} />
-                New workflow
+                Learn a new workflow
               </button>
             )}
           </div>
@@ -542,9 +539,64 @@ export default function LiveWorkspace() {
               backend; it does not simulate runs.
             </div>
           )}
+          {page !== "Run history" && (
+            <section className="workspace-story">
+              <div>
+                <strong>1. Describe the task</strong>
+                <span>Use a saved workflow or teach a new one.</span>
+              </div>
+              <div>
+                <strong>2. Review and run</strong>
+                <span>Confirm the details and watch the browser.</span>
+              </div>
+              <div>
+                <strong>3. Verify the result</strong>
+                <span>See the outcome, recorded steps, and playback.</span>
+              </div>
+            </section>
+          )}
+          <div className="workspace-context">
+            <span>
+              Cedar Bank is the synthetic application this assistant operates.
+            </span>
+            <a
+              href={health?.bank_url || "http://127.0.0.1:8003"}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open demo bank ↗
+            </a>
+            <button
+              className="text-button"
+              onClick={() => navigate("Capabilities")}
+            >
+              Saved workflows ({catalog.length})
+            </button>
+            {active && (
+              <button
+                className="text-button"
+                onClick={() => navigate("Live session")}
+              >
+                Watch active run
+              </button>
+            )}
+            {page !== "Overview" && (
+              <button
+                className="text-button"
+                onClick={() => navigate("Overview")}
+              >
+                Back to conversation
+              </button>
+            )}
+          </div>
           <div
             hidden={
-              !["Overview", "New workflow", "Live session"].includes(page)
+              ![
+                "Overview",
+                "New workflow",
+                "Live session",
+                "Capabilities",
+              ].includes(page)
             }
           >
             <Agent
@@ -1283,7 +1335,9 @@ export default function LiveWorkspace() {
                     </aside>
                   </div>
                   <RecordingDocument
+                    key={current.id}
                     run={current}
+                    csrf={csrf}
                     viewer={viewer}
                     publish={async () => {
                       try {

@@ -41,3 +41,11 @@ def test_model_selection_must_reference_catalog(monkeypatch, ids, valid):
         assert asyncio.run(call)['matches'] == ids
     else:
         with pytest.raises(ValueError): asyncio.run(call)
+
+
+def test_extraction_rejects_invented_unknown_and_invalid_values(monkeypatch):
+    from engine.catalog_agent import extract_inputs
+    async def response(self, url, **kwargs):
+        return httpx.Response(200, request=httpx.Request('POST', 'http://local/api/chat'), json={'message': {'content': json.dumps({'values': {'customer_id':'not-an-id', 'street':'Invented Street', 'city':'Exampleton', 'postal':'23456', 'admin':'true'}})}})
+    monkeypatch.setattr(httpx.AsyncClient, 'post', response)
+    assert asyncio.run(extract_inputs('not-an-id in Exampleton, postal 23456', fixture_capability(), 'test')) == {'city':'Exampleton', 'postal':'23456'}

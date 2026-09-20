@@ -16,6 +16,7 @@ export type Capability = {
   discovery_run: string;
 };
 export type Run = {
+  has_video?: boolean;
   id: string;
   draft?: Capability;
   recording?: {

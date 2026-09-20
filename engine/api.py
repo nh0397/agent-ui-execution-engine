@@ -72,6 +72,10 @@ class AgentMessage(BaseModel):
     model: Literal["mistral:latest", "llama3.1:latest"] = "mistral:latest"
 
 
+class InputMessage(AgentMessage):
+    capability_id: str
+
+
 def create_app(root: Path | None = None):
     root = Path(root or ROOT)
     if (root / ".browsers").exists():
@@ -96,6 +100,7 @@ def create_app(root: Path | None = None):
     lock = threading.Lock()
     persistence_lock = threading.Lock()
     active = threading.Lock()
+    video_lock = threading.Lock()
     for path in storage.glob("job-*.json"):
         job = json.loads(path.read_text())
         if job["status"] == "running":
@@ -167,6 +172,7 @@ def create_app(root: Path | None = None):
                 pass
         draft = drafts / f"{job['id']}.json"
         value["draft"] = json.loads(draft.read_text()) if job["status"] == "success" and draft.exists() else None
+        value["has_video"] = any((runs_root / job["id"]).glob("*/steps.webm"))
         result_paths = list((runs_root / job["id"]).glob("*/result.json"))
         if result_paths:
             try:
@@ -240,6 +246,21 @@ def create_app(root: Path | None = None):
     def run_detail(job_id: str, request: Request):
         session(request)
         return public_job(get_job(job_id))
+
+    @app.post("/api/agent/inputs")
+    async def agent_inputs(body: InputMessage, request: Request):
+        session(request)
+        path = catalog().get(body.capability_id)
+        if path is None:
+            raise HTTPException(404, "Saved workflow no longer exists")
+        from engine.catalog_agent import extract_inputs
+        try:
+            values = await extract_inputs(body.message, Capability.model_validate_json(path.read_text(encoding="utf-8")), body.model)
+        except httpx.HTTPError:
+            raise HTTPException(503, "The local model could not read your request. Please try again.")
+        except (ValueError, KeyError, TypeError):
+            raise HTTPException(502, "I couldn't safely extract the inputs. Please describe the values again.")
+        return {"values": values}
 
     @app.get("/api/runs/{job_id}/frame")
     def frame(job_id: str, request: Request):
@@ -375,6 +396,35 @@ def create_app(root: Path | None = None):
                     archive.write(path, path.name)
         return Response(stream.getvalue(), media_type="application/zip",
             headers={"Content-Disposition": f'attachment; filename="workflow-{job_id}.zip"'})
+
+    @app.post("/api/runs/{job_id}/video")
+    def build_video(job_id: str, request: Request):
+        session(request)
+        job = get_job(job_id)
+        if job["status"] == "running":
+            raise HTTPException(409, "Finish the recording before creating its video")
+        folders = list((runs_root/job_id).glob('*/recording.json'))
+        if not folders:
+            raise HTTPException(404, "This run has no recorded step images")
+        if not video_lock.acquire(blocking=False):
+            raise HTTPException(409, "Another recording video is being prepared; try again shortly")
+        try:
+            from engine.video import make_step_video
+            make_step_video(folders[0].parent, root)
+        except (ValueError, OSError) as exc:
+            raise HTTPException(422, str(exc) if isinstance(exc, ValueError) else 'Video encoder unavailable')
+        finally:
+            video_lock.release()
+        return {"ready": True}
+
+    @app.get("/api/runs/{job_id}/video")
+    def video(job_id: str, request: Request):
+        session(request)
+        get_job(job_id)
+        files = list((runs_root/job_id).glob('*/steps.webm'))
+        if not files:
+            raise HTTPException(404, "Recording video has not been prepared")
+        return FileResponse(files[0], media_type='video/webm')
 
     @app.get("/api/runs/{job_id}/evidence")
     def export(job_id: str, request: Request):
