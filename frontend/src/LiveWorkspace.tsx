@@ -1373,24 +1373,27 @@ export default function LiveWorkspace() {
               >
                 Open Cedar Bank <ExternalLink size={16} />
               </a>
-              <div className="bank-user-grid">
-                {[
-                  ["C-104", "Alex Example"],
-                  ["C-205", "Jordan Sample"],
-                  ["C-306", "Casey Demo"],
-                ].map(([id, name]) => (
-                  <article key={id}>
-                    <span className="avatar">
-                      {name
-                        .split(" ")
-                        .map((s) => s[0])
-                        .join("")}
-                    </span>
-                    <h3>{name}</h3>
-                    <code>{id}</code>
-                    <small>Active synthetic customer</small>
-                  </article>
-                ))}
+              <div className="callout">
+                <h3>Browse the live customer directory</h3>
+                <p>
+                  Open Cedar Bank to see the current customer count and database
+                  records. The directory shows 20 customers per page. Use Next
+                  page to browse, or search by Customer ID to find a record
+                  directly.
+                </p>
+                <p>
+                  Synthetic member IDs include C-1000 through C-1999. For
+                  example, search for C-1500 to try a member from the expanded
+                  dataset.
+                </p>
+                <a
+                  className="button secondary"
+                  href={health?.bank_url || "http://127.0.0.1:8000"}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Browse customer directory <ExternalLink size={16} />
+                </a>
               </div>
             </section>
           )}
