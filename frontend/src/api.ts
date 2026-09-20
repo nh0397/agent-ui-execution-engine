@@ -1,5 +1,6 @@
 export type Capability = {
   name: string;
+  source?: "human" | "llm";
   description: string;
   version: number;
   app: string;
@@ -15,6 +16,21 @@ export type Capability = {
 };
 export type Run = {
   id: string;
+  draft?: Capability;
+  recording?: {
+    error?: string;
+    headings?: string[];
+    outputs?: string[];
+    parameters?: Record<string, unknown>;
+    steps?: {
+      number: number;
+      kind: string;
+      before: string;
+      after: string;
+      action?: { kind: string; target: { name: string }; input_key?: string };
+    }[];
+  };
+  name?: string;
   created: number;
   mode: string;
   status: string;
@@ -36,6 +52,7 @@ export type Run = {
     step: number;
     session_id: string;
     has_frame: boolean;
+    takeover_requested?: boolean;
     intervention?: { reason: string; expected: unknown };
   };
 };

@@ -9,3 +9,7 @@
 - The published bank/dashboard services join an access network because internal-only networking prevented localhost port access. The database stays on the internal network with no published port. The browser uses cedar.test internally to avoid Chromium HTTPS upgrading the bare app hostname.
 
 Limits: no desktop adapter, production authentication, tenant isolation, or visual-only discovery. Structured observations rely on labels and configured sensitive nodes. Arbitrary human recovery during discovery does not publish incomplete capabilities.
+
+## Human recording extension
+
+Final regression: 42 tests passed, with two dependency deprecation warnings. TypeScript validation and the production Vite build passed. A full-stack browser test recorded a parameterized workflow, downloaded 26 masked screenshots plus documentation, reviewed/published the draft, and replayed different inputs with zero model decisions. API tests verify automation rejects click/type commands, accepts a control request, and requires an operator to publish drafts. The scripted recorder example is in human-recorder-scripted-test/; no real-person demonstration is claimed.

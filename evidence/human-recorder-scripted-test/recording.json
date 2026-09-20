@@ -1,0 +1,196 @@
+[
+  {
+    "number": 1,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": null,
+    "before": "step-001-before.png",
+    "after": "step-001-after.png"
+  },
+  {
+    "number": 2,
+    "kind": "type",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Customer ID",
+        "role": "textbox"
+      },
+      "input_key": "customer_id",
+      "output_key": null,
+      "reason": "Human entered parameter"
+    },
+    "before": "step-002-before.png",
+    "after": "step-002-after.png"
+  },
+  {
+    "number": 3,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Search customers",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Human activated control"
+    },
+    "before": "step-003-before.png",
+    "after": "step-003-after.png"
+  },
+  {
+    "number": 4,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Open customer",
+        "role": "link"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Human activated control"
+    },
+    "before": "step-004-before.png",
+    "after": "step-004-after.png"
+  },
+  {
+    "number": 5,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Edit mailing address",
+        "role": "link"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Human activated control"
+    },
+    "before": "step-005-before.png",
+    "after": "step-005-after.png"
+  },
+  {
+    "number": 6,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": null,
+    "before": "step-006-before.png",
+    "after": "step-006-after.png"
+  },
+  {
+    "number": 7,
+    "kind": "type",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Street address",
+        "role": "textbox"
+      },
+      "input_key": "street",
+      "output_key": null,
+      "reason": "Human entered parameter"
+    },
+    "before": "step-007-before.png",
+    "after": "step-007-after.png"
+  },
+  {
+    "number": 8,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": null,
+    "before": "step-008-before.png",
+    "after": "step-008-after.png"
+  },
+  {
+    "number": 9,
+    "kind": "type",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "City",
+        "role": "textbox"
+      },
+      "input_key": "city",
+      "output_key": null,
+      "reason": "Human entered parameter"
+    },
+    "before": "step-009-before.png",
+    "after": "step-009-after.png"
+  },
+  {
+    "number": 10,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": null,
+    "before": "step-010-before.png",
+    "after": "step-010-after.png"
+  },
+  {
+    "number": 11,
+    "kind": "type",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Postal code",
+        "role": "textbox"
+      },
+      "input_key": "postal",
+      "output_key": null,
+      "reason": "Human entered parameter"
+    },
+    "before": "step-011-before.png",
+    "after": "step-011-after.png"
+  },
+  {
+    "number": 12,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Review changes",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Human activated control"
+    },
+    "before": "step-012-before.png",
+    "after": "step-012-after.png"
+  },
+  {
+    "number": 13,
+    "kind": "click",
+    "operator_id": "scripted-test",
+    "action": {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Save address",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Human activated control"
+    },
+    "before": "step-013-before.png",
+    "after": "step-013-after.png"
+  }
+]

@@ -93,3 +93,70 @@ def test_viewer_and_runtime_failure(dashboard):
     page.get_by_role('button',name='Start replay',exact=True).click()
     expect(page.locator('.result-banner.failure')).to_be_visible(timeout=45000)
     expect(page.locator('.result-banner')).to_contain_text('Permission denied')
+
+
+def test_dashboard_records_reviews_publishes_and_replays(dashboard, monkeypatch):
+    """Scripted UI gestures, not a genuine human recording demonstration."""
+    import io, zipfile
+    import engine.recording as recording
+    from engine.surface import BrowserSurface
+    coords = {}
+    class InspectedSurface(BrowserSurface):
+        def frame(self):
+            nonlocal coords
+            # Read-only test instrumentation locates image click positions; all task
+            # actions still travel through the dashboard's real control API.
+            coords = self.page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('input,button,a')].map(e=>{
+                const r=e.getBoundingClientRect();const name=e.labels?.[0]?.textContent.trim()||e.innerText?.trim();
+                return [name,{x:r.x+r.width/2,y:r.y+r.height/2}];}).filter(([name,p])=>name && p.x>0 && p.y>0))""")
+            return super().frame()
+    monkeypatch.setattr(recording,'BrowserSurface',InspectedSurface)
+    page=dashboard
+    page.get_by_role('navigation').get_by_role('button',name='New workflow').click()
+    page.get_by_role('button',name='Record workflow',exact=False).click()
+    page.get_by_label('Workflow name').fill('Manual address update')
+    page.get_by_role('button',name='Start recording',exact=True).click()
+    expect(page.get_by_role('heading',name='You are recording')).to_be_visible(timeout=15000)
+    base=page.url.rstrip('/')
+    def wait_steps(count):
+        for _ in range(150):
+            job=page.request.get(base+'/api/runs').json()[0]
+            if job.get('recording',{}).get('error'):
+                raise AssertionError(job['recording']['error'])
+            if len(job.get('recording',{}).get('steps',[]))>=count:return job
+            page.wait_for_timeout(100)
+        raise AssertionError('Recording command was not documented')
+    gestures=[('click','Customer ID'),('fill','customer_id','C-104'),('click','Search customers'),
+        ('click','Open customer'),('click','Edit mailing address'),('click','Street address'),
+        ('fill','street','71 Recording Road'),('click','City'),('fill','city','Exampleton'),
+        ('click','Postal code'),('fill','postal','34567'),('click','Review changes'),('click','Save address')]
+    for count,item in enumerate(gestures,1):
+        if item[0]=='click':
+            point=coords[item[1]]
+            screen=page.locator('.live-screen');box=screen.bounding_box()
+            screen.click(position={'x':point['x']*box['width']/1280,'y':point['y']*box['height']/720})
+        else:
+            page.get_by_label('Parameter name',exact=True).fill(item[1])
+            page.get_by_label('Example value',exact=True).fill(item[2])
+            page.get_by_role('button',name='Fill parameter',exact=True).click()
+        job=wait_steps(count)
+    page.get_by_label('Success heading').select_option('Address updated')
+    for label,key in [('Saved customer ID','customer_id'),('Saved street address','street'),('Saved city','city'),('Saved postal code','postal'),('Confirmation reference','confirmation_reference')]:
+        page.get_by_label('Output key for '+label,exact=True).fill(key)
+    page.get_by_role('button',name='Finish and review recording').click()
+    publish=page.get_by_role('button',name='Publish reviewed workflow')
+    expect(publish).to_be_visible(timeout=15000)
+    doc=page.request.get(base+'/api/runs/'+job['id']+'/document')
+    assert doc.status==200
+    with zipfile.ZipFile(io.BytesIO(doc.body())) as archive:
+        assert 'WORKFLOW.md' in archive.namelist()
+        assert len([n for n in archive.namelist() if n.endswith('.png')])==26
+    publish.click()
+    expect(page.get_by_role('button',name='Published to capabilities')).to_be_disabled(timeout=10000)
+    page.get_by_role('button',name='Replay this new capability').click()
+    expect(page.get_by_label('Input customer_id')).to_have_value('C-205')
+    page.get_by_label('Authorize the synthetic address save').check()
+    page.get_by_role('button',name='Start replay',exact=True).click()
+    expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
+    replayed=page.request.get(base+'/api/runs').json()[0]
+    assert replayed['mode']=='replay' and replayed['model_decisions']==0 and replayed['actions']==14

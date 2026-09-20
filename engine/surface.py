@@ -24,6 +24,7 @@ class Surface(Protocol):
     def execute(self, action: Action, inputs: dict[str, str]) -> str | None: ...
     def visible(self, target: Target) -> bool: ...
     def frame(self) -> bytes: ...
+    def redacted_frame(self) -> bytes: ...
     def pump_events(self) -> None: ...
     def operator_action(self, command: dict) -> None: ...
 
@@ -184,15 +185,62 @@ class BrowserSurface:
             viewport = self.page.viewport_size
             if not (0 <= x < viewport["width"] and 0 <= y < viewport["height"]):
                 raise PolicyError("Operator click outside viewport")
-            self.page.mouse.click(x, y)
+            element = self.page.evaluate_handle("p => document.elementFromPoint(p.x,p.y)", {"x": x, "y": y}).as_element()
+            if element is None:
+                raise PolicyError("No element at operator click")
+            box = element.bounding_box()
+            if not box:
+                raise PolicyError("Operator target is no longer visible")
+            element.click(position={"x": x-box["x"], "y": y-box["y"]})
         elif kind == "type":
             self.page.keyboard.insert_text(str(command["text"])[:1000])
         elif kind == "key" and command.get("key") in ("Tab", "Enter", "Escape", "Backspace"):
-            self.page.keyboard.press(command["key"])
+            focused = self.page.locator(":focus")
+            if focused.count() == 1:
+                focused.press(command["key"])
+            else:
+                self.page.keyboard.press(command["key"])
         elif kind == "scroll":
             self.page.mouse.wheel(0, max(-1000, min(1000, int(command["delta"]))))
         else:
             raise PolicyError("Unsupported operator action")
+
+    def recording_target(self, command):
+        """Resolve a human gesture to a unique semantic target before navigation."""
+        descriptor = self.page.evaluate("""c => {
+          let e = c.kind === 'click' ? document.elementFromPoint(c.x,c.y) : document.activeElement;
+          if (!e) return null;
+          e = e.closest('button,a,input,textarea,select') || e;
+          const field = ['INPUT','TEXTAREA','SELECT'].includes(e.tagName);
+          const name = field ? (e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label'))
+            : (e.getAttribute('aria-label') || e.innerText?.trim());
+          return {name, field, role:e.tagName==='A'?'link':e.tagName==='BUTTON'?'button':'textbox',
+            editable: ['INPUT','TEXTAREA'].includes(e.tagName) && !e.readOnly && e.type !== 'password',
+            password:e.type==='password', pattern:e.getAttribute('pattern')};
+        }""", command)
+        if not descriptor or not descriptor.get('name'):
+            raise PolicyError("This control has no supported semantic label")
+        if descriptor['password']:
+            raise PolicyError("Credential fields cannot be recorded as workflow inputs")
+        target = Target(by="label" if descriptor['field'] else "role", name=descriptor['name'], role=descriptor['role'])
+        if not self.visible(target):
+            raise PolicyError("Recording target is missing or ambiguous")
+        return target, descriptor
+
+    def redacted_frame(self):
+        # Mask values and annotated private regions before generating any image bytes.
+        # Frames/canvas may contain pixels without inspectable text, so mask them entirely.
+        self.page.evaluate("""secrets => {
+          for (const e of document.querySelectorAll('body *')) {
+            const own=[...e.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('');
+            if(secrets.some(s=>own.includes(s))) e.setAttribute('data-capture-mask','');
+          }
+        }""", self.evidence.secrets)
+        try:
+            return self.page.screenshot(type="png", timeout=15000, full_page=True, mask_color="#203047",
+                mask=[self.page.locator('input,textarea,select,[data-sensitive],[data-capture-mask],iframe,canvas,video')])
+        finally:
+            self.page.evaluate("document.querySelectorAll('[data-capture-mask]').forEach(e=>e.removeAttribute('data-capture-mask'))")
 
     def close(self):
         self.context.close()

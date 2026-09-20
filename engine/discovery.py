@@ -70,6 +70,9 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
     try:
         with httpx.Client(base_url=os.getenv("OLLAMA_URL", "http://127.0.0.1:11434"), timeout=180, trust_env=False) as client:
             for _ in range(30):
+                if runtime.check_takeover():
+                    manual_recovery = True
+                    filled_by_document.clear()
                 runtime.conditions()
                 observation = runtime.surface.observe()
                 runtime.evidence.event("observation", step=runtime.step, state=observation)
@@ -103,7 +106,7 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                     runtime.evidence.event("model_decision", decision=decision.model_dump(), choice=selected, available_actions=prompt["available_actions"], prompt_tokens=body.get("prompt_eval_count"), output_tokens=body.get("eval_count"), duration_ns=body.get("total_duration"))
                 if decision.status == "done":
                     result = runtime.finish()
-                    if manual_recovery:
+                    if manual_recovery or runtime.requested_takeover:
                         raise PolicyError("Human recovery completed the run, but its unrecorded steps cannot become a replay capability; rediscover from a clean entry")
                     capability = Capability(**spec.model_dump(), version=1, app=profile.app, app_version=profile.version, steps=actions, discovery_run=runtime.run_id)
                     path = Path(capability_path)

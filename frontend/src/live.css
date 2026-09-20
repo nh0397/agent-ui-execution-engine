@@ -252,3 +252,45 @@
     font-size: 11px;
   }
 }
+
+.recording-gallery {
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+}
+.recording-gallery details {
+  border: 1px solid #dde5d5;
+  padding: 12px;
+  border-radius: 8px;
+}
+.capture-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.capture-pair figure {
+  margin: 0;
+}
+.capture-pair img {
+  width: 100%;
+  height: auto;
+}
+.capture-pair figcaption {
+  text-align: center;
+  font-size: 12px;
+}
+.operator-tools h4 {
+  margin-top: 20px;
+}
+.operator-tools p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.mode-picker {
+  flex-wrap: wrap;
+}
+@media (max-width: 700px) {
+  .capture-pair {
+    grid-template-columns: 1fr;
+  }
+}

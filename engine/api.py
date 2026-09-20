@@ -2,6 +2,9 @@
 import json
 import os
 import queue
+import re
+import io
+import zipfile
 import secrets
 import threading
 import time
@@ -29,9 +32,10 @@ SCENARIOS = ("normal", "slow", "transient", "session-expired", "permission-denie
 
 class Invocation(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    mode: Literal["discovery", "replay"]
+    mode: Literal["discovery", "replay", "recording"]
     goal: str = Field(default="", max_length=2000)
-    inputs: dict[str, str]
+    inputs: dict[str, str] = Field(default_factory=dict)
+    name: str = Field(default="Recorded workflow", min_length=1, max_length=80)
     capability_id: str = "example"
     approve_writes: bool = False
     scenario: Literal["normal", "slow", "transient", "session-expired", "permission-denied", "uncertain-save"] = "normal"
@@ -40,11 +44,14 @@ class Invocation(BaseModel):
 
 class OperatorCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["click", "type", "key", "scroll", "resume", "abort"]
+    kind: Literal["click", "type", "key", "scroll", "resume", "abort", "request_control", "finish"]
     x: float = Field(default=0, ge=0, le=4096, allow_inf_nan=False)
     y: float = Field(default=0, ge=0, le=4096, allow_inf_nan=False)
     text: str = Field(default="", max_length=1000)
     key: Literal["Tab", "Enter", "Escape", "Backspace"] = "Tab"
+    parameter_key: str = Field(default="", max_length=50)
+    success_name: str = Field(default="", max_length=150)
+    output_bindings: dict[str, str] = Field(default_factory=dict)
     delta: int = Field(default=0, ge=-1000, le=1000)
 
 
@@ -52,6 +59,8 @@ class LiveControl:
     def __init__(self):
         self.commands = queue.Queue(maxsize=32)
         self.cancel = threading.Event()
+        self.takeover = threading.Event()
+        self.recording = {}
         self.frame = b""
         self.state = {"owner": "automation", "step": 0, "session_id": ""}
         self.intervention = None
@@ -67,6 +76,8 @@ def create_app(root: Path | None = None):
     runs_root.mkdir(exist_ok=True)
     artifacts = storage / "capabilities"
     artifacts.mkdir(exist_ok=True)
+    drafts = storage / "drafts"
+    drafts.mkdir(exist_ok=True)
     spec = WorkflowSpec.model_validate_json((root / "config/address-workflow.json").read_text())
     base_profile = Profile.model_validate_json((root / "config/customer-service.json").read_text())
     entry = os.getenv("DEMO_ENTRY", "http://127.0.0.1:8000").rstrip("/")
@@ -135,11 +146,20 @@ def create_app(root: Path | None = None):
     def public_job(job):
         value = dict(job)
         control = controls.get(job["id"])
-        value["live"] = {**control.state, "intervention": control.intervention, "has_frame": bool(control.frame)} if control else None
+        value["live"] = {**control.state, "intervention": control.intervention, "has_frame": bool(control.frame), "takeover_requested": control.takeover.is_set()} if control else None
         events = read_events(job)
-        value["actions"] = sum(e["event"] == "action" for e in events)
+        value["actions"] = sum(e["event"] == "action" or (e["event"] == "human_step" and bool(e.get("action"))) for e in events)
         value["model_decisions"] = sum(e["event"] == "model_decision" for e in events)
         value["events"] = events
+        value["recording"] = control.recording if control else {}
+        recording_files = list((runs_root / job["id"]).glob("*/recording.json"))
+        if recording_files:
+            try:
+                value["recording"] = {**value["recording"], "steps": json.loads(recording_files[0].read_text())}
+            except json.JSONDecodeError:
+                pass
+        draft = drafts / f"{job['id']}.json"
+        value["draft"] = json.loads(draft.read_text()) if job["status"] == "success" and draft.exists() else None
         result_paths = list((runs_root / job["id"]).glob("*/result.json"))
         if result_paths:
             try:
@@ -172,6 +192,11 @@ def create_app(root: Path | None = None):
         sessions[sid] = {"profile": person, "csrf": csrf, "expires": time.time() + 28800}
         response.set_cookie("workspace_session", sid, httponly=True, samesite="strict", max_age=28800, path="/api")
         return {"profile": person, "csrf": csrf, "demo": True}
+
+    @app.get("/api/workflow-spec")
+    def workflow_spec(request: Request):
+        session(request)
+        return spec.model_dump()
 
     @app.get("/api/capabilities")
     def capabilities(request: Request):
@@ -210,6 +235,13 @@ def create_app(root: Path | None = None):
         control = controls.get(job_id)
         if job["status"] != "running" or not control:
             raise HTTPException(409, "Run is not active")
+        if command.kind == "request_control":
+            if control.state["owner"] != "automation" or job["mode"] == "recording":
+                raise HTTPException(409, "Control is already with the human")
+            control.takeover.set()
+            return {"accepted": True, "message": "Will pause at the next safe action boundary"}
+        if command.kind == "finish" and job["mode"] != "recording":
+            raise HTTPException(409, "Finish is only available while recording")
         if command.kind == "abort":
             control.cancel.set()
             job["code"] = "Cancellation requested; waiting for the current operation to stop"
@@ -231,7 +263,8 @@ def create_app(root: Path | None = None):
             raise HTTPException(400, "Unknown capability")
         contract = Capability.model_validate_json(cap_path.read_text()) if invocation.mode == "replay" else spec
         try:
-            validate_values(contract.inputs, invocation.inputs)
+            if invocation.mode != "recording":
+                validate_values(contract.inputs, invocation.inputs)
             if any(len(v) > 300 for v in invocation.inputs.values()):
                 raise ValueError("Input exceeds 300 characters")
             if invocation.mode == "discovery" and not invocation.goal.strip():
@@ -241,7 +274,7 @@ def create_app(root: Path | None = None):
         if not active.acquire(blocking=False):
             raise HTTPException(409, "Another run is active. Finish or cancel it first.")
         job_id = str(uuid.uuid4())
-        job = {"id": job_id, "created": time.time(), "mode": invocation.mode, "status": "running", "code": "starting", "profile": person["name"], "capability_id": invocation.capability_id, "scenario": invocation.scenario, "approve_writes": invocation.approve_writes}
+        job = {"id": job_id, "created": time.time(), "mode": invocation.mode, "status": "running", "code": "starting", "profile": person["name"], "capability_id": invocation.capability_id, "scenario": invocation.scenario, "approve_writes": invocation.approve_writes, "name": invocation.name if invocation.mode == "recording" else contract.name}
         control = LiveControl()
         with lock:
             jobs[job_id] = job
@@ -252,7 +285,11 @@ def create_app(root: Path | None = None):
             try:
                 # This query sets a synthetic per-browser-session fault; no customer data API is used.
                 options = dict(inputs=invocation.inputs, profile=profile, entry=entry + "/?scenario=" + invocation.scenario, directory=runs_root / job_id, approve_writes=invocation.approve_writes, control=control)
-                if invocation.mode == "discovery":
+                if invocation.mode == "recording":
+                    from engine.recording import record
+                    result = record(name=invocation.name, description=invocation.goal or invocation.name,
+                        draft_path=drafts / f"{job_id}.json", **options)
+                elif invocation.mode == "discovery":
                     from engine.discovery import discover
                     result = discover(contract, model=invocation.model, goal=invocation.goal, capability_path=artifacts / f"{job_id}.json", **options)
                     if result.status == "success":
@@ -273,6 +310,49 @@ def create_app(root: Path | None = None):
 
         threading.Thread(target=execute, name=f"run-{job_id}", daemon=True).start()
         return {"id": job_id}
+
+    @app.post("/api/runs/{job_id}/publish")
+    def publish_recording(job_id: str, request: Request):
+        session(request, operator=True)
+        job = get_job(job_id)
+        draft = drafts / f"{job_id}.json"
+        if job["mode"] != "recording" or job["status"] != "success" or not draft.exists():
+            raise HTTPException(409, "A verified recording draft is required")
+        cap = Capability.model_validate_json(draft.read_text())
+        destination = artifacts / f"{job_id}.json"
+        if not destination.exists():
+            with destination.open("x", encoding="utf-8") as f:
+                f.write(cap.model_dump_json(indent=2))
+        job["capability_id"] = job_id
+        job["code"] = "Human recording published"
+        save(job)
+        return {"capability_id": job_id}
+
+    @app.get("/api/runs/{job_id}/captures/{filename}")
+    def capture(job_id: str, filename: str, request: Request):
+        session(request)
+        get_job(job_id)
+        if not re.fullmatch(r"step-[0-9]{3}-(before|after)\.png", filename):
+            raise HTTPException(404, "Capture not found")
+        paths = list((runs_root / job_id).glob(f"*/{filename}"))
+        if not paths:
+            raise HTTPException(404, "Capture not found")
+        return FileResponse(paths[0], media_type="image/png")
+
+    @app.get("/api/runs/{job_id}/document")
+    def document(job_id: str, request: Request):
+        session(request)
+        get_job(job_id)
+        folders = list((runs_root / job_id).glob("*/WORKFLOW.md"))
+        if not folders:
+            raise HTTPException(404, "No documented human actions yet")
+        stream = io.BytesIO()
+        with zipfile.ZipFile(stream, "w", zipfile.ZIP_DEFLATED) as archive:
+            for path in folders[0].parent.iterdir():
+                if path.name in {"WORKFLOW.md", "recording.json", "draft.json"} or re.fullmatch(r"step-[0-9]{3}-(before|after)\.png", path.name):
+                    archive.write(path, path.name)
+        return Response(stream.getvalue(), media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="workflow-{job_id}.zip"'})
 
     @app.get("/api/runs/{job_id}/evidence")
     def export(job_id: str, request: Request):

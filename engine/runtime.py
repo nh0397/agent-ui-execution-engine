@@ -35,6 +35,8 @@ class Runtime:
         self.step = 0
         self.expected = "Application entry and compatibility"
         self.human_assisted = False
+        self.journal = None
+        self.requested_takeover = False
         self.headed, self.approve_writes = headed, approve_writes
         self.operator_port = operator_port
         self.control = control
@@ -60,6 +62,14 @@ class Runtime:
         if self.control is not None:
             self.control.state = {"owner": self.surface.owner, "step": self.step, "session_id": self.surface.session_id}
             self.control.frame = self.surface.frame()
+
+    def check_takeover(self, expected=None):
+        if self.control is not None and self.control.takeover.is_set():
+            self.control.takeover.clear()
+            self.requested_takeover = True
+            self.intervene("Operator requested control; return to the displayed checkpoint before resuming", expected)
+            return True
+        return False
 
     def check_cancel(self):
         if self.control is not None and self.control.cancel.is_set():
@@ -104,7 +114,15 @@ class Runtime:
                         if kind in ("resume", "abort"):
                             answer.append(kind)
                             break
+                        from engine.recording import CaptureJournal
+                        if self.journal is None:
+                            self.journal = CaptureJournal(self.surface, self.evidence)
+                        if kind == "type" and command.get("text"):
+                            self.evidence.secrets.append(command["text"])
+                        before = self.journal.capture("before")
                         self.surface.operator_action(command)
+                        after = self.journal.capture("after")
+                        self.journal.append(command, before, after)
         finally:
             if bridge is not None and self.control is None:
                 bridge.close()
@@ -116,6 +134,10 @@ class Runtime:
             raise PolicyError("Resume application compatibility check failed")
         if expected and not self.surface.visible(Target.model_validate(expected)):
             raise PolicyError("Resume checkpoint not satisfied")
+        # Commands queued for this ownership interval cannot spill into the next one.
+        if self.control is not None:
+            while not self.control.commands.empty():
+                self.control.commands.get_nowait()
         self.surface.owner = "automation"
         if self.control is not None:
             self.control.intervention = None
@@ -147,6 +169,7 @@ class Runtime:
 
     def act(self, action):
         self.check_cancel()
+        self.check_takeover(action.target.model_dump())
         self.expected = f"{action.kind}: {action.target.name}"
         if time.monotonic() - self.start > 900:
             raise PolicyError("Run deadline exceeded")

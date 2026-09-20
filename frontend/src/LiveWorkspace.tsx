@@ -30,9 +30,9 @@ import {
   X,
 } from "lucide-react";
 import { request, type Run, type CatalogItem } from "./api";
+import { RecordingTools, RecordingDocument } from "./Recording";
 import archive from "./generated/evidence.json";
 import "./live.css";
-
 const people = [
   { id: "mira", name: "Mira Chen", initials: "MC", role: "Operator" },
   { id: "sam", name: "Sam Rivera", initials: "SR", role: "Operator" },
@@ -107,7 +107,6 @@ function status(run: Run) {
           ? "Business outcome"
           : "Failed";
 }
-
 function RunTable({
   visibleRuns,
   runs,
@@ -146,7 +145,7 @@ function RunTable({
                     onLive(run.id);
                   }}
                 >
-                  Customer address update
+                  {(run.name || "Customer address update").replaceAll("_", " ")}
                 </button>
                 <small className="mono">
                   {run.id.slice(0, 8)} ·{" "}
@@ -207,7 +206,6 @@ function RunTable({
     </div>
   );
 }
-
 export default function LiveWorkspace() {
   const [page, setPage] = useState<Page>("Overview");
   const [person, setPerson] = useState(people[0]);
@@ -228,12 +226,18 @@ export default function LiveWorkspace() {
   const [inspect, setInspect] = useState<CatalogItem | null>(null);
   const [showArchive, setShowArchive] = useState(false);
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<"replay" | "discovery">("discovery");
+  const [mode, setMode] = useState<"replay" | "discovery" | "recording">(
+    "discovery",
+  );
   const [capId, setCapId] = useState("example");
   const [goal, setGoal] = useState(
     "Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output.",
   );
-  const [inputs, setInputs] = useState({
+  const [workflowName, setWorkflowName] = useState("Customer address change");
+  const [template, setTemplate] = useState<CatalogItem["capability"] | null>(
+    null,
+  );
+  const [inputs, setInputs] = useState<Record<string, string>>({
     customer_id: "C-104",
     street: "41 Cedar Avenue",
     city: "Sampletown",
@@ -249,6 +253,11 @@ export default function LiveWorkspace() {
     runs.find((r) => r.id === selected) ||
     runs.find((r) => r.status === "running") ||
     runs[0];
+  const inputSchema =
+    (mode === "replay"
+      ? catalog.find((c) => c.id === capId)?.capability
+      : template
+    )?.inputs || {};
   const active = runs.find((r) => r.status === "running");
   const viewer = person.role === "Viewer";
   const canControl =
@@ -258,7 +267,6 @@ export default function LiveWorkspace() {
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
-
   async function refresh() {
     const [list, caps] = await Promise.all([
       request<Run[]>("/runs"),
@@ -278,6 +286,7 @@ export default function LiveWorkspace() {
       setPerson(p);
       setProfileDialog(false);
       await refresh();
+      setTemplate(await request<CatalogItem["capability"]>("/workflow-spec"));
       setError("");
     } catch (e) {
       setOnline(false);
@@ -330,7 +339,13 @@ export default function LiveWorkspace() {
           body: JSON.stringify({
             mode,
             goal,
-            inputs,
+            inputs:
+              mode === "recording"
+                ? {}
+                : Object.fromEntries(
+                    Object.keys(inputSchema).map((k) => [k, inputs[k] || ""]),
+                  ),
+            name: workflowName,
             capability_id: capId,
             scenario,
             approve_writes: approved,
@@ -364,15 +379,20 @@ export default function LiveWorkspace() {
   function prepareReplay(id: string) {
     setCapId(id);
     setMode("replay");
-    setInputs({
+    const sample: Record<string, string> = {
       customer_id: "C-205",
       street: "62 Test Street",
       city: "Demoville",
       postal: "54321",
-    });
+    };
+    const schema = catalog.find((c) => c.id === id)?.capability.inputs || {};
+    setInputs(
+      Object.fromEntries(
+        Object.keys(schema).map((key) => [key, sample[key] || ""]),
+      ),
+    );
     setPage("New workflow");
   }
-
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -699,8 +719,35 @@ export default function LiveWorkspace() {
                       <strong>Replay capability</strong>
                       <small>No model decisions</small>
                     </button>
+                    <button
+                      type="button"
+                      className={mode === "recording" ? "selected" : ""}
+                      onClick={() => setMode("recording")}
+                    >
+                      <Monitor />
+                      <strong>Record workflow</strong>
+                      <small>Demonstrate it yourself</small>
+                    </button>
                   </div>
-                  {mode === "discovery" ? (
+                  {mode === "recording" ? (
+                    <>
+                      <label>
+                        Workflow name
+                        <input
+                          aria-label="Workflow name"
+                          required
+                          value={workflowName}
+                          onChange={(e) => setWorkflowName(e.target.value)}
+                        />
+                      </label>
+                      <p className="callout">
+                        You will control the managed browser. Supported clicks
+                        and field entries are documented with redacted
+                        screenshots. Example values stay out of the saved
+                        capability. Review it before publishing.
+                      </p>
+                    </>
+                  ) : mode === "discovery" ? (
                     <>
                       <label>
                         Goal
@@ -735,7 +782,7 @@ export default function LiveWorkspace() {
                           <option key={c.id} value={c.id}>
                             {c.id === "example"
                               ? "Original example"
-                              : `Discovered ${c.id.slice(0, 8)}`}{" "}
+                              : `${c.capability.source === "human" ? "Human recording" : "Discovered"} ${c.id.slice(0, 8)}`}{" "}
                             · {c.capability.name} v{c.capability.version}
                           </option>
                         ))}
@@ -743,58 +790,29 @@ export default function LiveWorkspace() {
                     </label>
                   )}
                   <div className="divider" />
-                  <h3>Inputs</h3>
-                  <label>
-                    Customer ID
-                    <select
-                      value={inputs.customer_id}
-                      onChange={(e) =>
-                        setInputs({ ...inputs, customer_id: e.target.value })
-                      }
-                    >
-                      <option value="C-104">C-104 · Alex Example</option>
-                      <option value="C-205">C-205 · Jordan Sample</option>
-                      <option value="C-306">C-306 · Casey Demo</option>
-                      <option value="C-999">
-                        C-999 · Missing record scenario
-                      </option>
-                    </select>
-                  </label>
-                  <label>
-                    Street address
-                    <input
-                      required
-                      maxLength={150}
-                      value={inputs.street}
-                      onChange={(e) =>
-                        setInputs({ ...inputs, street: e.target.value })
-                      }
-                    />
-                  </label>
-                  <div className="two-fields">
-                    <label>
-                      City
-                      <input
-                        required
-                        maxLength={80}
-                        value={inputs.city}
-                        onChange={(e) =>
-                          setInputs({ ...inputs, city: e.target.value })
-                        }
-                      />
-                    </label>
-                    <label>
-                      Postal code
-                      <input
-                        required
-                        pattern="[0-9]{5}"
-                        value={inputs.postal}
-                        onChange={(e) =>
-                          setInputs({ ...inputs, postal: e.target.value })
-                        }
-                      />
-                    </label>
-                  </div>
+                  {mode !== "recording" && (
+                    <>
+                      <h3>Workflow inputs</h3>
+                      {Object.entries(inputSchema).map(([key, parameter]) => (
+                        <label key={key}>
+                          {key.replaceAll("_", " ")}
+                          <input
+                            aria-label={`Input ${key}`}
+                            required
+                            maxLength={300}
+                            pattern={parameter.pattern || undefined}
+                            value={inputs[key] || ""}
+                            onChange={(e) =>
+                              setInputs({ ...inputs, [key]: e.target.value })
+                            }
+                          />
+                          {parameter.sensitive && (
+                            <small>Redacted in saved evidence</small>
+                          )}
+                        </label>
+                      ))}
+                    </>
+                  )}
                   <label>
                     Runtime scenario
                     <select
@@ -817,20 +835,22 @@ export default function LiveWorkspace() {
                       <option value="slow">Slow response · wait</option>
                     </select>
                   </label>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={approved}
-                      onChange={(e) => setApproved(e.target.checked)}
-                    />
-                    <span>
-                      <strong>Authorize the synthetic address save</strong>
-                      <small>
-                        Leave unchecked to review and save yourself in the live
-                        session.
-                      </small>
-                    </span>
-                  </label>
+                  {mode !== "recording" && (
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={approved}
+                        onChange={(e) => setApproved(e.target.checked)}
+                      />
+                      <span>
+                        <strong>Authorize the synthetic address save</strong>
+                        <small>
+                          Leave unchecked to review and save yourself in the
+                          live session.
+                        </small>
+                      </span>
+                    </label>
+                  )}
                   <button
                     className="button primary"
                     type="submit"
@@ -846,7 +866,9 @@ export default function LiveWorkspace() {
                       ? "Starting…"
                       : mode === "discovery"
                         ? "Start discovery"
-                        : "Start replay"}
+                        : mode === "recording"
+                          ? "Start recording"
+                          : "Start replay"}
                   </button>
                   {active && (
                     <p className="callout">
@@ -909,11 +931,11 @@ export default function LiveWorkspace() {
                       <Box />
                     </span>
                     <div>
-                      <h2>Customer address update</h2>
+                      <h2>{item.capability.name.replaceAll("_", " ")}</h2>
                       <p className="mono">
                         {item.id === "example"
                           ? "Original example"
-                          : `Live discovery ${item.id.slice(0, 8)}`}
+                          : `${item.capability.source === "human" ? "Human recording" : "LLM discovery"} ${item.id.slice(0, 8)}`}
                       </p>
                     </div>
                     <Badge tone="green">v{item.capability.version}</Badge>
@@ -1028,6 +1050,19 @@ export default function LiveWorkspace() {
                       {status(current)}
                     </Badge>
                     <span>Control: {current.live?.owner || "none"}</span>
+                    {current.status === "running" &&
+                      current.live?.owner === "automation" &&
+                      !viewer && (
+                        <button
+                          className="button secondary"
+                          disabled={current.live?.takeover_requested}
+                          onClick={() => command({ kind: "request_control" })}
+                        >
+                          {current.live?.takeover_requested
+                            ? "Control requested…"
+                            : "Request control"}
+                        </button>
+                      )}
                     {current.status === "running" && !viewer && (
                       <button
                         className="button secondary"
@@ -1093,7 +1128,9 @@ export default function LiveWorkspace() {
                       <section className="panel session-info">
                         <h3>
                           {canControl
-                            ? "Your review is needed"
+                            ? current.mode === "recording"
+                              ? "You are recording"
+                              : "Your review is needed"
                             : "Execution details"}
                         </h3>
                         {current.live?.intervention ? (
@@ -1115,7 +1152,9 @@ export default function LiveWorkspace() {
                         ) : (
                           <p>
                             {current.status === "running"
-                              ? "The engine is choosing or executing the next permitted action."
+                              ? current.mode === "recording"
+                                ? "Demonstrate the workflow using the image and parameter controls below."
+                                : "The engine owns this browser. Request control to pause at the next safe action boundary."
                               : "The run has finished. Inspect its outputs and evidence below."}
                           </p>
                         )}
@@ -1133,7 +1172,14 @@ export default function LiveWorkspace() {
                               "Starting"}
                           </dd>
                         </dl>
-                        {canControl && (
+                        {canControl && current.mode === "recording" && (
+                          <RecordingTools
+                            key={current.id}
+                            run={current}
+                            command={command}
+                          />
+                        )}
+                        {canControl && current.mode !== "recording" && (
                           <div className="operator-tools">
                             <label>
                               Text for focused field
@@ -1196,6 +1242,22 @@ export default function LiveWorkspace() {
                       </section>
                     </aside>
                   </div>
+                  <RecordingDocument
+                    run={current}
+                    viewer={viewer}
+                    publish={async () => {
+                      try {
+                        await request(
+                          `/runs/${current.id}/publish`,
+                          { method: "POST" },
+                          csrf,
+                        );
+                        await refresh();
+                      } catch (e) {
+                        setError((e as Error).message);
+                      }
+                    }}
+                  />
                   <section className="panel event-panel">
                     <div className="section-heading">
                       <h2>Live event log</h2>
@@ -1215,7 +1277,9 @@ export default function LiveWorkspace() {
                           {JSON.stringify(current.result.outputs, null, 2)}
                         </pre>
                         {current.status === "success" &&
-                          current.mode === "discovery" && (
+                          (current.mode === "discovery" ||
+                            (current.mode === "recording" &&
+                              current.capability_id === current.id)) && (
                             <button
                               className="button primary"
                               onClick={() =>

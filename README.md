@@ -293,3 +293,18 @@ Keep local credentials in environment variables or ignored configuration. Browse
 See [STORYLINE.md](STORYLINE.md) for the problem, live demonstration, engineering decisions, and honest scope limits. Discovery requires an explicitly supplied workflow contract and application policy; it learns the action sequence, not an arbitrary task schema.
 
 When discovery needs arbitrary manual recovery, the run can resume, but it will not publish a capability containing unrecorded human steps. Rediscover from a clean entry after resolving the obstruction. A manual approval of the already-selected save action remains supported.
+
+## Record a workflow yourself
+
+Human demonstration is a second authoring path alongside LLM discovery. Both produce the same replay contract; human recordings are labeled separately.
+
+1. Choose **New workflow > Record workflow**, name it, and start recording.
+2. Click a field inside the live image. Enter its parameter name (for example `customer_id`) and an example value in the side panel, then click **Fill parameter**. This replaces the field value and records a parameter binding, not the example.
+3. Click application buttons and links to continue. Each supported click, field fill, Tab, or scroll produces redacted before/after screenshots. A field fill is one input event; individual keystrokes and other applications are not recorded.
+4. At the result screen, select its success heading and name the readonly output fields. Reuse input names for outputs that must equal the supplied values. Select **Finish and review recording**.
+5. Inspect the draft actions and screenshots, then **Publish reviewed workflow**. Download the step document and images as a ZIP if needed. Drafts never appear as runnable capabilities before publication.
+6. Choose the workflow in **Capabilities > Replay with new inputs**. The input form is generated from its schema. The engine validates inputs and replays without model decisions.
+
+The engine owns the managed browser during replay and rejects operator clicks/typing. **Request control** pauses at the next safe boundary: a pending model request or browser action must finish first. Complete the manual work, return to the displayed checkpoint, and resume. Cancellation remains available. The lock affects only the managed session, not other browser tabs or the user's computer.
+
+Screenshot persistence is limited to documented human commands. Raw live-view frames remain in memory. Saved images mask form fields, marked sensitive regions, known example values, frames, and canvas/video surfaces before image bytes are written. This relies on the configured surface's sensitive-data annotations; arbitrary websites need a reviewed privacy profile. Credential fields and unsupported or ambiguous targets are rejected.
