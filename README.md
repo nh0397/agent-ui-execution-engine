@@ -2,6 +2,8 @@
 
 Turn an agent's intent into a reusable, verifiable workflow through a real user interface.
 
+For a hands-on first run, follow [Create and test your first workflow](WALKTHROUGH.md), including storage locations, recording, replay, and failure checks.
+
 ## Current state: intent does not guarantee execution
 
 An AI agent can understand a request such as "update this customer's mailing address," but completing it requires access to the application where that information lives. In applications without a usable API, the work happens through screens: search for a record, open its details, fill fields, review a change, and verify the result.

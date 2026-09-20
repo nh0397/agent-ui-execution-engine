@@ -858,6 +858,7 @@ export default function LiveWorkspace() {
                       !online ||
                       !!active ||
                       !health?.bank ||
+                      (mode === "replay" && !catalog.some((c) => c.id === capId)) ||
                       (mode === "discovery" && !health?.models?.includes(model))
                     }
                   >
@@ -924,6 +925,12 @@ export default function LiveWorkspace() {
           )}
           {page === "Capabilities" && (
             <div className="cap-library">
+              {catalog.length === 0 && (
+                <section className="panel capability-detail">
+                  <h2>No saved workflows yet</h2>
+                  <p>Open New workflow to record a demonstration or start LLM discovery. Verified workflows appear here after they are published.</p>
+                </section>
+              )}
               {catalog.map((item) => (
                 <section className="panel capability-detail" key={item.id}>
                   <div className="cap-title">

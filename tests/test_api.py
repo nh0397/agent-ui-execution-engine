@@ -3,6 +3,19 @@ from fastapi.testclient import TestClient
 from engine.api import create_app
 
 
+def test_reset_workspace_hides_example_across_restarts(tmp_path, monkeypatch):
+    monkeypatch.setenv("DASHBOARD_STORAGE", str(tmp_path))
+    (tmp_path / ".hide-example").touch()
+    for _ in range(2):
+        with TestClient(create_app()) as client:
+            client.headers["Origin"] = "http://127.0.0.1:5174"
+            response = client.post("/api/session", json={"profile_id": "mira"})
+            client.headers["X-CSRF-Token"] = response.json()["csrf"]
+            assert client.get("/api/capabilities").json() == []
+            assert client.get("/api/runs").json() == []
+            assert client.post("/api/runs", json={"mode": "replay", "capability_id": "example", "inputs": {}}).status_code == 400
+
+
 def test_api_session_origin_and_role_controls(tmp_path, monkeypatch):
     monkeypatch.setenv("DASHBOARD_STORAGE", str(tmp_path))
     with TestClient(create_app()) as client:

@@ -126,7 +126,8 @@ def create_app(root: Path | None = None):
         return value
 
     def catalog():
-        result = {"example": root / "capabilities/update-address.v1.json"}
+        # A reset workspace can hide the bundled example without deleting evidence.
+        result = {} if (storage / ".hide-example").exists() else {"example": root / "capabilities/update-address.v1.json"}
         result.update({p.stem: p for p in artifacts.glob("*.json")})
         return result
 
