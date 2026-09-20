@@ -1,0 +1,228 @@
+{
+  "name": "update_customer_address",
+  "description": "Update the specified customer's mailing address and verify the saved fields.",
+  "inputs": {
+    "customer_id": {
+      "type": "string",
+      "sensitive": false,
+      "pattern": "C-[0-9]+",
+      "equals_input": null
+    },
+    "street": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": null
+    },
+    "city": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": null
+    },
+    "postal": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": "[0-9]{5}",
+      "equals_input": null
+    }
+  },
+  "outputs": {
+    "customer_id": {
+      "type": "string",
+      "sensitive": false,
+      "pattern": null,
+      "equals_input": "customer_id"
+    },
+    "confirmation_reference": {
+      "type": "string",
+      "sensitive": false,
+      "pattern": "UPD-[A-F0-9]+",
+      "equals_input": null
+    },
+    "street": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": "street"
+    },
+    "city": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": "city"
+    },
+    "postal": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": "postal"
+    }
+  },
+  "success": {
+    "by": "role",
+    "name": "Address updated",
+    "role": "heading"
+  },
+  "schema_version": 1,
+  "version": 1,
+  "app": "customer-service",
+  "app_version": "1",
+  "steps": [
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Customer ID",
+        "role": "textbox"
+      },
+      "input_key": "customer_id",
+      "output_key": null,
+      "reason": "To find the correct customer record for updating."
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Search customers",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "To find the customer record with the given ID for further updates"
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Open customer",
+        "role": "link"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "To open the customer record for updating"
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Edit mailing address",
+        "role": "link"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "To update the customer's mailing address with the supplied street, city and postal inputs."
+    },
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Street address",
+        "role": "textbox"
+      },
+      "input_key": "street",
+      "output_key": null,
+      "reason": "To update the street field with the provided value."
+    },
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "City",
+        "role": "textbox"
+      },
+      "input_key": "city",
+      "output_key": null,
+      "reason": "To update the city field with the provided value."
+    },
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Postal code",
+        "role": "textbox"
+      },
+      "input_key": "postal",
+      "output_key": null,
+      "reason": "To complete the form and save the updated address for the customer."
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Review changes",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "To save the updated customer information"
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Save address",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "To update the customer's record with the supplied street, city and postal inputs."
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved customer ID",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "customer_id",
+      "reason": "To fulfill the goal of updating the customer, we first need to extract the saved customer ID."
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved street address",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "street",
+      "reason": "To update the customer's street address in the next step, we first need to extract the current value."
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Confirmation reference",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "confirmation_reference",
+      "reason": "To fulfill the goal by reading the required output field."
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved city",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "city",
+      "reason": "To complete the goal by filling the required outputs still needed."
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved postal code",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "postal",
+      "reason": "To complete the goal by filling the required field and updating the customer record."
+    }
+  ],
+  "discovery_run": "69ac2946-3ee1-43a1-8767-c6e5bd56f916"
+}

@@ -10,9 +10,22 @@ from engine.safety import PolicyError
 
 
 class Surface(Protocol):
+    owner: str
+    session_id: str
+    write_authorized: bool
+    risky_authorized: bool
+    def open(self, entry: str) -> None: ...
+    def assert_policy(self) -> None: ...
+    def has_alert(self, text: str) -> bool: ...
+    def read_values(self, observation: dict) -> dict: ...
+    def snapshot(self) -> None: ...
+    def close(self) -> None: ...
     def observe(self) -> dict: ...
     def execute(self, action: Action, inputs: dict[str, str]) -> str | None: ...
     def visible(self, target: Target) -> bool: ...
+    def frame(self) -> bytes: ...
+    def pump_events(self) -> None: ...
+    def operator_action(self, command: dict) -> None: ...
 
 
 class BrowserSurface:
@@ -109,7 +122,7 @@ class BrowserSurface:
           copy.querySelectorAll('input,textarea').forEach(e=>{e.removeAttribute('value');e.textContent=''});
           const controls=[...document.querySelectorAll('a,button,input:not([type=hidden]),select,textarea,h1')].filter(visible).map(e=>({
             role:e.tagName==='A'?'link':e.tagName==='BUTTON'?'button':e.tagName==='H1'?'heading':'textbox',
-            name:e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label') || e.textContent.trim(),
+            name:e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label') || (['INPUT','TEXTAREA','SELECT'].includes(e.tagName)?'':e.textContent.trim()),
             readonly:!!e.readOnly, filled:!!e.value, pattern:e.getAttribute('pattern'),
             required:!!e.required, form:e.form?[...document.forms].indexOf(e.form):null
           }));
@@ -149,12 +162,37 @@ class BrowserSurface:
           const visit=e=>{
             if(e.nodeType===3) return e.textContent.trim();
             if(e.nodeType!==1 || ['SCRIPT','STYLE'].includes(e.tagName) || e.type==='hidden') return null;
-            if(e.hasAttribute('data-sensitive')) return {tag:e.tagName,text:'[REDACTED]'};
+            if(e.hasAttribute('data-sensitive') || ['INPUT','TEXTAREA','SELECT'].includes(e.tagName)) return {tag:e.tagName,text:'[REDACTED]'};
             return {tag:e.tagName,role:e.getAttribute('role'),label:e.getAttribute('aria-label'),
               children:[...e.childNodes].map(visit).filter(Boolean)};
           }; return visit(document.body);
         }""")
         self.evidence.save("failure-snapshot.json", {"observation": self.observe(check_policy=False), "dom": structure})
+
+    def frame(self):
+        return self.page.screenshot(type="jpeg", quality=75, timeout=15000)
+
+    def pump_events(self):
+        self.page.wait_for_timeout(100)
+
+    def operator_action(self, command):
+        if self.owner != "human":
+            raise PolicyError("Human does not own this session")
+        kind = command["kind"]
+        if kind == "click":
+            x, y = float(command["x"]), float(command["y"])
+            viewport = self.page.viewport_size
+            if not (0 <= x < viewport["width"] and 0 <= y < viewport["height"]):
+                raise PolicyError("Operator click outside viewport")
+            self.page.mouse.click(x, y)
+        elif kind == "type":
+            self.page.keyboard.insert_text(str(command["text"])[:1000])
+        elif kind == "key" and command.get("key") in ("Tab", "Enter", "Escape", "Backspace"):
+            self.page.keyboard.press(command["key"])
+        elif kind == "scroll":
+            self.page.mouse.wheel(0, max(-1000, min(1000, int(command["delta"]))))
+        else:
+            raise PolicyError("Unsupported operator action")
 
     def close(self):
         self.context.close()

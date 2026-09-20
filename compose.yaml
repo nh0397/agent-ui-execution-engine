@@ -12,7 +12,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [demo-network]
+    networks: [demo-network, access-network]
     depends_on:
       worker:
         condition: service_healthy
@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: engine/Dockerfile
     environment:
-      DEMO_ENTRY: http://app:8000
+      DEMO_ENTRY: http://cedar.test:8000
       OLLAMA_URL: http://host.docker.internal:11434
       DASHBOARD_STORAGE: /project/work/dashboard
     volumes:
@@ -37,7 +37,7 @@ services:
     depends_on:
       app:
         condition: service_healthy
-    networks: [demo-network, model-network]
+    networks: [demo-network, access-network]
 
   db:
     image: postgres:16-alpine
@@ -69,13 +69,16 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [demo-network]
+    networks:
+      demo-network:
+        aliases: [cedar.test]
+      access-network: {}
 
 volumes:
   demo-data:
   execution-data:
 
 networks:
-  model-network:
+  access-network:
   demo-network:
     internal: true

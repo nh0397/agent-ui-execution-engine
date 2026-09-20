@@ -1,0 +1,9 @@
+{
+  "backend": "Docker PostgreSQL",
+  "mode": "replay",
+  "job_id": "5dd1b216-4abd-4052-97e7-5dd836b1b699",
+  "status": "success",
+  "actions": 14,
+  "model_decisions": 0,
+  "human_participation": false
+}

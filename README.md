@@ -69,7 +69,7 @@ It exercises input binding, a state-changing action, success verification, sensi
 
 The engine must complete the workflow through the UI. The demo's database or application endpoints will not be used as shortcuts by the automation.
 
-## Proposed architecture
+## Architecture
 
 | Component | Responsibility |
 | --- | --- |
@@ -80,20 +80,20 @@ The engine must complete the workflow through the UI. The demo's database or app
 | Session controller | Track control ownership, pause automated actions, record human interaction, and validate resumption in the same session. |
 | Policy and evidence | Enforce allowed destinations/actions, gate risky operations, redact sensitive data, and record structured events. |
 
-These components will live in a small Python package with a CLI. Workflow logic will depend on observation/action contracts rather than Playwright objects, leaving room for legacy web and desktop adapters.
+These components live in a small Python package with a CLI and execution API. Runtime accepts a surface factory; browser operations, live frames, and operator commands are implemented by the Playwright adapter. Legacy and desktop adapters remain future work.
 
 ## Capability contract
 
-A saved capability will describe:
+A saved capability describes:
 
 - Its name, purpose, schema version, workflow version, and application compatibility.
 - Typed input parameters and output fields.
 - Ordered actions with explicit parameter bindings.
-- Target descriptions and scopes, with uniqueness checks and fixed fallback rules.
-- Preconditions, checkpoints, and terminal success or business-outcome checks.
-- Bounded recovery rules and human intervention boundaries.
+- Exact role/name, label, or text targets, with uniqueness checks. Frame scopes and fallback targets are not implemented.
+- Application compatibility and a terminal success check; reviewed business-outcome checks live in the application profile.
+- An external application profile supplies bounded recovery rules and risky-action boundaries.
 
-Targets will prefer semantic roles, labels, and visible context where available. Missing or ambiguous matches must not silently select an arbitrary control.
+Targets prefer semantic roles, labels, and visible context where available. Missing or ambiguous matches must not silently select an arbitrary control.
 
 A successful discovery does not establish every alternate business condition. Recovery and outcome rules will have documented provenance and separate validation. Parameterization will be checked by replaying with different inputs.
 
@@ -107,19 +107,19 @@ A successful discovery does not establish every alternate business condition. Re
 | Session expiry or approval needed | Request human intervention with the goal, step, current state, and reason. |
 | Permission denial, ambiguous target, or unrecoverable app error | Stop with a structured explanation and sanitized failure evidence. |
 
-Human takeover will use the existing browser session. The controller will stop automated dispatch, settle the current action, explicitly transfer ownership, and record supported human actions with sensitive values removed. On an explicit resume signal, it will verify the current state before continuing. Human-assisted execution will be distinguishable from unattended replay in the logs.
+Human takeover uses the existing browser session. The controller stops automated dispatch, settles the current action, explicitly transfers ownership, and records supported human actions with sensitive values removed. On an explicit resume signal, it verifies the current state before continuing. Human-assisted execution is distinguishable from unattended replay in the logs.
 
 ## Safety and operating boundaries
 
-The same policy layer will apply to discovery and replay. It will enforce configurable destination and action allowlists, including navigation caused by UI actions. Risky writes will require a configured approval or be blocked; the model's own description of an action as safe will not authorize it.
+The same policy layer applies to discovery and replay. It enforces configurable destination and action allowlists, including navigation caused by UI actions. Risky writes require a configured approval or be blocked; the model's own description of an action as safe will not authorize it.
 
-Observations and evidence will be sanitized before model transmission or persistence. Credentials, tokens, browser session state, and raw sensitive values must stay out of capabilities and logs. Page content is untrusted input and cannot override execution policy.
+Observations and evidence are sanitized before model transmission or persistence. Credentials, tokens, browser session state, and raw sensitive values must stay out of capabilities and logs. Page content is untrusted input and cannot override execution policy.
 
 The initial design assumes relatively stable interfaces and prioritizes runtime failures. Structured text observations suit interfaces with usable labels and page structure. Canvas interfaces, remote desktops, and poorly labeled controls may require visual or OS-accessibility adapters; defining an adapter boundary alone does not provide that support.
 
-Cross-tenant reuse will be addressed through application/version metadata, external tenant configuration, constrained overrides, and compatibility checks. Desktop implementation, tenant infrastructure, a capability catalog service, and a full operator console are outside the initial build.
+Cross-tenant reuse will be addressed through application/version metadata, external tenant configuration, constrained overrides, and compatibility checks. Desktop implementation, tenant infrastructure, and a production operator console are outside this build. A local catalog API and minimal live operator controls are implemented.
 
-## Proposed technology
+## Technology
 
 | Technology | Purpose |
 | --- | --- |
@@ -194,7 +194,7 @@ For frontend development, run `npm ci` and `npm run dev` in `frontend/`; Vite pr
 
 ### Complete local stack
 
-The first implementation includes the demo, typed contracts, a browser adapter, discovery and replay runners, policy checks, structured evidence, and human-control mechanisms. A genuine local-model run produced a 14-action capability, which replayed successfully with a different customer and address on the SQLite-backed demo. PostgreSQL container verification and actual human takeover evidence are still pending. This is an initial implementation, not a production-ready automation service.
+The first implementation includes the demo, typed contracts, a browser adapter, discovery and replay runners, policy checks, structured evidence, and human-control mechanisms. A genuine local-model run produced a 14-action capability, which replayed successfully with a different customer and address on the SQLite-backed demo. Fresh PostgreSQL-backed discovery and paired replay are verified in evidence/docker-e2e/ (14 model decisions during discovery; zero during replay). A person-operated takeover recording remains pending; automated same-session handoff and session-restoration tests pass. This is an initial implementation, not a production-ready automation service.
 
 To start the demo app and database, open Docker Desktop with Linux containers enabled, then run this single command from the repository root in PowerShell:
 
@@ -287,3 +287,9 @@ README.md        Problem, approach, roadmap, and setup
 ```
 
 Keep local credentials in environment variables or ignored configuration. Browser profiles, local databases, and unreviewed runs are excluded through `.gitignore`. Only reviewed, sanitized evidence belongs in `evidence/`.
+
+## Demo storyline
+
+See [STORYLINE.md](STORYLINE.md) for the problem, live demonstration, engineering decisions, and honest scope limits. Discovery requires an explicitly supplied workflow contract and application policy; it learns the action sequence, not an arbitrary task schema.
+
+When discovery needs arbitrary manual recovery, the run can resume, but it will not publish a capability containing unrecorded human steps. Rediscover from a clean entry after resolving the obstruction. A manual approval of the already-selected save action remains supported.

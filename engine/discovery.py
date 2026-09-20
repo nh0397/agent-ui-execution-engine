@@ -64,6 +64,7 @@ Reasons are brief action purposes, not a reasoning transcript.
 def discover(spec, inputs, profile, entry, directory, model, goal, capability_path, **options):
     runtime = Runtime(spec, inputs, profile, entry, directory, **options)
     actions = []
+    manual_recovery = False
     filled_by_document = {}
     runtime.evidence.event("mode", mode="discovery", model=model, provider="ollama")
     try:
@@ -86,7 +87,10 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                     names = {description(a): a for a in candidates}
                     prompt = runtime.evidence.clean({"goal": goal, "observation": observation, "recent_actions": [description(a) for a in actions[-6:]], "outputs_still_required": [key for key in spec.outputs if key not in runtime.outputs], "available_actions": list(names)})
                     if not names:
-                        raise PolicyError("No valid actions satisfy the remaining contract; review input bindings and current state")
+                        runtime.intervene("No valid actions remain; restore a usable application state or abort")
+                        manual_recovery = True
+                        filled_by_document.clear()
+                        continue
                     schema = {"type": "object", "properties": {"choice": {"type": "string", "enum": ["HUMAN", *names]}, "reason": {"type": "string"}}, "required": ["choice", "reason"], "additionalProperties": False}
                     response = client.post("/api/chat", json={"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}})
                     response.raise_for_status()
@@ -99,6 +103,8 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                     runtime.evidence.event("model_decision", decision=decision.model_dump(), choice=selected, available_actions=prompt["available_actions"], prompt_tokens=body.get("prompt_eval_count"), output_tokens=body.get("eval_count"), duration_ns=body.get("total_duration"))
                 if decision.status == "done":
                     result = runtime.finish()
+                    if manual_recovery:
+                        raise PolicyError("Human recovery completed the run, but its unrecorded steps cannot become a replay capability; rediscover from a clean entry")
                     capability = Capability(**spec.model_dump(), version=1, app=profile.app, app_version=profile.version, steps=actions, discovery_run=runtime.run_id)
                     path = Path(capability_path)
                     path.parent.mkdir(parents=True, exist_ok=True)
@@ -112,11 +118,17 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                     break
                 if decision.status == "intervene":
                     runtime.intervene(decision.reason)
+                    manual_recovery = True
+                    filled_by_document.clear()
                     continue
                 if decision.action.input_key and decision.action.input_key not in inputs:
                     raise PolicyError("Undeclared input binding")
-                if len(actions) >= 2 and actions[-1] == actions[-2] == decision.action:
-                    raise PolicyError("Repeated action without progress")
+                signature = lambda a: (a.kind, a.target.model_dump_json(), a.input_key, a.output_key)
+                if len(actions) >= 2 and signature(actions[-1]) == signature(actions[-2]) == signature(decision.action):
+                    runtime.intervene("Repeated action without progress; restore a usable state or abort")
+                    manual_recovery = True
+                    filled_by_document.clear()
+                    continue
                 runtime.act(decision.action)
                 if decision.action.kind == "fill":
                     filled_by_document[observation["document_id"]].add(decision.action.target.name)

@@ -1,0 +1,299 @@
+{
+  "id": "449af6b3-679a-4196-8087-3504eec871a6",
+  "created": 1789894170.6013622,
+  "mode": "replay",
+  "status": "success",
+  "code": "completed",
+  "profile": "Mira Chen",
+  "capability_id": "c803af61-4c45-4577-8201-3b1951ba81da",
+  "scenario": "normal",
+  "approve_writes": true,
+  "run_id": "e9c2213c-706c-4ca7-979e-a60c04eb51ce",
+  "finished": 1789894172.3439596,
+  "live": {
+    "owner": "none",
+    "step": 14,
+    "session_id": "b83a339c-ca35-4286-80b9-85cec27d151d",
+    "intervention": null,
+    "has_frame": true
+  },
+  "actions": 14,
+  "model_decisions": 0,
+  "events": [
+    {
+      "event": "run_started",
+      "time": "2026-09-20T08:49:30.987929+00:00",
+      "run_id": "e9c2213c-706c-4ca7-979e-a60c04eb51ce",
+      "session_id": "b83a339c-ca35-4286-80b9-85cec27d151d",
+      "capability": "update_customer_address",
+      "write_approval": true
+    },
+    {
+      "event": "mode",
+      "time": "2026-09-20T08:49:31.069655+00:00",
+      "mode": "replay",
+      "capability_version": 1,
+      "discovery_run": "69ac2946-3ee1-43a1-8767-c6e5bd56f916"
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.104280+00:00",
+      "step": 0,
+      "action": {
+        "kind": "fill",
+        "target": {
+          "by": "label",
+          "name": "Customer ID",
+          "role": "textbox"
+        },
+        "input_key": "customer_id",
+        "output_key": null,
+        "reason": "To find the correct customer record for updating."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.184941+00:00",
+      "step": 1,
+      "action": {
+        "kind": "click",
+        "target": {
+          "by": "role",
+          "name": "Search customers",
+          "role": "button"
+        },
+        "input_key": null,
+        "output_key": null,
+        "reason": "To find the customer record with the given ID for further updates"
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.327671+00:00",
+      "step": 2,
+      "action": {
+        "kind": "click",
+        "target": {
+          "by": "role",
+          "name": "Open customer",
+          "role": "link"
+        },
+        "input_key": null,
+        "output_key": null,
+        "reason": "To open the customer record for updating"
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.424281+00:00",
+      "step": 3,
+      "action": {
+        "kind": "click",
+        "target": {
+          "by": "role",
+          "name": "Edit mailing address",
+          "role": "link"
+        },
+        "input_key": null,
+        "output_key": null,
+        "reason": "To update the customer's mailing address with the supplied street, city and postal inputs."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.528257+00:00",
+      "step": 4,
+      "action": {
+        "kind": "fill",
+        "target": {
+          "by": "label",
+          "name": "Street address",
+          "role": "textbox"
+        },
+        "input_key": "street",
+        "output_key": null,
+        "reason": "To update the street field with the provided value."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.622639+00:00",
+      "step": 5,
+      "action": {
+        "kind": "fill",
+        "target": {
+          "by": "label",
+          "name": "City",
+          "role": "textbox"
+        },
+        "input_key": "city",
+        "output_key": null,
+        "reason": "To update the city field with the provided value."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.682222+00:00",
+      "step": 6,
+      "action": {
+        "kind": "fill",
+        "target": {
+          "by": "label",
+          "name": "Postal code",
+          "role": "textbox"
+        },
+        "input_key": "postal",
+        "output_key": null,
+        "reason": "To complete the form and save the updated address for the customer."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.733568+00:00",
+      "step": 7,
+      "action": {
+        "kind": "click",
+        "target": {
+          "by": "role",
+          "name": "Review changes",
+          "role": "button"
+        },
+        "input_key": null,
+        "output_key": null,
+        "reason": "To save the updated customer information"
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:31.861739+00:00",
+      "step": 8,
+      "action": {
+        "kind": "click",
+        "target": {
+          "by": "role",
+          "name": "Save address",
+          "role": "button"
+        },
+        "input_key": null,
+        "output_key": null,
+        "reason": "To update the customer's record with the supplied street, city and postal inputs."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:32.029070+00:00",
+      "step": 9,
+      "action": {
+        "kind": "read",
+        "target": {
+          "by": "label",
+          "name": "Saved customer ID",
+          "role": "textbox"
+        },
+        "input_key": null,
+        "output_key": "customer_id",
+        "reason": "To fulfill the goal of updating the customer, we first need to extract the saved customer ID."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:32.096143+00:00",
+      "step": 10,
+      "action": {
+        "kind": "read",
+        "target": {
+          "by": "label",
+          "name": "Saved street address",
+          "role": "textbox"
+        },
+        "input_key": null,
+        "output_key": "street",
+        "reason": "To update the customer's street address in the next step, we first need to extract the current value."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:32.142540+00:00",
+      "step": 11,
+      "action": {
+        "kind": "read",
+        "target": {
+          "by": "label",
+          "name": "Confirmation reference",
+          "role": "textbox"
+        },
+        "input_key": null,
+        "output_key": "confirmation_reference",
+        "reason": "To fulfill the goal by reading the required output field."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:32.194831+00:00",
+      "step": 12,
+      "action": {
+        "kind": "read",
+        "target": {
+          "by": "label",
+          "name": "Saved city",
+          "role": "textbox"
+        },
+        "input_key": null,
+        "output_key": "city",
+        "reason": "To complete the goal by filling the required outputs still needed."
+      }
+    },
+    {
+      "event": "action",
+      "time": "2026-09-20T08:49:32.243912+00:00",
+      "step": 13,
+      "action": {
+        "kind": "read",
+        "target": {
+          "by": "label",
+          "name": "Saved postal code",
+          "role": "textbox"
+        },
+        "input_key": null,
+        "output_key": "postal",
+        "reason": "To complete the goal by filling the required field and updating the customer record."
+      }
+    },
+    {
+      "event": "run_finished",
+      "time": "2026-09-20T08:49:32.299935+00:00",
+      "result": {
+        "status": "success",
+        "run_id": "e9c2213c-706c-4ca7-979e-a60c04eb51ce",
+        "code": "completed",
+        "outputs": {
+          "customer_id": "C-205",
+          "street": "[REDACTED]",
+          "confirmation_reference": "UPD-FC32050674C0",
+          "city": "[REDACTED]",
+          "postal": "[REDACTED]"
+        },
+        "step": 14,
+        "expected": "",
+        "observed": "",
+        "human_assisted": false
+      }
+    }
+  ],
+  "result": {
+    "status": "success",
+    "run_id": "e9c2213c-706c-4ca7-979e-a60c04eb51ce",
+    "code": "completed",
+    "outputs": {
+      "customer_id": "C-205",
+      "street": "[REDACTED]",
+      "confirmation_reference": "UPD-FC32050674C0",
+      "city": "[REDACTED]",
+      "postal": "[REDACTED]"
+    },
+    "step": 14,
+    "expected": "",
+    "observed": "",
+    "human_assisted": false
+  }
+}

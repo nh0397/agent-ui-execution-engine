@@ -26,18 +26,19 @@ class BusinessOutcome(Exception):
 
 
 class Runtime:
-    def __init__(self, spec, inputs, profile, entry, directory, headed=False, approve_writes=False, operator_port=None, control=None):
+    def __init__(self, spec, inputs, profile, entry, directory, headed=False, approve_writes=False, operator_port=None, control=None, surface_factory=BrowserSurface):
         validate_values(spec.inputs, inputs)
         self.spec, self.inputs, self.profile = spec, inputs, profile
         self.run_id = str(uuid.uuid4())
         self.evidence = Evidence(Path(directory) / self.run_id, [inputs[k] for k, p in spec.inputs.items() if p.sensitive])
         self.outputs = {}
         self.step = 0
+        self.expected = "Application entry and compatibility"
         self.human_assisted = False
         self.headed, self.approve_writes = headed, approve_writes
         self.operator_port = operator_port
         self.control = control
-        self.surface = BrowserSurface(Policy(profile), self.evidence, headed)
+        self.surface = surface_factory(Policy(profile), self.evidence, headed)
         self.start = time.monotonic()
         self.evidence.event("run_started", run_id=self.run_id, session_id=self.surface.session_id, capability=spec.name, write_approval=approve_writes)
         try:
@@ -58,7 +59,7 @@ class Runtime:
     def publish(self):
         if self.control is not None:
             self.control.state = {"owner": self.surface.owner, "step": self.step, "session_id": self.surface.session_id}
-            self.control.frame = self.surface.page.screenshot(type="jpeg", quality=75)
+            self.control.frame = self.surface.frame()
 
     def check_cancel(self):
         if self.control is not None and self.control.cancel.is_set():
@@ -93,9 +94,9 @@ class Runtime:
             while not answer and time.monotonic() < until:
                 self.check_cancel()
                 # All browser access remains on its owning thread. HTTP handlers only enqueue commands.
-                self.surface.page.wait_for_timeout(100)
+                self.surface.pump_events()
                 if bridge is not None:
-                    bridge.frame = self.surface.page.screenshot(type="jpeg", quality=75) if self.control is not None else self.surface.page.screenshot()
+                    bridge.frame = self.surface.frame()
                     while not bridge.commands.empty():
                         command = bridge.commands.get_nowait()
                         kind = command["kind"]
@@ -103,24 +104,16 @@ class Runtime:
                         if kind in ("resume", "abort"):
                             answer.append(kind)
                             break
-                        if kind == "click":
-                            x, y = float(command["x"]), float(command["y"])
-                            viewport = self.surface.page.viewport_size
-                            if not (0 <= x < viewport["width"] and 0 <= y < viewport["height"]):
-                                raise PolicyError("Operator click outside viewport")
-                            self.surface.page.mouse.click(x, y)
-                        elif kind == "type":
-                            self.surface.page.keyboard.insert_text(str(command["text"])[:1000])
-                        elif kind == "key" and command.get("key") in ("Tab", "Enter", "Escape", "Backspace"):
-                            self.surface.page.keyboard.press(command["key"])
-                        elif kind == "scroll":
-                            self.surface.page.mouse.wheel(0, max(-1000, min(1000, int(command["delta"]))))
+                        self.surface.operator_action(command)
         finally:
             if bridge is not None and self.control is None:
                 bridge.close()
         if not answer or answer[0] != "resume":
             raise PolicyError("Intervention aborted or expired")
         self.surface.assert_policy()
+        resumed = self.surface.observe()
+        if resumed["app"] != self.profile.app or resumed["app_version"] != self.profile.version:
+            raise PolicyError("Resume application compatibility check failed")
         if expected and not self.surface.visible(Target.model_validate(expected)):
             raise PolicyError("Resume checkpoint not satisfied")
         self.surface.owner = "automation"
@@ -154,6 +147,7 @@ class Runtime:
 
     def act(self, action):
         self.check_cancel()
+        self.expected = f"{action.kind}: {action.target.name}"
         if time.monotonic() - self.start > 900:
             raise PolicyError("Run deadline exceeded")
         risky = action.target.name in self.profile.risky_targets
@@ -192,7 +186,7 @@ class Runtime:
             self.surface.snapshot()
         except Exception:
             self.evidence.save("failure-snapshot.json", {"state": "unavailable", "reason": code})
-        return Result(status="business_outcome" if isinstance(exc, BusinessOutcome) else "failure", code=code, run_id=self.run_id, step=self.step, expected="Declared action and workflow checkpoints", observed=self.evidence.clean(str(exc))[:1500], human_assisted=self.human_assisted)
+        return Result(status="business_outcome" if isinstance(exc, BusinessOutcome) else "failure", code=self.evidence.clean(code), run_id=self.run_id, step=self.step, expected=self.expected, observed=self.evidence.clean(str(exc) if isinstance(exc, (PolicyError, BusinessOutcome, ValueError)) else type(exc).__name__)[:1500], human_assisted=self.human_assisted)
 
     def close(self, result):
         persisted = result.model_dump()
