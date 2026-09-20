@@ -46,18 +46,9 @@ const pages = [
   "Run history",
   "Live session",
   "Banking app",
-  "Agent",
 ] as const;
 type Page = (typeof pages)[number];
-const icons = [
-  LayoutDashboard,
-  Workflow,
-  Box,
-  Activity,
-  Monitor,
-  ExternalLink,
-  Sparkles,
-];
+const icons = [LayoutDashboard, Workflow, Box, Activity, Monitor, ExternalLink];
 function Badge({
   children,
   tone = "neutral",
@@ -506,7 +497,7 @@ export default function LiveWorkspace() {
               <p className="eyebrow">FROM INTENT TO EXECUTION</p>
               <h1>
                 {page === "Overview"
-                  ? "Your automation, connected."
+                  ? "Your banking workflow assistant."
                   : page === "New workflow"
                     ? "Give your workflow a goal."
                     : page === "Capabilities"
@@ -515,9 +506,7 @@ export default function LiveWorkspace() {
                         ? "Every action, accounted for."
                         : page === "Live session"
                           ? "Your workflow, live."
-                          : page === "Agent"
-                            ? "Ask your workflow agent."
-                            : "Meet Cedar Bank."}
+                          : "Meet Cedar Bank."}
               </h1>
               <p className="subtitle">
                 {page === "New workflow"
@@ -553,8 +542,30 @@ export default function LiveWorkspace() {
               backend; it does not simulate runs.
             </div>
           )}
+          <div
+            hidden={
+              !["Overview", "New workflow", "Live session"].includes(page)
+            }
+          >
+            <Agent
+              key={person.id}
+              catalog={catalog}
+              csrf={csrf}
+              viewer={viewer}
+              onRun={(id) => {
+                setSelected(id);
+                void refresh();
+                setPage("Live session");
+              }}
+              record={() => {
+                setMode("recording");
+                setPage("New workflow");
+              }}
+            />
+          </div>
           {page === "Overview" && (
-            <>
+            <details className="workspace-summary">
+              <summary>Execution overview and service status</summary>
               <section className="hero">
                 <div>
                   <Badge tone="hero-badge">
@@ -702,7 +713,7 @@ export default function LiveWorkspace() {
                   </button>
                 </section>
               </div>
-            </>
+            </details>
           )}
           {page === "New workflow" && (
             <div className="form-layout">
@@ -797,7 +808,7 @@ export default function LiveWorkspace() {
                           <option key={c.id} value={c.id}>
                             {c.id === "example"
                               ? "Original example"
-                              : `${c.capability.source === "human" ? "Human recording" : "Discovered"} ${c.id.slice(0, 8)}`}{" "}
+                              : `${c.capability.recording_actor === "automated_demo" ? "Automated demonstration" : c.capability.source === "human" ? "Human recording" : "Discovered"} ${c.id.slice(0, 8)}`}{" "}
                             · {c.capability.name} v{c.capability.version}
                           </option>
                         ))}
@@ -964,7 +975,7 @@ export default function LiveWorkspace() {
                       <p className="mono">
                         {item.id === "example"
                           ? "Original example"
-                          : `${item.capability.source === "human" ? "Human recording" : "LLM discovery"} ${item.id.slice(0, 8)}`}
+                          : `${item.capability.recording_actor === "automated_demo" ? "Automated demonstration" : item.capability.source === "human" ? "Human recording" : "LLM discovery"} ${item.id.slice(0, 8)}`}
                       </p>
                     </div>
                     <Badge tone="green">v{item.capability.version}</Badge>
@@ -1396,18 +1407,6 @@ export default function LiveWorkspace() {
                 </a>
               </div>
             </section>
-          )}
-          {page === "Agent" && (
-            <Agent
-              catalog={catalog}
-              csrf={csrf}
-              viewer={viewer}
-              replay={prepareReplay}
-              record={() => {
-                setMode("recording");
-                setPage("New workflow");
-              }}
-            />
           )}
           <footer className="page-footer">
             <span>

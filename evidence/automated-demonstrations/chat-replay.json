@@ -1,0 +1,8 @@
+{
+  "provenance": "Actual UI conversation with real local model matching, scripted user messages, and confirmed deterministic browser replay. Not human participation.",
+  "job_id": "13745c2a-2d35-4f7b-8515-68d3d4d9daa9",
+  "capability_id": "0a7cf44f-907a-41c4-a77b-e3f3d4600302",
+  "status": "success",
+  "replay_model_decisions": 0,
+  "actions": 6
+}

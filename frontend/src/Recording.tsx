@@ -147,8 +147,10 @@ export function RecordingDocument({
         <div className="callout">
           <h3>Review before publishing</h3>
           <p>
-            {run.draft.name} · {run.draft.steps.length} replay actions · Human
-            recording
+            {run.draft.name} · {run.draft.steps.length} replay actions ·{" "}
+            {run.draft.recording_actor === "automated_demo"
+              ? "Automated demonstration"
+              : "Human recording"}
           </p>
           <p>Inputs: {Object.keys(run.draft.inputs).join(", ")}</p>
           <p>Outputs: {Object.keys(run.draft.outputs).join(", ")}</p>

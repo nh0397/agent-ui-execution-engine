@@ -56,6 +56,7 @@ class Capability(WorkflowSpec):
     steps: list[Action] = Field(min_length=1)
     discovery_run: str
     source: Literal["llm", "human"] = "llm"
+    recording_actor: Literal["human", "automated_demo"] = "human"
 
     @model_validator(mode="after")
     def references(self):

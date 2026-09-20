@@ -53,10 +53,10 @@ class CaptureJournal:
         self.evidence.event("human_step", **entry)
 
 
-def record(name, description, profile, entry, directory, draft_path, control, **unused):
+def record(name, description, profile, entry, directory, draft_path, control, surface_factory=None, recording_actor="human", **unused):
     run_id = str(uuid.uuid4())
     evidence = Evidence(Path(directory) / run_id, [])
-    surface = BrowserSurface(Policy(profile), evidence)
+    surface = (surface_factory or BrowserSurface)(Policy(profile), evidence)
     surface.owner = 'human'
     actions, inputs, values = [], {}, {}
     journal = CaptureJournal(surface, evidence)
@@ -108,7 +108,7 @@ def record(name, description, profile, entry, directory, draft_path, control, **
                     validate_values(outputs,extracted)
                     cap=Capability(name=name,description=description,inputs=inputs,outputs=outputs,success=success,
                         version=1,app=profile.app,app_version=profile.version,steps=actions+reads,
-                        discovery_run=run_id,source='human')
+                        discovery_run=run_id,source='human',recording_actor=recording_actor)
                     text=cap.model_dump_json(indent=2)
                     if evidence.clean(text)!=text:
                         raise PolicyError('A target contains example data; use a stable label')

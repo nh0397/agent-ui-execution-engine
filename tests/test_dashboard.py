@@ -55,16 +55,24 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
         return {'matches': ['example'] if matched else [], 'model_used': True}
     monkeypatch.setattr(agent, 'match_capabilities', scripted_match)
     page = dashboard
-    page.get_by_role('navigation').get_by_role('button', name='Agent', exact=True).click()
-    page.get_by_label('Describe your task').fill('Update the mailing address')
-    page.get_by_role('button', name='Find a workflow', exact=True).click()
-    action = page.get_by_role('button', name='Use this workflow' if matched else 'Record a new workflow', exact=True)
-    expect(action).to_be_visible(timeout=10000)
+    page.get_by_label('Message your assistant').fill('Update the mailing address')
+    page.get_by_role('button', name='Send message', exact=True).click()
+    if not matched:
+        expect(page.get_by_text("I don't have a matching published workflow.", exact=False)).to_be_visible(timeout=10000)
+        page.get_by_role('button', name='Record a workflow', exact=True).click()
+        expect(page.get_by_role('button',name='Start recording',exact=True)).to_be_visible()
+        return
+    page.get_by_role('button', name='Use this workflow', exact=True).click()
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json() == []
-    action.click()
-    expect(page.get_by_role('button', name='Start replay' if matched else 'Start recording', exact=True)).to_be_visible()
-    if matched:
-        expect(page.get_by_label('Input customer_id')).to_have_value('C-205')
+    for value in ('C-205','92 Chat Lane','Exampleton','23456'):
+        page.get_by_label('Message your assistant').fill(value)
+        page.get_by_role('button',name='Send message',exact=True).click()
+    expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_visible()
+    page.get_by_label('Authorize changes for this synthetic run').check()
+    page.get_by_role('button',name='Run workflow',exact=True).click()
+    expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
+    assert page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]['model_decisions'] == 0
+
 
 def test_dashboard_executes_replay_and_verifies_live_result(dashboard):
     page=dashboard;setup_replay(page)

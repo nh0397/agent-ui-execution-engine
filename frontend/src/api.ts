@@ -1,6 +1,7 @@
 export type Capability = {
   name: string;
   source?: "human" | "llm";
+  recording_actor?: "human" | "automated_demo";
   description: string;
   version: number;
   app: string;

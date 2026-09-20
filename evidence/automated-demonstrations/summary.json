@@ -1,0 +1,59 @@
+{
+  "provenance": "Actual scripted browser demonstrations and paired UI replays; not human participation or LLM discovery. Screenshots and documents are in the local run history.",
+  "runs": [
+    {
+      "name": "Freeze a debit card (automated demonstration)",
+      "id": "392606fc-89ca-4d37-9f09-eff53c40442b",
+      "mode": "replay",
+      "status": "success",
+      "actions": 8,
+      "model_decisions": 0,
+      "recorded_gestures": 0
+    },
+    {
+      "name": "Freeze a debit card (automated demonstration)",
+      "id": "bb75a1d2-9e55-4454-9e93-a3de23fbb6d0",
+      "mode": "recording",
+      "status": "success",
+      "actions": 5,
+      "model_decisions": 0,
+      "recorded_gestures": 6
+    },
+    {
+      "name": "Update a mailing address (automated demonstration)",
+      "id": "92132bc0-b0de-45c9-a1f1-4af8182b431d",
+      "mode": "replay",
+      "status": "success",
+      "actions": 14,
+      "model_decisions": 0,
+      "recorded_gestures": 0
+    },
+    {
+      "name": "Update a mailing address (automated demonstration)",
+      "id": "c1960fc1-c126-49f9-99aa-d3bb176a927d",
+      "mode": "recording",
+      "status": "success",
+      "actions": 9,
+      "model_decisions": 0,
+      "recorded_gestures": 13
+    },
+    {
+      "name": "Look up an account balance (automated demonstration)",
+      "id": "17a801f2-2d22-4520-8e3e-afbea8d859b0",
+      "mode": "replay",
+      "status": "success",
+      "actions": 6,
+      "model_decisions": 0,
+      "recorded_gestures": 0
+    },
+    {
+      "name": "Look up an account balance (automated demonstration)",
+      "id": "0a7cf44f-907a-41c4-a77b-e3f3d4600302",
+      "mode": "recording",
+      "status": "success",
+      "actions": 4,
+      "model_decisions": 0,
+      "recorded_gestures": 5
+    }
+  ]
+}

@@ -21,3 +21,10 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 - Frontend TypeScript check and production build passed. Live browser checks verified the three-service bank homepage and empty-catalog agent response.
 - Genuine local-model catalog checks and the two failures encountered during development are preserved in catalog-matching/. These are distinct from LLM browser discovery evidence.
 - Current local dashboard: port 5176; bank: port 8003. Docker socket access was denied, so PostgreSQL execution of these additions was not verified in this turn.
+
+## Integrated conversation and visible demonstration history
+
+- Full suite: 54 passed after integrating the chatbot with the main workspace and adding explicit automated-recording provenance.
+- Real browser authoring generated three verified capabilities and three successful new-input replays in the active local workspace. The recordings contain 5, 13, and 6 supported gestures, respectively, with 48 masked before/after screenshots in total.
+- Run history and its downloadable documents were verified through the live dashboard. See automated-demonstrations/summary.json for actual run IDs and statuses. These runs are automated demonstrations, not genuine human participation or LLM discovery.
+- GitHub push remains blocked by local Git credential-helper access and GitHub integration write permission (403). Local commits must not be described as published.
