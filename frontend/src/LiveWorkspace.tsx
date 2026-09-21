@@ -252,6 +252,7 @@ export default function LiveWorkspace() {
   const [typing, setTyping] = useState("");
   const [frameTick, setFrameTick] = useState(0);
   const [imageError, setImageError] = useState(false);
+  const browserImage = useRef<HTMLImageElement>(null);
   const current = selected
     ? runs.find((r) => r.id === selected)
     : runs.find((r) => r.status === "running") || runs[0];
@@ -325,6 +326,61 @@ export default function LiveWorkspace() {
   useEffect(() => {
     setImageError(false);
   }, [current?.id]);
+  useEffect(() => {
+    const image = browserImage.current;
+    if (!image || !canControl || !current) return;
+    let pending = 0;
+    let sending = false;
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const flush = async () => {
+      timer = undefined;
+      if (disposed || sending || !pending) return;
+      const delta = Math.max(-1000, Math.min(1000, Math.round(pending)));
+      pending = 0;
+      sending = true;
+      try {
+        await request(
+          `/runs/${current.id}/control`,
+          {
+            method: "POST",
+            body: JSON.stringify({ kind: "scroll", delta }),
+          },
+          csrf,
+        );
+      } catch (error) {
+        if (!disposed) setError((error as Error).message);
+      } finally {
+        sending = false;
+        if (!disposed && pending) timer = setTimeout(() => void flush(), 120);
+      }
+    };
+    const wheel = (event: WheelEvent) => {
+      if (event.ctrlKey || !event.deltaY) return;
+      event.preventDefault();
+      const unit =
+        event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? image.naturalHeight
+            : 1;
+      pending = Math.max(-1000, Math.min(1000, pending + event.deltaY * unit));
+      if (!timer && !sending) timer = setTimeout(() => void flush(), 120);
+    };
+    image.addEventListener("wheel", wheel, { passive: false });
+    return () => {
+      disposed = true;
+      if (timer) clearTimeout(timer);
+      image.removeEventListener("wheel", wheel);
+    };
+  }, [
+    canControl,
+    current?.id,
+    current?.live?.has_frame,
+    csrf,
+    page,
+    imageError,
+  ]);
   function navigate(p: Page) {
     setChatOpen(false);
     setPage(p);
@@ -724,7 +780,8 @@ export default function LiveWorkspace() {
                             Recording is active — you control this browser.
                           </strong>
                           <p>
-                            Click links and buttons inside the browser. To enter
+                            Scroll with your mouse wheel or trackpad over the
+                            browser. Click links and buttons inside it. To enter
                             text, click the bank field first, then use{" "}
                             <b>Parameter name</b>, <b>Example value</b>, and{" "}
                             <b>Fill parameter</b> in the recording panel.
@@ -755,6 +812,7 @@ export default function LiveWorkspace() {
                           </div>
                           {current.live?.has_frame && !imageError ? (
                             <img
+                              ref={browserImage}
                               className={`live-screen ${canControl ? "controllable" : ""}`}
                               src={`/api/runs/${current.id}/frame?t=${frameTick}`}
                               alt="Current automation browser"

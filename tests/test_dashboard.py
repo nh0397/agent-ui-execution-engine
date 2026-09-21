@@ -68,11 +68,11 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
         return
     page.get_by_role('button', name='Use this workflow', exact=True).click()
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json() == []
-    expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
+    expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
     for value in ('C-205','92 Chat Lane','Exampleton','23456'):
         page.get_by_label('Message your assistant').fill(value)
         page.get_by_role('button',name='Send message',exact=True).click()
-        expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
+        expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
     expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_visible()
     page.get_by_label('Authorize changes for this synthetic run').check()
     page.get_by_role('button',name='Run workflow',exact=True).click()
@@ -207,3 +207,33 @@ def test_dashboard_records_reviews_publishes_and_replays(dashboard, monkeypatch)
     expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
     replayed=page.request.get(base+'/api/runs').json()[0]
     assert replayed['mode']=='replay' and replayed['model_decisions']==0 and replayed['actions']==14
+
+
+def test_mouse_wheel_scrolls_managed_browser_not_dashboard(dashboard, monkeypatch):
+    import engine.recording as recording
+    from engine.surface import BrowserSurface
+    observed = {'y':0}
+    class ScrollSurface(BrowserSurface):
+        def open(self, entry):
+            super().open(entry)
+            # Explicit fixture makes scrolling observable independently of bank content.
+            self.page.evaluate("document.body.style.minHeight = '3000px'")
+        def pump_events(self):
+            super().pump_events()
+            observed['y'] = self.page.evaluate('window.scrollY')
+    monkeypatch.setattr(recording, 'BrowserSurface', ScrollSurface)
+    page = dashboard
+    page.get_by_role('button',name='Learn a new workflow',exact=True).click()
+    page.get_by_role('button',name='Record workflow',exact=False).click()
+    page.get_by_role('button',name='Start recording',exact=True).click()
+    screen = page.get_by_alt_text('Current automation browser')
+    expect(screen).to_be_visible(timeout=15000)
+    screen.hover()
+    outer_y = page.evaluate('window.scrollY')
+    page.mouse.wheel(0,600)
+    for _ in range(60):
+        if observed['y'] > 0: break
+        page.wait_for_timeout(100)
+    assert observed['y'] > 0
+    assert page.evaluate('window.scrollY') == outer_y
+    page.get_by_role('button',name='Cancel run',exact=True).click()
