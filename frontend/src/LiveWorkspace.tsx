@@ -208,6 +208,7 @@ function RunTable({
   );
 }
 export default function LiveWorkspace() {
+  const [chatOpen, setChatOpen] = useState(false);
   const [page, setPage] = useState<Page>("Overview");
   const [person, setPerson] = useState(people[0]);
   const [profileDialog, setProfileDialog] = useState(false);
@@ -325,6 +326,7 @@ export default function LiveWorkspace() {
     setImageError(false);
   }, [current?.id]);
   function navigate(p: Page) {
+    setChatOpen(false);
     setPage(p);
     setError("");
   }
@@ -589,30 +591,47 @@ export default function LiveWorkspace() {
               </button>
             )}
           </div>
-          <div
-            className={`task-desktop ${page === "Overview" || page === "Live session" ? "split" : ""}`}
-          >
-            <div
-              hidden={
-                ![
-                  "Overview",
-                  "New workflow",
-                  "Live session",
-                  "Capabilities",
-                ].includes(page)
-              }
+          <div className="task-desktop full-browser">
+            <button
+              className="chat-launcher"
+              aria-label={chatOpen ? "Minimize assistant" : "Open assistant"}
+              aria-expanded={chatOpen}
+              aria-controls="floating-assistant"
+              onClick={() => setChatOpen(!chatOpen)}
             >
+              <Sparkles size={20} /> {chatOpen ? "Minimize" : "Ask assistant"}
+            </button>
+            <div
+              id="floating-assistant"
+              className="floating-assistant"
+              hidden={!chatOpen}
+              role="dialog"
+              aria-label="Workflow assistant"
+            >
+              <div className="chat-popup-header">
+                <strong>Workflow assistant</strong>
+                <button
+                  className="text-button"
+                  aria-label="Close assistant"
+                  onClick={() => setChatOpen(false)}
+                >
+                  <X size={18} />
+                </button>
+              </div>
               <Agent
                 key={person.id}
                 catalog={catalog}
                 csrf={csrf}
                 viewer={viewer}
                 onRun={(id) => {
+                  setChatOpen(false);
+                  setChatOpen(false);
                   setSelected(id);
                   void refresh();
                   setPage("Live session");
                 }}
                 record={() => {
+                  setChatOpen(false);
                   setMode("recording");
                   setPage("New workflow");
                 }}

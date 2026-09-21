@@ -33,6 +33,7 @@ def dashboard(tmp_path,monkeypatch):
             errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
             page.goto(api_url,wait_until='networkidle')
             expect(page.get_by_text('Live API connected',exact=True)).to_be_visible(timeout=15000)
+            page.get_by_role('button',name='Open assistant',exact=True).click()
             yield page
             assert not errors
             browser.close()
@@ -67,11 +68,11 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
         return
     page.get_by_role('button', name='Use this workflow', exact=True).click()
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json() == []
-    expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
+    expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
     for value in ('C-205','92 Chat Lane','Exampleton','23456'):
         page.get_by_label('Message your assistant').fill(value)
         page.get_by_role('button',name='Send message',exact=True).click()
-        expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
+        expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
     expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_visible()
     page.get_by_label('Authorize changes for this synthetic run').check()
     page.get_by_role('button',name='Run workflow',exact=True).click()
