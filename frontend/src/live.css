@@ -596,3 +596,32 @@
     bottom: 16px;
   }
 }
+
+.recording-guidance {
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  border: 1px solid #d7b365;
+  border-radius: 10px;
+  background: #fffaf0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.recording-guidance p {
+  margin: 6px 0;
+}
+.recording-guidance span {
+  color: #657468;
+  font-size: 12px;
+}
+.recording-help {
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.recording-help summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.recording-help ol {
+  padding-left: 20px;
+}

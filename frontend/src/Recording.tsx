@@ -15,6 +15,29 @@ export function RecordingTools({
   const data = run.recording;
   return (
     <div className="operator-tools">
+      <details className="recording-help">
+        <summary>How to record an account balance inquiry</summary>
+        <ol>
+          <li>
+            Click <b>Accounts</b> in Cedar Bank’s left navigation.
+          </li>
+          <li>
+            Click its <b>Account ID</b> field.
+          </li>
+          <li>
+            Set Parameter name to <code>account_id</code>, Example value to{" "}
+            <code>AC-10002</code>, then click <b>Fill parameter</b>.
+          </li>
+          <li>
+            In the bank, click <b>Search accounts</b>, then <b>Open account</b>.
+          </li>
+          <li>
+            Choose <b>Account balance verified</b> below. Name Verified account
+            ID <code>account_id</code> and Account balance <code>balance</code>.
+          </li>
+          <li>Finish the recording, review it, then publish the workflow.</li>
+        </ol>
+      </details>
       <p>
         Click a field in the live image, give it a parameter name, then enter an
         example value. Click the application's buttons to continue.

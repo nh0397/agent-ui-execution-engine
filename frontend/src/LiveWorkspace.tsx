@@ -718,6 +718,30 @@ export default function LiveWorkspace() {
                           </button>
                         )}
                       </div>
+                      {canControl && current.mode === "recording" && (
+                        <div className="recording-guidance" role="note">
+                          <strong>
+                            Recording is active — you control this browser.
+                          </strong>
+                          <p>
+                            Click links and buttons inside the browser. To enter
+                            text, click the bank field first, then use{" "}
+                            <b>Parameter name</b>, <b>Example value</b>, and{" "}
+                            <b>Fill parameter</b> in the recording panel.
+                            Keyboard typing directly into the browser image is
+                            not supported.
+                          </p>
+                          <span>
+                            {current.recording?.steps?.length || 0} gestures
+                            captured ·{" "}
+                            {
+                              Object.keys(current.recording?.parameters || {})
+                                .length
+                            }{" "}
+                            input parameters
+                          </span>
+                        </div>
+                      )}
                       <div className="live-layout">
                         <section className="panel browser-panel">
                           <div className="browser-chrome">
