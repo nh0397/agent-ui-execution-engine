@@ -387,3 +387,120 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Keep the conversation and managed Chromium viewport in the same sight line. */
+.task-desktop.split {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.task-desktop > div {
+  min-width: 0;
+}
+.task-desktop.split .agent-panel {
+  margin: 0;
+  width: 100%;
+  max-width: none;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.task-desktop.split .agent-panel > h2 {
+  font-size: 21px;
+}
+.task-desktop.split .agent-conversation {
+  max-height: 38vh;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.task-desktop.split .agent-examples {
+  flex-direction: column;
+  align-items: stretch;
+}
+.task-desktop.split .agent-match {
+  padding: 12px;
+}
+.task-desktop.split .agent-match .button {
+  display: block;
+  margin-top: 12px;
+}
+.task-desktop.split .live-layout {
+  display: block;
+}
+.task-desktop.split .live-layout > aside {
+  margin-top: 16px;
+}
+.task-desktop.split .session-info dl {
+  display: none;
+}
+.task-desktop.split .browser-panel {
+  overflow: hidden;
+}
+.task-desktop.split .live-toolbar {
+  margin-bottom: 12px;
+}
+.task-desktop.split .live-toolbar select {
+  max-width: 250px;
+}
+.blank-browser {
+  min-height: 430px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 25px;
+  color: #6a7f79;
+}
+.blank-browser h2 {
+  color: #24463a;
+  font-size: 22px;
+  margin: 18px 0 8px;
+}
+.blank-browser p,
+.blank-browser small {
+  max-width: 340px;
+  line-height: 1.6;
+}
+.workspace-story {
+  display: none;
+}
+.workspace-context {
+  margin-bottom: 18px;
+}
+.technical-events {
+  margin-top: 16px;
+}
+.technical-events summary {
+  cursor: pointer;
+  color: #527467;
+}
+@media (min-width: 1100px) {
+  .task-desktop.split > div:first-child {
+    position: sticky;
+    top: 20px;
+  }
+}
+@media (max-width: 1100px) {
+  .task-desktop.split {
+    grid-template-columns: minmax(270px, 320px) minmax(0, 1fr);
+    gap: 12px;
+  }
+}
+@media (max-width: 850px) {
+  .task-desktop.split {
+    display: flex;
+    flex-direction: column;
+  }
+  .task-desktop.split > div {
+    width: 100%;
+  }
+  .blank-browser {
+    min-height: 260px;
+  }
+}
+
+.agent-examples[hidden] {
+  display: none;
+}

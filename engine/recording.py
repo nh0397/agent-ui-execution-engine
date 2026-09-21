@@ -71,6 +71,8 @@ def record(name, description, profile, entry, directory, draft_path, control, su
             'headings':[c['name'] for c in observation['controls'] if c['role']=='heading'],
             'outputs':[c['name'] for c in observation['controls'] if c['readonly']], 'error':''}
     try:
+        if hasattr(surface, "start_live_frames"):
+            surface.start_live_frames(lambda frame: setattr(control, "frame", frame))
         surface.open(entry)
         state = surface.observe()
         if state['app'] != profile.app or state['app_version'] != profile.version:

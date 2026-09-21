@@ -186,3 +186,24 @@ def test_session_expiry_restores_same_session_with_scripted_operator(tmp_path, s
     assert [e["owner"] for e in owners] == ["human", "automation"]
     assert len({e["session_id"] for e in owners}) == 1
     assert any(e["event"] == "human_action" for e in events)
+
+
+def test_live_screencast_updates_between_workflow_actions(tmp_path, server):
+    from engine.surface import BrowserSurface
+    from engine.safety import Evidence, Policy
+    os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', str(Path('.browsers').resolve()))
+    origin = server('normal')
+    profile = Profile.model_validate_json(Path('config/customer-service.json').read_text())
+    profile.origins = [origin]
+    surface = BrowserSurface(Policy(profile), Evidence(tmp_path/'frames', []))
+    frames = []
+    try:
+        surface.start_live_frames(frames.append)
+        surface.open(origin)
+        surface.page.evaluate("setTimeout(() => document.body.style.background = 'red', 150)")
+        for _ in range(10): surface.pump_events()
+        assert len(set(frames)) >= 2
+        assert all(frame.startswith(bytes([255,216])) for frame in frames)
+        assert not list(tmp_path.rglob('*.jpg'))
+    finally:
+        surface.close()

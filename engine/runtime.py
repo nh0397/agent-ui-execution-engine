@@ -44,6 +44,8 @@ class Runtime:
         self.start = time.monotonic()
         self.evidence.event("run_started", run_id=self.run_id, session_id=self.surface.session_id, capability=spec.name, write_approval=approve_writes)
         try:
+            if self.control is not None and hasattr(self.surface, "start_live_frames"):
+                self.surface.start_live_frames(lambda frame: setattr(self.control, "frame", frame))
             self.surface.open(entry)
             observation = self.surface.observe()
             if observation["app"] != profile.app or observation["app_version"] != profile.version:

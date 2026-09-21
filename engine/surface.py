@@ -1,5 +1,6 @@
 """Browser-specific perception and interaction; no workflow sequence lives here."""
 import re
+import base64
 import uuid
 from typing import Protocol
 
@@ -57,6 +58,16 @@ class BrowserSurface:
         self.page.on("dialog", self._dialog)
         self.page.on("framenavigated", self._navigated)
         self.page.on("framenavigated", lambda frame: self.evidence.event("human_navigation", session_id=self.session_id) if self.owner == "human" else None)
+
+    def start_live_frames(self, on_frame):
+        """Chromium screencast for the authenticated live view; never saved as evidence."""
+        channel = self.context.new_cdp_session(self.page)
+        def receive(event):
+            on_frame(base64.b64decode(event['data']))
+            channel.send('Page.screencastFrameAck', {'sessionId': event['sessionId']})
+        channel.on('Page.screencastFrame', receive)
+        channel.send('Page.startScreencast', {'format':'jpeg', 'quality':70, 'everyNthFrame':1})
+        self.live_channel = channel
 
     def _navigated(self, frame):
         if frame == self.page.main_frame:

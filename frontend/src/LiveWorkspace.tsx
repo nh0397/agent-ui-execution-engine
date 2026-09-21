@@ -317,10 +317,10 @@ export default function LiveWorkspace() {
     };
   }, []);
   useEffect(() => {
-    if (!current?.live?.has_frame) return;
+    if (!current?.live?.has_frame || current.status !== "running") return;
     const timer = setInterval(() => setFrameTick((t) => t + 1), 800);
     return () => clearInterval(timer);
-  }, [current?.id, current?.live?.has_frame]);
+  }, [current?.id, current?.live?.has_frame, current?.status]);
   useEffect(() => {
     setImageError(false);
   }, [current?.id]);
@@ -590,30 +590,381 @@ export default function LiveWorkspace() {
             )}
           </div>
           <div
-            hidden={
-              ![
-                "Overview",
-                "New workflow",
-                "Live session",
-                "Capabilities",
-              ].includes(page)
-            }
+            className={`task-desktop ${page === "Overview" || page === "Live session" ? "split" : ""}`}
           >
-            <Agent
-              key={person.id}
-              catalog={catalog}
-              csrf={csrf}
-              viewer={viewer}
-              onRun={(id) => {
-                setSelected(id);
-                void refresh();
-                setPage("Live session");
-              }}
-              record={() => {
-                setMode("recording");
-                setPage("New workflow");
-              }}
-            />
+            <div
+              hidden={
+                ![
+                  "Overview",
+                  "New workflow",
+                  "Live session",
+                  "Capabilities",
+                ].includes(page)
+              }
+            >
+              <Agent
+                key={person.id}
+                catalog={catalog}
+                csrf={csrf}
+                viewer={viewer}
+                onRun={(id) => {
+                  setSelected(id);
+                  void refresh();
+                  setPage("Live session");
+                }}
+                record={() => {
+                  setMode("recording");
+                  setPage("New workflow");
+                }}
+              />
+            </div>
+            <div className="browser-workspace">
+              {page === "Overview" && (
+                <section
+                  className="panel browser-panel ready-browser"
+                  aria-label="Browser workspace"
+                >
+                  <div className="browser-chrome">
+                    <span />
+                    <span />
+                    <span />
+                    <div>
+                      <Monitor size={13} /> about:blank
+                    </div>
+                  </div>
+                  <div className="blank-browser">
+                    <Monitor size={40} />
+                    <h2>Your browser will open here</h2>
+                    <p>
+                      Describe a task in the chat, review the details, then run
+                      it.
+                    </p>
+                    <small>
+                      When execution starts, this view shows the actual Chromium
+                      session.
+                    </small>
+                  </div>
+                </section>
+              )}
+              {page === "Live session" && (
+                <>
+                  {current ? (
+                    <>
+                      <div className="live-toolbar">
+                        <select
+                          aria-label="Select run"
+                          value={current.id}
+                          onChange={(e) => setSelected(e.target.value)}
+                        >
+                          {runs.map((r) => (
+                            <option key={r.id} value={r.id}>
+                              {r.id.slice(0, 8)} · {r.mode} · {status(r)}
+                            </option>
+                          ))}
+                        </select>
+                        <Badge
+                          tone={
+                            canControl
+                              ? "amber"
+                              : current.status === "success"
+                                ? "green"
+                                : "neutral"
+                          }
+                        >
+                          {status(current)}
+                        </Badge>
+                        <span>Control: {current.live?.owner || "none"}</span>
+                        {current.status === "running" &&
+                          current.live?.owner === "automation" &&
+                          !viewer && (
+                            <button
+                              className="button secondary"
+                              disabled={current.live?.takeover_requested}
+                              onClick={() =>
+                                command({ kind: "request_control" })
+                              }
+                            >
+                              {current.live?.takeover_requested
+                                ? "Control requested…"
+                                : "Request control"}
+                            </button>
+                          )}
+                        {current.status === "running" && !viewer && (
+                          <button
+                            className="button secondary"
+                            onClick={() => command({ kind: "abort" })}
+                          >
+                            <StopCircle size={15} />
+                            Cancel run
+                          </button>
+                        )}
+                      </div>
+                      <div className="live-layout">
+                        <section className="panel browser-panel">
+                          <div className="browser-chrome">
+                            <span />
+                            <span />
+                            <span />
+                            <div>
+                              <Monitor size={13} />
+                              Chromium · Cedar Bank
+                            </div>
+                          </div>
+                          {current.live?.has_frame && !imageError ? (
+                            <img
+                              className={`live-screen ${canControl ? "controllable" : ""}`}
+                              src={`/api/runs/${current.id}/frame?t=${frameTick}`}
+                              alt="Current automation browser"
+                              onError={() => setImageError(true)}
+                              onClick={(e) => {
+                                if (!canControl) return;
+                                const r =
+                                  e.currentTarget.getBoundingClientRect();
+                                void command({
+                                  kind: "click",
+                                  x:
+                                    ((e.clientX - r.left) *
+                                      e.currentTarget.naturalWidth) /
+                                    r.width,
+                                  y:
+                                    ((e.clientY - r.top) *
+                                      e.currentTarget.naturalHeight) /
+                                    r.height,
+                                });
+                              }}
+                            />
+                          ) : (
+                            <div className="empty-session">
+                              <Monitor size={40} />
+                              <h2>
+                                {current.status === "running"
+                                  ? "Opening browser…"
+                                  : "Browser session closed"}
+                              </h2>
+                              <p>{current.code}</p>
+                            </div>
+                          )}
+                          {current.status !== "running" && (
+                            <div className="last-frame">
+                              Last frame from the completed session. This
+                              browser is no longer controllable.
+                            </div>
+                          )}
+                        </section>
+                        <aside>
+                          <section className="panel session-info">
+                            <h3>
+                              {canControl
+                                ? current.mode === "recording"
+                                  ? "You are recording"
+                                  : "Your review is needed"
+                                : "Execution details"}
+                            </h3>
+                            {current.live?.intervention ? (
+                              <>
+                                <p className="callout">
+                                  {current.live.intervention.reason}
+                                </p>
+                                <p>
+                                  Click inside the browser image to operate the
+                                  same session. Complete the requested step,
+                                  then resume.
+                                </p>
+                                <p className="muted">
+                                  Expected checkpoint:{" "}
+                                  {JSON.stringify(
+                                    current.live.intervention.expected,
+                                  )}
+                                </p>
+                              </>
+                            ) : (
+                              <p>
+                                {current.status === "running"
+                                  ? current.mode === "recording"
+                                    ? "Demonstrate the workflow using the image and parameter controls below."
+                                    : "The engine owns this browser. Request control to pause at the next safe action boundary."
+                                  : "The run has finished. Inspect its outputs and evidence below."}
+                              </p>
+                            )}
+                            <dl>
+                              <dt>Mode</dt>
+                              <dd>{current.mode}</dd>
+                              <dt>Actions / model decisions</dt>
+                              <dd>
+                                {current.actions} / {current.model_decisions}
+                              </dd>
+                              <dt>Session ID</dt>
+                              <dd className="mono">
+                                {current.live?.session_id ||
+                                  current.run_id ||
+                                  "Starting"}
+                              </dd>
+                            </dl>
+                            {canControl && current.mode === "recording" && (
+                              <RecordingTools
+                                key={current.id}
+                                run={current}
+                                command={command}
+                              />
+                            )}
+                            {canControl && current.mode !== "recording" && (
+                              <div className="operator-tools">
+                                <label>
+                                  Text for focused field
+                                  <input
+                                    aria-label="Text for focused field"
+                                    type="password"
+                                    value={typing}
+                                    onChange={(e) => setTyping(e.target.value)}
+                                  />
+                                </label>
+                                <button
+                                  className="button secondary"
+                                  onClick={() => {
+                                    void command({
+                                      kind: "type",
+                                      text: typing,
+                                    });
+                                    setTyping("");
+                                  }}
+                                >
+                                  Type text
+                                </button>
+                                <div className="key-buttons">
+                                  {["Tab", "Enter", "Escape", "Backspace"].map(
+                                    (key) => (
+                                      <button
+                                        className="button secondary"
+                                        key={key}
+                                        onClick={() =>
+                                          command({ kind: "key", key })
+                                        }
+                                      >
+                                        {key}
+                                      </button>
+                                    ),
+                                  )}
+                                  <button
+                                    className="button secondary"
+                                    onClick={() =>
+                                      command({ kind: "scroll", delta: 500 })
+                                    }
+                                  >
+                                    Scroll down
+                                  </button>
+                                  <button
+                                    className="button secondary"
+                                    onClick={() =>
+                                      command({ kind: "scroll", delta: -500 })
+                                    }
+                                  >
+                                    Scroll up
+                                  </button>
+                                </div>
+                                <button
+                                  className="button primary"
+                                  onClick={() => command({ kind: "resume" })}
+                                >
+                                  <Play size={15} />
+                                  Resume automation
+                                </button>
+                              </div>
+                            )}
+                          </section>
+                        </aside>
+                      </div>
+                      <RecordingDocument
+                        key={current.id}
+                        run={current}
+                        csrf={csrf}
+                        viewer={viewer}
+                        publish={async () => {
+                          try {
+                            await request(
+                              `/runs/${current.id}/publish`,
+                              { method: "POST" },
+                              csrf,
+                            );
+                            await refresh();
+                          } catch (e) {
+                            setError((e as Error).message);
+                          }
+                        }}
+                      />
+                      <section className="panel event-panel">
+                        <div className="section-heading">
+                          <h2>Live event log</h2>
+                          <button
+                            className="text-button"
+                            onClick={() => setDetail(current)}
+                          >
+                            Inspect result <ArrowUpRight size={15} />
+                          </button>
+                        </div>
+                        {current.result && (
+                          <div className={`result-banner ${current.status}`}>
+                            <strong>
+                              {status(current)} · {current.code}
+                            </strong>
+                            <pre>
+                              {JSON.stringify(current.result.outputs, null, 2)}
+                            </pre>
+                            {current.status === "success" &&
+                              (current.mode === "discovery" ||
+                                (current.mode === "recording" &&
+                                  current.capability_id === current.id)) && (
+                                <button
+                                  className="button primary"
+                                  onClick={() =>
+                                    prepareReplay(current.capability_id)
+                                  }
+                                >
+                                  Replay this new capability{" "}
+                                  <ArrowRight size={15} />
+                                </button>
+                              )}
+                          </div>
+                        )}
+                        <details className="technical-events">
+                          <summary>Technical event details</summary>
+                          <ol className="live-events">
+                            {current.events
+                              .slice(-25)
+                              .reverse()
+                              .map((event, index) => (
+                                <li key={`${event.time}-${index}`}>
+                                  <time>
+                                    {new Date(event.time).toLocaleTimeString()}
+                                  </time>
+                                  <Badge>{event.event}</Badge>
+                                  <code>
+                                    {JSON.stringify(event).slice(0, 500)}
+                                  </code>
+                                </li>
+                              ))}
+                          </ol>
+                        </details>
+                      </section>
+                    </>
+                  ) : (
+                    <section className="panel empty-session">
+                      <Monitor size={42} />
+                      <h2>No run started yet</h2>
+                      <p>
+                        Start discovery or replay to open a real browser
+                        session.
+                      </p>
+                      <button
+                        className="button primary"
+                        onClick={() => navigate("New workflow")}
+                      >
+                        Create workflow
+                      </button>
+                    </section>
+                  )}
+                </>
+              )}
+            </div>
           </div>
           {page === "Overview" && (
             <details className="workspace-summary">
@@ -1112,311 +1463,6 @@ export default function LiveWorkspace() {
                   onNew={() => navigate("New workflow")}
                 />
               </section>
-            </>
-          )}
-          {page === "Live session" && (
-            <>
-              {current ? (
-                <>
-                  <div className="live-toolbar">
-                    <select
-                      aria-label="Select run"
-                      value={current.id}
-                      onChange={(e) => setSelected(e.target.value)}
-                    >
-                      {runs.map((r) => (
-                        <option key={r.id} value={r.id}>
-                          {r.id.slice(0, 8)} · {r.mode} · {status(r)}
-                        </option>
-                      ))}
-                    </select>
-                    <Badge
-                      tone={
-                        canControl
-                          ? "amber"
-                          : current.status === "success"
-                            ? "green"
-                            : "neutral"
-                      }
-                    >
-                      {status(current)}
-                    </Badge>
-                    <span>Control: {current.live?.owner || "none"}</span>
-                    {current.status === "running" &&
-                      current.live?.owner === "automation" &&
-                      !viewer && (
-                        <button
-                          className="button secondary"
-                          disabled={current.live?.takeover_requested}
-                          onClick={() => command({ kind: "request_control" })}
-                        >
-                          {current.live?.takeover_requested
-                            ? "Control requested…"
-                            : "Request control"}
-                        </button>
-                      )}
-                    {current.status === "running" && !viewer && (
-                      <button
-                        className="button secondary"
-                        onClick={() => command({ kind: "abort" })}
-                      >
-                        <StopCircle size={15} />
-                        Cancel run
-                      </button>
-                    )}
-                  </div>
-                  <div className="live-layout">
-                    <section className="panel browser-panel">
-                      <div className="browser-chrome">
-                        <span />
-                        <span />
-                        <span />
-                        <div>
-                          <Monitor size={13} />
-                          Cedar Bank · same browser session
-                        </div>
-                      </div>
-                      {current.live?.has_frame && !imageError ? (
-                        <img
-                          className={`live-screen ${canControl ? "controllable" : ""}`}
-                          src={`/api/runs/${current.id}/frame?t=${frameTick}`}
-                          alt="Current automation browser"
-                          onError={() => setImageError(true)}
-                          onClick={(e) => {
-                            if (!canControl) return;
-                            const r = e.currentTarget.getBoundingClientRect();
-                            void command({
-                              kind: "click",
-                              x:
-                                ((e.clientX - r.left) *
-                                  e.currentTarget.naturalWidth) /
-                                r.width,
-                              y:
-                                ((e.clientY - r.top) *
-                                  e.currentTarget.naturalHeight) /
-                                r.height,
-                            });
-                          }}
-                        />
-                      ) : (
-                        <div className="empty-session">
-                          <Monitor size={40} />
-                          <h2>
-                            {current.status === "running"
-                              ? "Opening browser…"
-                              : "Browser session closed"}
-                          </h2>
-                          <p>{current.code}</p>
-                        </div>
-                      )}
-                      {current.status !== "running" && (
-                        <div className="last-frame">
-                          Last frame from the completed session. This browser is
-                          no longer controllable.
-                        </div>
-                      )}
-                    </section>
-                    <aside>
-                      <section className="panel session-info">
-                        <h3>
-                          {canControl
-                            ? current.mode === "recording"
-                              ? "You are recording"
-                              : "Your review is needed"
-                            : "Execution details"}
-                        </h3>
-                        {current.live?.intervention ? (
-                          <>
-                            <p className="callout">
-                              {current.live.intervention.reason}
-                            </p>
-                            <p>
-                              Click inside the browser image to operate the same
-                              session. Complete the requested step, then resume.
-                            </p>
-                            <p className="muted">
-                              Expected checkpoint:{" "}
-                              {JSON.stringify(
-                                current.live.intervention.expected,
-                              )}
-                            </p>
-                          </>
-                        ) : (
-                          <p>
-                            {current.status === "running"
-                              ? current.mode === "recording"
-                                ? "Demonstrate the workflow using the image and parameter controls below."
-                                : "The engine owns this browser. Request control to pause at the next safe action boundary."
-                              : "The run has finished. Inspect its outputs and evidence below."}
-                          </p>
-                        )}
-                        <dl>
-                          <dt>Mode</dt>
-                          <dd>{current.mode}</dd>
-                          <dt>Actions / model decisions</dt>
-                          <dd>
-                            {current.actions} / {current.model_decisions}
-                          </dd>
-                          <dt>Session ID</dt>
-                          <dd className="mono">
-                            {current.live?.session_id ||
-                              current.run_id ||
-                              "Starting"}
-                          </dd>
-                        </dl>
-                        {canControl && current.mode === "recording" && (
-                          <RecordingTools
-                            key={current.id}
-                            run={current}
-                            command={command}
-                          />
-                        )}
-                        {canControl && current.mode !== "recording" && (
-                          <div className="operator-tools">
-                            <label>
-                              Text for focused field
-                              <input
-                                aria-label="Text for focused field"
-                                type="password"
-                                value={typing}
-                                onChange={(e) => setTyping(e.target.value)}
-                              />
-                            </label>
-                            <button
-                              className="button secondary"
-                              onClick={() => {
-                                void command({ kind: "type", text: typing });
-                                setTyping("");
-                              }}
-                            >
-                              Type text
-                            </button>
-                            <div className="key-buttons">
-                              {["Tab", "Enter", "Escape", "Backspace"].map(
-                                (key) => (
-                                  <button
-                                    className="button secondary"
-                                    key={key}
-                                    onClick={() =>
-                                      command({ kind: "key", key })
-                                    }
-                                  >
-                                    {key}
-                                  </button>
-                                ),
-                              )}
-                              <button
-                                className="button secondary"
-                                onClick={() =>
-                                  command({ kind: "scroll", delta: 500 })
-                                }
-                              >
-                                Scroll down
-                              </button>
-                              <button
-                                className="button secondary"
-                                onClick={() =>
-                                  command({ kind: "scroll", delta: -500 })
-                                }
-                              >
-                                Scroll up
-                              </button>
-                            </div>
-                            <button
-                              className="button primary"
-                              onClick={() => command({ kind: "resume" })}
-                            >
-                              <Play size={15} />
-                              Resume automation
-                            </button>
-                          </div>
-                        )}
-                      </section>
-                    </aside>
-                  </div>
-                  <RecordingDocument
-                    key={current.id}
-                    run={current}
-                    csrf={csrf}
-                    viewer={viewer}
-                    publish={async () => {
-                      try {
-                        await request(
-                          `/runs/${current.id}/publish`,
-                          { method: "POST" },
-                          csrf,
-                        );
-                        await refresh();
-                      } catch (e) {
-                        setError((e as Error).message);
-                      }
-                    }}
-                  />
-                  <section className="panel event-panel">
-                    <div className="section-heading">
-                      <h2>Live event log</h2>
-                      <button
-                        className="text-button"
-                        onClick={() => setDetail(current)}
-                      >
-                        Inspect result <ArrowUpRight size={15} />
-                      </button>
-                    </div>
-                    {current.result && (
-                      <div className={`result-banner ${current.status}`}>
-                        <strong>
-                          {status(current)} · {current.code}
-                        </strong>
-                        <pre>
-                          {JSON.stringify(current.result.outputs, null, 2)}
-                        </pre>
-                        {current.status === "success" &&
-                          (current.mode === "discovery" ||
-                            (current.mode === "recording" &&
-                              current.capability_id === current.id)) && (
-                            <button
-                              className="button primary"
-                              onClick={() =>
-                                prepareReplay(current.capability_id)
-                              }
-                            >
-                              Replay this new capability{" "}
-                              <ArrowRight size={15} />
-                            </button>
-                          )}
-                      </div>
-                    )}
-                    <ol className="live-events">
-                      {current.events
-                        .slice(-25)
-                        .reverse()
-                        .map((event, index) => (
-                          <li key={`${event.time}-${index}`}>
-                            <time>
-                              {new Date(event.time).toLocaleTimeString()}
-                            </time>
-                            <Badge>{event.event}</Badge>
-                            <code>{JSON.stringify(event).slice(0, 500)}</code>
-                          </li>
-                        ))}
-                    </ol>
-                  </section>
-                </>
-              ) : (
-                <section className="panel empty-session">
-                  <Monitor size={42} />
-                  <h2>No run started yet</h2>
-                  <p>
-                    Start discovery or replay to open a real browser session.
-                  </p>
-                  <button
-                    className="button primary"
-                    onClick={() => navigate("New workflow")}
-                  >
-                    Create workflow
-                  </button>
-                </section>
-              )}
             </>
           )}
           {page === "Banking app" && (

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
 import { request, type CatalogItem } from "./api";
 type Message = { role: "you" | "agent"; text: string; matches?: string[] };
 export function Agent({
@@ -14,7 +14,12 @@ export function Agent({
   onRun: (id: string) => void;
   record: () => void;
 }) {
+  const conversation = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  useEffect(() => {
+    const pane = conversation.current;
+    if (pane) pane.scrollTop = pane.scrollHeight;
+  }, [messages]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [initialRequest, setInitialRequest] = useState("");
@@ -141,7 +146,7 @@ export function Agent({
         Ask for a banking task. I'll find a saved workflow, ask for the inputs,
         and let you review before running it.
       </p>
-      <div className="agent-examples">
+      <div className="agent-examples" hidden={messages.length > 0}>
         {[
           "Look up an account balance",
           "Update a mailing address",
@@ -157,7 +162,7 @@ export function Agent({
           </button>
         ))}
       </div>
-      <div className="agent-conversation" aria-live="polite">
+      <div ref={conversation} className="agent-conversation" aria-live="polite">
         {messages.map((message, index) => (
           <article
             key={index}

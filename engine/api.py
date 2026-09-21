@@ -269,7 +269,7 @@ def create_app(root: Path | None = None):
         control = controls.get(job_id)
         if not control or not control.frame:
             return Response(status_code=204)
-        return Response(control.frame, media_type="image/jpeg")
+        return Response(control.frame, media_type="image/jpeg", headers={"Cache-Control":"no-store"})
 
     @app.post("/api/runs/{job_id}/control")
     def control_run(job_id: str, command: OperatorCommand, request: Request):
