@@ -6,6 +6,8 @@ People often repeat the same steps in an app: find a customer, open a form, chan
 
 You can also teach it by doing the steps yourself. A chat screen helps you find a saved workflow, supply the details, and review the task before it runs.
 
+**Recording a demo for the first time? Follow [the exact screen-recording walkthrough](DEMO.md).** It gives you the clicks, test values, expected results, and a short explanation to say at each step. Start with AI discovery, then replay, human takeover, and error handling. Manual workflow recording is an optional second teaching method.
+
 The project includes **Cedar Bank**, a small banking app with made-up customers. It gives the automation something real to operate. No real bank accounts or money are involved.
 
 ![The chat screen, with a message box and buttons for choosing, discovering, and recording workflows](docs/images/chat.png)
