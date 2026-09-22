@@ -271,6 +271,21 @@ def create_app(root: Path | None = None):
             raise HTTPException(502, "The model could not return a valid catalog selection. Please try again.")
         return {**result, "catalog_count": len(saved)}
 
+    @app.post("/api/agent/discovery")
+    async def prepare_discovery(body: AgentMessage, request: Request):
+        session(request)
+        from engine.catalog_agent import match_capabilities, extract_inputs
+        try:
+            selection = await match_capabilities(body.message, {"address-discovery": spec}, body.model)
+            if not selection["matches"]:
+                return {"supported": False}
+            values = await extract_inputs(body.message, spec, body.model)
+        except (httpx.HTTPError, ModelError) as exc:
+            raise chat_error(exc) from None
+        except (ValueError, KeyError, TypeError):
+            raise HTTPException(502, "I could not safely prepare this task. Please try again.")
+        return {"supported": True, "spec": spec.model_dump(), "values": values}
+
     @app.get("/api/runs/{job_id}")
     def run_detail(job_id: str, request: Request):
         session(request)
@@ -280,11 +295,12 @@ def create_app(root: Path | None = None):
     async def agent_inputs(body: InputMessage, request: Request):
         session(request)
         path = catalog().get(body.capability_id)
-        if path is None:
+        if path is None and body.capability_id != "address-discovery":
             raise HTTPException(404, "Saved workflow no longer exists")
+        contract = spec if body.capability_id == "address-discovery" else Capability.model_validate_json(path.read_text(encoding="utf-8"))
         from engine.catalog_agent import extract_inputs
         try:
-            values = await extract_inputs(body.message, Capability.model_validate_json(path.read_text(encoding="utf-8")), body.model)
+            values = await extract_inputs(body.message, contract, body.model)
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):

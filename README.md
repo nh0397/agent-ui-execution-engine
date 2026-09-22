@@ -38,12 +38,13 @@ Start the app using the installation steps below. These examples use the same ad
 
 ### Learn a new workflow
 
-1. Click **Discover a workflow**.
-2. Enter this goal: `Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output.`
-3. Use customer `C-104`, street `41 Example Avenue`, city `Sampletown`, and postal code `12345`.
-4. Choose **Normal operation** and check **Authorize changes for this synthetic run**.
-5. Click **Start discovery**. Watch the model operate the bank through the managed browser.
-6. After success, open **Tools → Saved workflows** to inspect the learned steps and input/output definitions.
+1. Send this in chat: `Update the mailing address for customer C-104 to 28 Maple Street, Fremont, postal code 94538.`
+2. If no saved workflow matches, the assistant checks whether it can learn the task and extracts the values. It asks in chat for anything missing; you do not need to repeat the details in a setup form.
+3. Review the short summary. Check **Authorize changes for this synthetic run** if you want it to perform the save without a handoff.
+4. Click **Confirm and start discovery**. Watch the model operate the bank through the managed browser.
+5. After success, open **Tools → Saved workflows** to inspect the learned steps and input/output definitions.
+
+If a matching workflow is already saved, chat offers replay instead. The separate **Discover a workflow** setup remains available when you explicitly want to learn another version or choose a runtime scenario.
 
 This uses the configured model. Discovery can take several minutes and can fail; inspect the result before treating a workflow as learned. The built-in discovery contract is for address changes.
 
@@ -280,11 +281,11 @@ Once a model is configured, try the same task through chat:
 
 The assistant suggests a saved workflow. Select it, review the extracted values, add anything missing, and confirm. A chat message alone does not authorize a write.
 
-If no workflow matches, the app offers learning or recording. It does not secretly invent and run a new workflow. The example chat prompts are suggestions, not a guarantee that every corresponding workflow is already saved.
+If no workflow matches, the assistant can prepare address-change discovery directly in chat. It extracts the values, asks for missing details, and waits for your confirmation. Unsupported tasks still need a suitable contract or manual recording. The example chat prompts are suggestions, not a guarantee that every corresponding workflow is already saved.
 
 ## Let the AI learn a workflow
 
-**Discovery** means the model looks at the current page, chooses a permitted action, and repeats until the result is verified.
+**Discovery** means the model looks at the current page, chooses a permitted action, and repeats until the result is verified. You can start from an English address-change request in chat; the separate form below is an alternative for explicit configuration.
 
 ![Discovery setup with a goal, inputs, runtime scenario, and write authorization](docs/images/discovery.png)
 
@@ -531,7 +532,8 @@ Open `/api/docs` for request fields, types, and schemas, or `/api/openapi.json` 
 | `GET /api/workflow-spec` | Read the built-in discovery input/output contract. |
 | `GET /api/capabilities` | List published workflows and their full contracts. |
 | `POST /api/agent/match` | Send `message`; suggest a saved capability. Does not execute it. |
-| `POST /api/agent/inputs` | Send `message` and `capability_id`; extract supplied values. Does not execute. |
+| `POST /api/agent/inputs` | Send `message` and `capability_id`; extract supplied values. Use `address-discovery` for follow-up discovery inputs. Does not execute. |
+| `POST /api/agent/discovery` | Send `message`; check whether the address task is supported and return its specification and extracted values. Does not start a run. |
 | `POST /api/runs` | Start discovery, replay, or recording. |
 | `GET /api/runs` | List jobs, newest first. |
 | `GET /api/runs/{id}` | Read status, result, events, and live control state. |

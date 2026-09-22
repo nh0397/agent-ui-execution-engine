@@ -73,3 +73,30 @@ def test_model_failure_is_precise_and_does_not_expose_provider_body(tmp_path, mo
         assert expected in response.json()['detail']
         assert 'private request data' not in response.text
         assert client.get('/api/runs').json()==[]
+
+
+@pytest.mark.parametrize("supported", [True, False])
+def test_discovery_chat_prepares_without_execution(tmp_path, monkeypatch, supported):
+    import engine.catalog_agent as agent
+    async def match(message, catalog, model):
+        assert list(catalog) == ["address-discovery"]
+        return {"matches": ["address-discovery"] if supported else []}
+    async def extract(message, spec, model):
+        assert "customer_id" in spec.inputs
+        return {"customer_id": "C-104"}
+    monkeypatch.setattr(agent, "match_capabilities", match)
+    monkeypatch.setattr(agent, "extract_inputs", extract)
+    monkeypatch.setenv("DASHBOARD_STORAGE", str(tmp_path))
+    with TestClient(create_app()) as client:
+        client.headers["Origin"] = "http://127.0.0.1:5174"
+        token = client.post("/api/session", json={"profile_id":"mira"}).json()["csrf"]
+        client.headers["X-CSRF-Token"] = token
+        reply = client.post("/api/agent/discovery", json={"message":"Update C-104 address"})
+        assert reply.status_code == 200
+        assert reply.json()["supported"] is supported
+        if supported:
+            assert reply.json()["values"] == {"customer_id":"C-104"}
+            assert "steps" not in reply.json()["spec"]
+            followup = client.post("/api/agent/inputs", json={"capability_id":"address-discovery", "message":"C-104"})
+            assert followup.json()["values"] == {"customer_id":"C-104"}
+        assert client.get("/api/runs").json() == []

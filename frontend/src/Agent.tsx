@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import { ModelStatus, useConversationHistory, type ChatSnapshot } from "./ConversationHistory";
 import { request, type Run, type CatalogItem } from "./api";
+const discoveryId = "address-discovery";
+type DiscoverySpec = Pick<CatalogItem["capability"], "name" | "description" | "inputs" | "outputs">;
+const discoveryItem = (spec: DiscoverySpec): CatalogItem => ({id: discoveryId, capability: {...spec, version: 1, app: "customer-service", steps: [], discovery_run: ""}});
 type Message = { role: "you" | "agent"; text: string; matches?: string[] | null };
 export function Agent({
   catalog,
@@ -36,14 +39,21 @@ export function Agent({
   const [manual, setManual] = useState(false);
   const [initialRequest, setInitialRequest] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = catalog.find(item => item.id === selectedId) || null;
+  const [discoveryDraft, setDiscoveryDraft] = useState<CatalogItem | null>(null);
+  const selected = selectedId === discoveryId ? discoveryDraft : catalog.find(item => item.id === selectedId) || null;
+  useEffect(() => {
+    if (selectedId !== discoveryId || discoveryDraft || !csrf) return;
+    let disposed = false;
+    void request<DiscoverySpec>("/workflow-spec").then(spec => {if (!disposed) setDiscoveryDraft(discoveryItem(spec));}).catch(() => {if (!disposed) setMessages(old => [...old, {role:"agent", text:"I could not restore the discovery draft. Start a new request or retry after reconnecting."}]);});
+    return () => {disposed = true;};
+  }, [selectedId, discoveryDraft, csrf]);
   const setSelected = (item:CatalogItem|null) => setSelectedId(item?.id || null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [approved, setApproved] = useState(false);
   const history = useConversationHistory({messages,selected_id:selectedId,values,initial_request:initialRequest,run_id:chatRun}, (saved:ChatSnapshot) => {
     setMessages(saved.messages);setSelectedId(saved.selected_id);setValues(saved.values);
     setInitialRequest(saved.initial_request);setChatRun(saved.run_id);setApproved(false);
-    setManual(!!saved.selected_id);setNoMatch(false);setRetryMessage(null);setText("");setShowWorkflows(false);
+    setManual(!!saved.selected_id && saved.selected_id !== discoveryId);setNoMatch(false);setRetryMessage(null);setText("");setShowWorkflows(false);
   }, csrf);
   const fields = Object.keys(selected?.capability.inputs || {});
   const awaitingChoice = !selected && !busy && !!messages.at(-1)?.matches?.length;
@@ -79,7 +89,7 @@ export function Agent({
       );
       const updated = { ...previous, ...reply.values };
       setValues(updated);
-      setManual(true);
+      setManual(false);
       setApproved(false);
       const remaining = Object.keys(item.capability.inputs).filter(
         (field) => !updated[field],
@@ -144,6 +154,18 @@ export function Agent({
         { method: "POST", body: JSON.stringify({ message: input }) },
         csrf,
       );
+      if (!reply.matches.length) {
+        const prepared = await request<{supported: boolean; spec?: DiscoverySpec; values?: Record<string,string>}>(
+          "/agent/discovery", {method:"POST", body:JSON.stringify({message:input})}, csrf);
+        if (prepared.supported && prepared.spec) {
+          const item = discoveryItem(prepared.spec);
+          const extracted = prepared.values || {};
+          setDiscoveryDraft(item); setSelectedId(discoveryId); setValues(extracted); setManual(false); setApproved(false);
+          const missingFields = Object.keys(item.capability.inputs).filter(key => !extracted[key]);
+          say(missingFields.length ? `I can learn this address change. I still need ${missingFields.map(key=>key.replaceAll("_", " ")).join(", ")}. Reply here with those details.` : "I can learn this address change. Check the details below and confirm to start the browser.");
+          return;
+        }
+      }
       setNoMatch(reply.matches.length === 0);
       say(
         reply.matches.length
@@ -168,7 +190,8 @@ export function Agent({
         {
           method: "POST",
           body: JSON.stringify({
-            mode: "replay",
+            mode: selected.id === discoveryId ? "discovery" : "replay",
+            goal: selected.id === discoveryId ? "Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output." : "",
             capability_id: selected.id,
             inputs: values,
             approve_writes: approved,
@@ -263,7 +286,7 @@ export function Agent({
       </div>}
       {selected && !missing && (
         <div className="agent-match">
-          <h3>Ready when you are</h3>
+          <h3>{selected.id === discoveryId ? "Ready to learn this address change" : "Ready when you are"}</h3>
           {!manual && <dl>
             {fields.map((field) => (
               <div key={field}>
@@ -289,7 +312,7 @@ export function Agent({
             disabled={busy || viewer}
             onClick={() => void run()}
           >
-            Run workflow
+            {selected.id === discoveryId ? "Confirm and start discovery" : "Run workflow"}
           </button>
         </div>
       )}

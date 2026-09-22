@@ -53,6 +53,7 @@ def setup_replay(page):
 def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkeypatch, matched):
     import engine.catalog_agent as agent
     async def scripted_match(message, catalog, model):
+        if 'address-discovery' in catalog: return {'matches': [], 'model_used': True}
         assert message == 'Update the mailing address' and 'example' in catalog
         return {'matches': ['example'] if matched else [], 'model_used': True}
     monkeypatch.setattr(agent, 'match_capabilities', scripted_match)
@@ -354,7 +355,7 @@ def test_chat_keyboard_and_new_request_keep_execution_explicit(dashboard, monkey
     import engine.catalog_agent as agent
     seen=[]
     async def match(message, catalog, model):
-        seen.append(message)
+        if 'address-discovery' not in catalog: seen.append(message)
         return {'matches':[], 'model_used':False}
     monkeypatch.setattr(agent,'match_capabilities',match)
     page=dashboard
@@ -395,3 +396,49 @@ def test_conversation_reload_restores_details_without_write_approval(dashboard,m
     expect(page.get_by_label('Workflow input street',exact=True)).to_have_value('92 Persistent Lane')
     expect(page.get_by_label('Authorize changes for this synthetic run')).not_to_be_checked()
     assert page.request.get(base+'/api/runs').json()==[]
+
+
+@pytest.mark.parametrize("missing_postal", [False, True])
+def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatch, missing_postal):
+    # Model and dispatch doubles verify UI behavior, not genuine discovery evidence.
+    import engine.catalog_agent as agent
+    async def match(message, catalog, model):
+        return {"matches": ["address-discovery"] if "address-discovery" in catalog else [], "model_used":True}
+    async def extract(message, spec, model):
+        if message == "94538": return {"postal":"94538"}
+        return {"customer_id":"C-104", "street":"28 Maple Street", "city":"Fremont", **({} if missing_postal else {"postal":"94538"})}
+    monkeypatch.setattr(agent, "match_capabilities", match)
+    monkeypatch.setattr(agent, "extract_inputs", extract)
+    page=dashboard
+    page.get_by_label("Message your assistant").fill("Update C-104 to 28 Maple Street, Fremont" + ("" if missing_postal else ", 94538"))
+    page.get_by_role("button",name="Send message",exact=True).click()
+    if missing_postal:
+        expect(page.get_by_role("log",name="Conversation")).to_contain_text("I still need postal",timeout=10000)
+        expect(page.get_by_role("button",name="Confirm and start discovery")).to_have_count(0)
+        page.get_by_label("Message your assistant").fill("94538")
+        page.get_by_role("button",name="Send message",exact=True).click()
+    confirm=page.get_by_role("button",name="Confirm and start discovery",exact=True)
+    expect(confirm).to_be_visible(timeout=10000)
+    expect(page.get_by_label("Workflow input customer_id")).to_have_count(0)
+    assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]
+    for _ in range(50):
+        chats=page.request.get(page.url.rstrip('/')+'/api/conversations').json()
+        if chats and page.request.get(page.url.rstrip('/')+'/api/conversations/'+chats[0]['id']).json()['values'].get('postal')=='94538': break
+        page.wait_for_timeout(100)
+    else: raise AssertionError('Discovery draft not saved')
+    page.reload()
+    expect(confirm).to_be_visible(timeout=10000)
+    expect(page.get_by_label("Authorize changes for this synthetic run")).not_to_be_checked()
+    submitted=[]
+    def dispatch(route):
+        if route.request.method == "POST":
+            submitted.append(route.request.post_data_json)
+            route.fulfill(status=202,content_type="application/json",body='{"id":"test-dispatch"}')
+        else: route.continue_()
+    page.route("**/api/runs",dispatch)
+    page.get_by_label("Authorize changes for this synthetic run").check()
+    confirm.click()
+    expect(page.get_by_role("log",name="Conversation")).to_contain_text("Started",timeout=10000)
+    assert submitted[0]["mode"]=="discovery"
+    assert submitted[0]["inputs"]=={"customer_id":"C-104","street":"28 Maple Street","city":"Fremont","postal":"94538"}
+    assert submitted[0]["approve_writes"] is True

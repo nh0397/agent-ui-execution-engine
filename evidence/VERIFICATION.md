@@ -102,3 +102,8 @@ Final live checks: CLI replay against Docker/PostgreSQL succeeded (15 actions). 
 - Rewrote the README against startup scripts, configuration, contracts, and API routes. Captured and visually checked five actual app screenshots with synthetic data.
 - Executed the README PowerShell session, catalog, model-status, replay-start, and polling blocks against isolated bank/API services on ports 8017/5187. The bundled address workflow completed successfully with 14 actions and zero model decisions. No provider requests were made. The temporary services were stopped afterward; the existing development workspace was untouched.
 - Checked local Markdown links and screenshot paths. Docker startup instructions were checked against source, not rerun for this documentation change.
+
+## Conversational discovery inputs
+- Chat prepares supported address discovery after no saved match, extracts supplied values, collects missing fields in the conversation, and requires explicit confirmation. Manual setup remains available. No saved capability is invented during preparation.
+- Twelve catalog/API tests passed. Thirteen dashboard tests passed, including full/partial requests, no execution before confirmation, draft restoration without write approval, and discovery dispatch with the reviewed values. Model and run dispatch doubles in these tests are not genuine discovery evidence.
+- TypeScript and production build passed. A live Groq preparation check used two model requests, correctly extracted all four values from an address-change message, and started no browser run. No banking writes were performed by that check.
