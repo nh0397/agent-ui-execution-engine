@@ -30,6 +30,17 @@ PROFILES = [
 SCENARIOS = ("normal", "slow", "transient", "session-expired", "permission-denied", "uncertain-save")
 
 
+def chat_error(exc):
+    # Never expose provider response bodies: they may echo request data.
+    if isinstance(exc, httpx.TimeoutException):
+        return HTTPException(504, "The local model took too long to reply. Your request is still here. Retry, or choose a saved workflow below.")
+    if isinstance(exc, httpx.HTTPStatusError):
+        if exc.response.status_code == 404:
+            return HTTPException(503, "The selected local model is not installed. Choose a saved workflow below and enter its details manually.")
+        return HTTPException(503, "The local model returned an error while processing your request. No workflow was started. Retry, or choose a saved workflow below.")
+    return HTTPException(503, "I cannot reach the local model service. No workflow was started. Start Ollama and retry, or choose a saved workflow below.")
+
+
 class Invocation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mode: Literal["discovery", "replay", "recording"]
@@ -237,8 +248,8 @@ def create_app(root: Path | None = None):
         saved = {key: Capability.model_validate_json(path.read_text(encoding="utf-8")) for key, path in catalog().items()}
         try:
             result = await match_capabilities(body.message.strip(), saved, body.model)
-        except httpx.HTTPError:
-            raise HTTPException(503, "The local model is unavailable or timed out. Start Ollama or choose a workflow directly in Capabilities.")
+        except httpx.HTTPError as exc:
+            raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
             raise HTTPException(502, "The model could not return a valid catalog selection. Please try again.")
         return {**result, "catalog_count": len(saved)}
@@ -257,8 +268,8 @@ def create_app(root: Path | None = None):
         from engine.catalog_agent import extract_inputs
         try:
             values = await extract_inputs(body.message, Capability.model_validate_json(path.read_text(encoding="utf-8")), body.model)
-        except httpx.HTTPError:
-            raise HTTPException(503, "The local model could not read your request. Please try again.")
+        except httpx.HTTPError as exc:
+            raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
             raise HTTPException(502, "I couldn't safely extract the inputs. Please describe the values again.")
         return {"values": values}

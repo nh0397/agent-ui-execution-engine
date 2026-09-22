@@ -22,6 +22,9 @@ export function Agent({
   }, [messages]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [retryMessage, setRetryMessage] = useState<string | null>(null);
+  const [showWorkflows, setShowWorkflows] = useState(false);
+  const [manual, setManual] = useState(false);
   const [initialRequest, setInitialRequest] = useState("");
   const [selected, setSelected] = useState<CatalogItem | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -36,6 +39,7 @@ export function Agent({
     previous: Record<string, string>,
   ) {
     setBusy(true);
+    setRetryMessage(null);
     try {
       const reply = await request<{ values: Record<string, string> }>(
         "/agent/inputs",
@@ -47,6 +51,8 @@ export function Agent({
       );
       const updated = { ...previous, ...reply.values };
       setValues(updated);
+      setManual(true);
+      setApproved(false);
       const remaining = Object.keys(item.capability.inputs).filter(
         (field) => !updated[field],
       );
@@ -56,13 +62,17 @@ export function Agent({
           : "I have the details. Please review them below before I run this workflow.",
       );
     } catch (error) {
-      say((error as Error).message);
+      setRetryMessage(message);
+      setManual(true);
+      say("I couldn’t read the details automatically. You can enter them below, or retry. Nothing has been run.");
     } finally {
       setBusy(false);
     }
   }
   async function choose(item: CatalogItem) {
     setSelected(item);
+    setShowWorkflows(false);
+    setManual(false);
     setValues({});
     setApproved(false);
     say(
@@ -78,6 +88,9 @@ export function Agent({
     setMessages((old) => [...old, { role: "you", text: input }]);
     if (input.toLowerCase() === "cancel") {
       setSelected(null);
+      setRetryMessage(null);
+      setManual(false);
+      setShowWorkflows(false);
       setValues({});
       say(
         "Cleared the draft request. This does not stop a running execution; use its Cancel run control. What would you like to do next?",
@@ -88,7 +101,12 @@ export function Agent({
       await readValues(selected, input, values);
       return;
     }
+    await findWorkflow(input);
+  }
+  async function findWorkflow(input: string) {
     setInitialRequest(input);
+    setRetryMessage(null);
+    setShowWorkflows(false);
     setBusy(true);
     try {
       const reply = await request<{ matches: string[]; catalog_count: number }>(
@@ -103,6 +121,8 @@ export function Agent({
         reply.matches,
       );
     } catch (error) {
+      setRetryMessage(input);
+      setShowWorkflows(true);
       say((error as Error).message);
     } finally {
       setBusy(false);
@@ -195,6 +215,27 @@ export function Agent({
           </article>
         ))}
       </div>
+      {busy && <p role="status">{selected ? "Reading the details in your message…" : "Checking your saved workflows…"} The local model may take a moment.</p>}
+      {retryMessage !== null && !busy && (
+        <button className="button secondary" onClick={() => selected ? void readValues(selected, retryMessage, values) : void findWorkflow(retryMessage)}>Retry last message</button>
+      )}
+      {!selected && catalog.length > 0 && !busy && (
+        <button className="button secondary" onClick={() => setShowWorkflows(!showWorkflows)}>Choose a saved workflow</button>
+      )}
+      {showWorkflows && !selected && <div className="agent-match">
+        <p>Select a workflow yourself. These are your saved workflows, not model recommendations.</p>
+        {catalog.map((item) => <button key={item.id} className="button secondary" disabled={busy || viewer} onClick={() => void choose(item)}>{item.capability.name}</button>)}
+      </div>}
+      {selected && <div className="agent-manual">
+        <button className="text-button" disabled={busy} onClick={() => setManual(!manual)}>{manual ? "Hide input fields" : "Enter or edit details manually"}</button>
+        {manual && <fieldset disabled={busy || viewer}><legend>Details for {selected.capability.name}</legend>
+          <p>Only the fields listed here were captured in this workflow.</p>
+          {fields.map((field) => <label key={field}>{field.replaceAll("_", " ")}
+            <input aria-label={`Workflow input ${field}`} value={values[field] || ""} onChange={(e) => { setValues({ ...values, [field]: e.target.value }); setApproved(false); }} />
+          </label>)}
+          <p>Review these values before running. Missing details are never guessed.</p>
+        </fieldset>}
+      </div>}
       {selected && !missing && (
         <div className="agent-match">
           <h3>Review {selected.capability.name}</h3>

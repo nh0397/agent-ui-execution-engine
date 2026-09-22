@@ -49,3 +49,27 @@ def test_extraction_rejects_invented_unknown_and_invalid_values(monkeypatch):
         return httpx.Response(200, request=httpx.Request('POST', 'http://local/api/chat'), json={'message': {'content': json.dumps({'values': {'customer_id':'not-an-id', 'street':'Invented Street', 'city':'Exampleton', 'postal':'23456', 'admin':'true'}})}})
     monkeypatch.setattr(httpx.AsyncClient, 'post', response)
     assert asyncio.run(extract_inputs('not-an-id in Exampleton, postal 23456', fixture_capability(), 'test')) == {'city':'Exampleton', 'postal':'23456'}
+
+
+@pytest.mark.parametrize('kind,expected,status', [
+    ('timeout','took too long',504), ('connect','cannot reach',503),
+    ('crash','returned an error',503), ('missing','not installed',503),
+])
+def test_model_failure_is_precise_and_does_not_expose_provider_body(tmp_path, monkeypatch, kind, expected, status):
+    import engine.catalog_agent as agent
+    async def fail(*args):
+        if kind=='timeout': raise httpx.ReadTimeout('private request data')
+        if kind=='connect': raise httpx.ConnectError('private request data')
+        response=httpx.Response(404 if kind=='missing' else 500,request=httpx.Request('POST','http://local/api/chat'),text='private request data')
+        response.raise_for_status()
+    monkeypatch.setattr(agent,'match_capabilities',fail)
+    monkeypatch.setenv('DASHBOARD_STORAGE',str(tmp_path))
+    with TestClient(create_app()) as client:
+        client.headers['Origin']='http://127.0.0.1:5174'
+        reply=client.post('/api/session',json={'profile_id':'mira'})
+        client.headers['X-CSRF-Token']=reply.json()['csrf']
+        response=client.post('/api/agent/match',json={'message':'Change an address'})
+        assert response.status_code==status
+        assert expected in response.json()['detail']
+        assert 'private request data' not in response.text
+        assert client.get('/api/runs').json()==[]

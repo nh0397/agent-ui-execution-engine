@@ -313,3 +313,25 @@ def test_inline_recording_infers_inputs_and_stops_for_review(dashboard, monkeypa
     page.get_by_label('Input selected_account').fill('AC-4306')
     page.get_by_role('button',name='Start replay',exact=True).click()
     expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
+
+
+def test_chat_model_failure_allows_manual_recovery_without_execution(dashboard, monkeypatch):
+    import httpx
+    import engine.catalog_agent as agent
+    async def fail(*args):
+        raise httpx.ConnectError('provider-private-data')
+    monkeypatch.setattr(agent,'match_capabilities',fail)
+    monkeypatch.setattr(agent,'extract_inputs',fail)
+    page=dashboard
+    page.get_by_label('Message your assistant').fill('Update my mailing address')
+    page.get_by_role('button',name='Send message',exact=True).click()
+    expect(page.get_by_role('button',name='Retry last message')).to_be_visible()
+    expect(page.get_by_text('I cannot reach the local model service.',exact=False)).to_be_visible()
+    name=page.request.get(page.url.rstrip('/')+'/api/capabilities').json()[0]['capability']['name']
+    page.get_by_role('button',name=name,exact=True).click()
+    expect(page.get_by_label('Workflow input customer_id')).to_be_visible()
+    for key,value in {'customer_id':'C-205','street':'92 Recovery Lane','city':'Exampleton','postal':'23456'}.items():
+        page.get_by_label('Workflow input '+key,exact=True).fill(value)
+    expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_enabled()
+    assert 'provider-private-data' not in page.locator('body').inner_text()
+    assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]

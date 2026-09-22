@@ -41,3 +41,10 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 - Full-stack test covers correcting an entered value, stopping capture, renaming the inferred input, preserving its output equality check, publishing, and replaying another account. Persisted run JSON excludes the entered account value. This is scripted test evidence, not a person-operated handoff claim.
 - Reduced recording overhead by capturing masked viewport images and logging scrolling without image capture. Each published state uses a current browser frame; the live screencast continues between steps. No latency guarantee is claimed.
 - Validation: 57 non-dashboard tests passed in the full regression run; after fixing image-refresh coordinate mapping, all 8 dashboard tests passed. TypeScript checks and the production build passed. The inline test also exercises zero intrinsic image dimensions during frame replacement.
+
+## Chat model recovery (2026-09-21)
+
+- Reproduced Ollama HTTP 500 (model worker connection reset), previously misreported as a connection failure or timeout. Reduced chat context from 8192/4096 to 2048 tokens and limited idle model residency to one minute. This alleviated the observed failure; local memory pressure can still affect availability.
+- Nineteen catalog/API/dashboard tests passed, including failure classification, private-error redaction, and manual recovery without execution. Type checking and the production frontend build passed after releasing an idle model from memory.
+- Genuine local Mistral calls through the running API and Playwright-driven chat matched the saved Customer address change workflow for the user's synthetic C-1001 request. The UI extraction returned customer_id=C-1001 and street_address=Central Avenue. No banking workflow was executed. This verifies catalog chat, not a new LLM discovery run.
+- The saved workflow has only customer ID and street address inputs. Its unchanged city/postal fields are not represented as newly parameterized values. Chat now exposes the accepted fields and allows corrections before run confirmation.
