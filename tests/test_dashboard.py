@@ -99,8 +99,8 @@ def test_scripted_operator_uses_same_live_session_and_resumes(dashboard):
     page.get_by_role('button',name='Start replay',exact=True).click()
     expect(page.get_by_role('heading',name='Your review is needed')).to_be_visible(timeout=45000)
     before=page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]
-    # The review page's five navigation links precede its Save button.
-    for _ in range(6): page.get_by_role('button',name='Tab',exact=True).click()
+    # The review page's six navigation links precede its Save button.
+    for _ in range(7): page.get_by_role('button',name='Tab',exact=True).click()
     page.get_by_role('button',name='Enter',exact=True).click()
     for _ in range(60):
         record=page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]

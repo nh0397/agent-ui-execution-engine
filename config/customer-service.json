@@ -21,7 +21,13 @@
     "/cards/search",
     "/cards/review",
     "/cards/save",
-    "/cards/confirmation/CRD-[A-F0-9]+"
+    "/cards/confirmation/CRD-[A-F0-9]+",
+    "/requests",
+    "/requests/new/(statement|replacement|dispute)",
+    "/requests/review/(statement|replacement|dispute)",
+    "/requests/submit",
+    "/requests/REQ-[A-Z0-9]+",
+    "/requests/REQ-[A-Z0-9]+/status"
   ],
   "allowed_actions": [
     "click",
@@ -32,17 +38,25 @@
   "risky_targets": [
     "Save address",
     "Freeze card",
-    "Unfreeze card"
+    "Unfreeze card",
+    "Submit service request",
+    "Start review",
+    "Resolve request"
   ],
   "automated_post_routes": [
     "/customers/C-[0-9]+/review",
     "/save",
     "/cards/review",
-    "/cards/save"
+    "/cards/save",
+    "/requests/review/(statement|replacement|dispute)",
+    "/requests/submit",
+    "/requests/REQ-[A-Z0-9]+/status"
   ],
   "risky_post_routes": [
     "/save",
-    "/cards/save"
+    "/cards/save",
+    "/requests/submit",
+    "/requests/REQ-[A-Z0-9]+/status"
   ],
   "conditions": [
     {

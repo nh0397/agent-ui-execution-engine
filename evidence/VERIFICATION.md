@@ -28,3 +28,9 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 - Real browser authoring generated three verified capabilities and three successful new-input replays in the active local workspace. The recordings contain 5, 13, and 6 supported gestures, respectively, with 48 masked before/after screenshots in total.
 - Run history and its downloadable documents were verified through the live dashboard. See automated-demonstrations/summary.json for actual run IDs and statuses. These runs are automated demonstrations, not genuine human participation or LLM discovery.
 - GitHub push remains blocked by local Git credential-helper access and GitHub integration write permission (403). Local commits must not be described as published.
+
+## Existing-bank request intake (2026-09-21)
+
+- Full regression: 64 tests passed; request tests passed again after stabilizing status-history ordering.
+- Real Playwright UI check created statement request REQ-00B86C3A64FF for C-1002 / AC-10002, submitted the review, changed status to In review with a staff note, and located it through customer request history. No browser errors. This was a scripted UI verification, not human or LLM discovery evidence.
+- New tests cover all three request types, linked-resource ownership, invalid CSRF, denied writes, duplicate submission, stale status updates, and persistence across restart. Verified locally with SQLite; this change was not exercised on PostgreSQL.

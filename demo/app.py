@@ -214,4 +214,6 @@ def create_app(database: str | Path | None = None, scenario: str | None = None):
     register_services(app, db, render, guard, form)
     from demo.seed import seed_demo_records
     seed_demo_records(db)
+    from demo.requests import register_requests
+    register_requests(app, db, render, guard, form)
     return app
