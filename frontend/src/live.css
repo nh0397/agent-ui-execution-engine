@@ -743,3 +743,19 @@
 @media(max-width:800px) { .chat-product .topbar { padding:0 14px; } .chat-brand span,.chat-product .evidence-indicator { display:none; } .chat-product main { padding:0 14px; } .chat-product.watching .task-desktop { display:flex; flex-direction:column-reverse; } .chat-product.watching .browser-workspace { height:45vh; } .chat-product.watching .agent-panel { height:65vh; } .chat-main .is-empty h2 { font-size:28px; } }
 
 .chat-product .chat-brand { font-size:22px; font-weight:750; }
+
+.chat-product .chat-tools summary { display:flex; align-items:center; gap:10px; background:#edf5ef; border-color:#8db69b; color:#245640; box-shadow:0 2px 8px #224b3210; }
+.chat-tools summary span { font-size:11px; }
+.chat-tools > div { min-width:270px; }
+.tools-explanation { color:#66756b; font-size:12px; line-height:1.6; margin:0 6px 6px; }
+.conversational .workflow-choice { border:1px solid #96b9a2; background:#f7fbf8; padding:20px; }
+.conversational .workflow-choice .next-step-label { font-size:10px; color:#367150; font-weight:700; letter-spacing:1px; margin:0 0 10px; }
+.workflow-choice h3 { margin:0 0 8px; }
+.conversational .workflow-scope { font-size:13px; color:#4e6858; }
+.workflow-choice-footer { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:18px; padding-top:14px; border-top:1px solid #dfe9e1; }
+.workflow-choice-footer .button { min-width:175px; padding:13px 20px; }
+.conversational .workflow-choice-hint { font-size:11px; color:#64796b; margin-top:10px; }
+.selection-prompt { font-size:12px; padding:10px 14px; background:#eff6f0; color:#305b40; border-radius:8px; margin:8px 0; flex-shrink:0; }
+@media(max-width:600px) { .chat-tools summary span:not(:last-child) { display:none; } .workflow-choice-footer { align-items:stretch; flex-direction:column; } .workflow-choice-footer .button { width:100%; } }
+
+@media(max-width:600px) { .workflow-choice { display:flex; flex-direction:column; } .workflow-choice h3 { order:1; } .workflow-choice-footer { order:2; margin-top:4px; padding-top:4px; border:0; } .workflow-choice-footer .button { order:-1; } .workflow-choice .workflow-description { order:3; } .workflow-choice .workflow-scope { order:4; } .workflow-choice .workflow-choice-hint { order:5; } }

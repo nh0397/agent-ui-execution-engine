@@ -62,3 +62,8 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 
 - Replaced primary dashboard navigation and idle cards with full-page chat, anchored composer, and secondary Tools. The live browser and chat share the execution view; terminal outcomes are appended to the originating conversation. No-match replies offer discovery setup with the original goal or human recording.
 - Production build and type checking passed. Ten dashboard tests passed; the additional no-match → discovery setup → return to chat → recording assertions also passed. Chat-driven replay verifies that the completion message appears in the conversation. Desktop and mobile layouts were visually inspected; mobile has no horizontal overflow.
+
+## Workflow selection clarity
+
+- Highlighted Tools, added explicit next-step selection guidance and supported fields, separated action buttons from metadata, and disabled stale suggestions. Type checking/build passed; ten dashboard tests passed. Desktop/mobile selection rendering inspected with an explicit mocked match response (not model evidence); mobile action verified clear of the composer.
+- Submission readiness remains conditional on a person-operated takeover/resume demonstration and final clean-setup, documentation, and public-evidence review. Existing genuine discovery/replay evidence remains intact.

@@ -38,6 +38,7 @@ export function Agent({
   const [values, setValues] = useState<Record<string, string>>({});
   const [approved, setApproved] = useState(false);
   const fields = Object.keys(selected?.capability.inputs || {});
+  const awaitingChoice = !selected && !busy && !!messages.at(-1)?.matches?.length;
   const missing = fields.find((field) => !values[field]);
   const say = (message: string, matches?: string[]) =>
     setMessages((old) => [...old, { role: "agent", text: message, matches }]);
@@ -100,6 +101,7 @@ export function Agent({
   }
   async function choose(item: CatalogItem) {
     setSelected(item);
+    setNoMatch(false);
     setShowWorkflows(false);
     setManual(false);
     setValues({});
@@ -212,20 +214,23 @@ export function Agent({
             {message.matches?.map((id) => {
               const item = catalog.find((candidate) => candidate.id === id);
               return item ? (
-                <div className="agent-match" key={id}>
+                <div className="agent-match workflow-choice" key={id}>
+                  {index === messages.length - 1 && !selected && <p className="next-step-label">NEXT STEP · SELECT A WORKFLOW</p>}
                   <h3>{item.capability.name}</h3>
                   <details className="workflow-description"><summary>What this workflow does</summary><p>{item.capability.description}</p></details>
-                  <small>
+                  <p className="workflow-scope">Details this workflow accepts: {Object.keys(item.capability.inputs).map((key) => key.replaceAll("_", " ")).join(", ")}.</p>
+                  <div className="workflow-choice-footer"><small>
                     {item.capability.steps.length} recorded actions · Version{" "}
                     {item.capability.version}
                   </small>
                   <button
                     className="button primary"
-                    disabled={viewer || !!selected || busy}
+                    disabled={viewer || !!selected || busy || index !== messages.length - 1}
                     onClick={() => void choose(item)}
                   >
                     Use this workflow
-                  </button>
+                  </button></div>
+                  <p className="workflow-choice-hint">Select this to review the details. Nothing runs yet.</p>
                 </div>
               ) : null;
             })}
@@ -301,6 +306,7 @@ export function Agent({
         ))}
       </div>
       </div>
+      {awaitingChoice && <p className="selection-prompt" role="status">Choose <strong>Use this workflow</strong> above to continue, or send a different request.</p>}
       <form onSubmit={submit} className="agent-composer">
         <label htmlFor="agent-request">Message your assistant</label>
         <textarea
@@ -320,7 +326,7 @@ export function Agent({
           placeholder={
             missing
               ? `Enter ${missing}`
-              : messages.length ? "Add details or ask for a correction…" : "For example: Check the balance of account AC-10002"
+              : awaitingChoice ? "Or describe a different activity…" : messages.length ? "Add details or ask for a correction…" : "For example: Check the balance of account AC-10002"
           }
         />
         <div className="composer-footer"><span>Enter to send · Shift + Enter for a new line</span><button

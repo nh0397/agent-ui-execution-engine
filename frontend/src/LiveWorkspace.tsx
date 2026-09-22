@@ -472,7 +472,7 @@ export default function LiveWorkspace() {
       <div className="content-shell">
         <header className="topbar">
           <button className="chat-brand text-button" onClick={() => navigate("Overview")}>agentui <span>Banking assistant</span></button>
-          <details className="chat-tools" onClick={(event) => { if ((event.target as HTMLElement).closest("button,a")) event.currentTarget.open = false; }}><summary>Tools</summary><div>
+          <details className="chat-tools" onClick={(event) => { if ((event.target as HTMLElement).closest("button,a")) event.currentTarget.open = false; }}><summary><strong>Tools</strong><span>Learn & manage workflows</span><span aria-hidden="true">⌄</span></summary><div><p className="tools-explanation">Start here to teach a new workflow, browse saved ones, or inspect a past run.</p>
             <button className="text-button" onClick={() => navigate("Overview")}>Back to chat</button>
             <button className="text-button" disabled={viewer || !online} onClick={() => navigate("New workflow")}>Learn a new workflow</button>
             <button className="text-button" onClick={() => navigate("Capabilities")}>Saved workflows</button>
