@@ -98,3 +98,7 @@ Final live checks: CLI replay against Docker/PostgreSQL succeeded (15 actions). 
 - TypeScript checking and the production frontend build passed. All 11 dashboard regression tests passed.
 - Live Playwright presentation checks at 1440px desktop and 390px mobile verified the bordered chat, visible workflow buttons, no horizontal overflow, and no page errors. The Discover a workflow button opened the existing goal configuration. These checks made no model calls or banking writes.
 
+## README walkthrough verification
+- Rewrote the README against startup scripts, configuration, contracts, and API routes. Captured and visually checked five actual app screenshots with synthetic data.
+- Executed the README PowerShell session, catalog, model-status, replay-start, and polling blocks against isolated bank/API services on ports 8017/5187. The bundled address workflow completed successfully with 14 actions and zero model decisions. No provider requests were made. The temporary services were stopped afterward; the existing development workspace was untouched.
+- Checked local Markdown links and screenshot paths. Docker startup instructions were checked against source, not rerun for this documentation change.

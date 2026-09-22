@@ -1,243 +1,508 @@
 # Agent UI Execution Engine
 
-Turn an agent's intent into a reusable, verifiable workflow through a real user interface.
+Teach a task once. Run it again with different details.
 
-For requirement coverage and remaining acceptance work, see [the final audit](FINAL_AUDIT.md). Final Groq discovery, new-input replay and error evidence are indexed in [evidence/](evidence/README.md).
+People often repeat the same steps in an app: find a customer, open a form, change a value, and check that it saved. This project lets an AI learn those steps through a real browser. It saves the working steps as a workflow. Next time, the engine follows that workflow without asking an AI what to click.
 
-For a hands-on first run, follow [Create and test your first workflow](WALKTHROUGH.md), including storage locations, recording, replay, and failure checks.
+You can also teach it by doing the steps yourself. A chat screen helps you find a saved workflow, supply the details, and review the task before it runs.
 
-## Model configuration and saved conversations
+The project includes **Cedar Bank**, a small banking app with made-up customers. It gives the automation something real to operate. No real bank accounts or money are involved.
 
-Copy `.env.example` to `.env` if configuration does not already exist. Keep existing database credentials. To use Groq, fill these entries in the private `.env`:
+![The chat screen, with a message box and buttons for choosing, discovering, and recording workflows](docs/images/chat.png)
 
-```dotenv
-LLM_PROVIDER=groq
-GROQ_API_KEY=
-GROQ_MODEL=openai/gpt-oss-20b
-LLM_DAILY_REQUEST_LIMIT=100
-LLM_REQUESTS_PER_MINUTE=10
-```
+These are screenshots of the running app, captured on September 22, 2026. Counts, saved workflows, and model usage will differ on your machine. Screenshots of setup screens do not prove that a workflow has run; the actual run records are in [evidence](evidence/README.md).
 
-Put your key after `GROQ_API_KEY=`. To return to the local model, set `LLM_PROVIDER=ollama`. Restart the Python backend after changes; for Docker run `docker compose up --build -d worker`. Process environment variables override `.env`. Groq uses `GROQ_MODEL` for both chat and discovery; the discovery CLI's `--model` selects only the Ollama model. Keys stay on the backend, outside Git and the browser bundle. A configured key has not necessarily been verified by the provider.
+## Find what you need
 
-**Model status** in chat shows today's application request count, last observed response, provider-reported remaining limits when available, and retry timing after a rate limit. The daily application guard resets at midnight UTC and counts attempts, including failed calls. It is separate from account-wide provider quotas. An additional rolling-minute guard defaults to 10 attempts per minute; exceeding it stops before calling the provider. Chat warns at 80% of the daily guard and displays reported token totals. Discovery waits before sending when local pacing or reported token headroom is insufficient, while pumping browser events and checking cancellation/deadline. Chat returns an actionable message instead of waiting. A provider rejection still stops the run; neither a provider request nor a workflow action is retried automatically. Token headroom uses an estimate, not a guarantee of available account quota. Missing quota headers mean unknown, not unlimited. Rate limits, invalid credentials and timeouts produce actionable messages; there is no automatic retry, provider switch, or billing upgrade. Explicit saved-workflow selection and deterministic replay remain available without model calls.
+- [Install and start the app](#install-and-start-the-app)
+- [Set up the AI provider](#set-up-the-ai-provider)
+- [Try your first task](#try-your-first-task)
+- [Let the AI learn a workflow](#let-the-ai-learn-a-workflow)
+- [Record a workflow yourself](#record-a-workflow-yourself)
+- [Take control or stop a run](#take-control-or-stop-a-run)
+- [What each screen does](#what-each-screen-does)
+- [What the bank can do](#what-the-bank-can-do)
+- [Use the HTTP API](#use-the-http-api)
+- [Use the command line](#use-the-command-line)
+- [Where things are saved](#where-things-are-saved)
+- [How it works](#how-it-works)
+- [Test and troubleshoot](#test-and-troubleshoot)
+- [What is complete and what is limited](#what-is-complete-and-what-is-limited)
 
-**Saved conversations** restores messages, reviewed fields and run references after a refresh or backend restart. **New request** creates a separate conversation. Write approval is deliberately cleared when restoring a chat. Storage is `DASHBOARD_STORAGE/conversations.sqlite3`; model accounting is `model-usage.sqlite3` beside it. These ignored databases contain private local state and must not be submitted as evidence. Conversation writes check revisions to prevent silent overwrites from another window. Demo profiles partition history for demonstration; they are not secure production authentication. Known Groq keys are scrubbed, but chat storage is not a universal personal-data redactor.
+## Install and start the app
 
-## Banking services and workflow agent
+Choose **one** setup below. Both run on your computer. Docker includes its own database and runtime. The non-Docker setup uses Python, Node.js, and a local SQLite database.
 
-Cedar Bank supports mailing-address changes, account-balance inquiries, and debit-card freeze/unfreeze with review and confirmation. It seeds 1,000 additional synthetic members, their accounts and cards, and 4,000 transactions without overwriting existing edits. Directories are paginated.
+The commands below are for **Windows PowerShell**. Run them from the repository folder unless a step says otherwise.
 
-Record a demonstration in **Learn a new workflow → Record workflow**, bind field values to parameters, verify outputs, and publish the reviewed capability. In the main workspace conversation, describe the task: the configured model matches it against published capability metadata. Choose the proposed workflow, supply details together in ordinary language, review the values and authorization, and explicitly start replay. The conversation stays visible alongside the browser. Missing matches offer recording. Catalog matching is probabilistic and includes a guard for known opposite effects; it never authorizes execution. Task matching and extraction of explicitly supplied inputs use the configured model. Extracted values must appear in your message and pass the selected capability schema; review them before running. Type `cancel` to clear a draft request. The existing LLM UI discovery form still uses the address-update contract.
+### 1. Download the project
 
-Bank records live in SQLite or PostgreSQL. Workflow definitions remain versioned JSON files under `DASHBOARD_STORAGE/capabilities`; drafts, run logs and masked recording screenshots are separate files. A database-backed workflow catalog is not implemented.
-
-## Current state: intent does not guarantee execution
-
-An AI agent can understand a request such as "update this customer's mailing address," but completing it requires access to the application where that information lives. In applications without a usable API, the work happens through screens: search for a record, open its details, fill fields, review a change, and verify the result.
-
-Handwritten UI scripts require someone to encode each workflow. An LLM can discover those steps, but asking it to reason through the same interface on every request repeats model calls and introduces variability into execution. Both approaches must still handle missing records, validation errors, expired sessions, slow pages, and uncertain outcomes after a write.
-
-The problem is turning an agent's goal into repeatable UI execution with explicit limits, meaningful results, and a safe path to human assistance.
-
-## Desired state: reusable capabilities an agent can invoke
-
-A calling agent should supply a capability and typed inputs, then receive verified outputs or a clear explanation of why execution could not finish.
-
-For a known workflow, the engine should:
-
-- Follow the saved procedure with new inputs, without asking a model to choose the steps again.
-- Check that it reached the intended record and final state.
-- Distinguish a legitimate business outcome from a technical failure.
-- Recover from known transient conditions within fixed limits.
-- Hand the live session to a person when it cannot safely proceed.
-- Preserve sanitized evidence that explains what happened.
-
-## The bridge: discover, record, replay
-
-The engine separates learning a workflow from executing it repeatedly.
-
-```mermaid
-flowchart LR
-    G[Goal + target + inputs] --> D[LLM observes, decides, acts]
-    D --> V[Verify successful run]
-    V --> C[Typed, versioned capability]
-    C --> R[Deterministic replay]
-    I[New inputs] --> R
-    R --> O[Verified outputs or structured outcome]
-    D --> H[Human takeover when blocked]
-    R --> H
-    H --> S[Validate state and resume same session]
-```
-
-**Discover.** The LLM receives the goal and a structured observation of the current UI. It proposes a typed action; the engine validates the action, applies policy, executes it, and observes the result. The sequence is not hardcoded. Discovery ends on verified success, a step/time limit, or a condition requiring intervention.
-
-**Record.** A successful run becomes a capability independent of the model transcript. Concrete example values become explicit input bindings. Temporary element references become reusable target descriptions. The capability declares what it accepts, what it does, what it returns, and how success is checked.
-
-**Replay.** The engine validates new inputs and executes the recorded actions using fixed targeting, waiting, condition, and recovery rules. Replay has no model decision path. Unexpected states produce a safe stop or a human intervention request.
-
-Determinism describes how the engine chooses actions; it does not freeze the application's data or guarantee that every invocation succeeds. A changed record or unavailable service can produce a different, explicitly reported outcome.
-
-## Initial workflow
-
-The first implementation covers a multistep workflow in a local application with synthetic data. Additional capabilities use the same engine contracts.
-
-The demonstration is **customer address update**:
-
-```text
-Goal: Update customer C-104's mailing address and verify the change.
-
-UI flow to be discovered:
-Search customer -> open profile -> edit address -> review -> save -> verify
-
-Reusable contract:
-update_customer_address(customer_id, address)
-    -> status, confirmation_reference
-```
-
-It exercises input binding, a state-changing action, success verification, sensitive-field redaction, and recovery after uncertain writes. Saving the address is the explicit approval boundary. The returned customer ID and saved address fields must match the supplied inputs.
-
-The engine must complete the workflow through the UI. The demo's database or application endpoints will not be used as shortcuts by the automation.
-
-## Architecture
-
-| Component | Responsibility |
-| --- | --- |
-| Surface adapter | Observe visible state, resolve targets, perform actions, and capture sanitized failure evidence. Playwright provides the first browser implementation. |
-| Discovery runner | Run the LLM observe-decide-act loop with validated actions, progress checks, and execution limits. |
-| Capability recorder | Convert a verified run into a parameterized, typed, versioned artifact and validate it for reuse. |
-| Replay runner | Bind inputs, execute ordered steps, evaluate conditions, extract outputs, and apply fixed recovery rules without a model. |
-| Session controller | Track control ownership, pause automated actions, record human interaction, and validate resumption in the same session. |
-| Policy and evidence | Enforce allowed destinations/actions, gate risky operations, redact sensitive data, and record structured events. |
-
-These components live in a small Python package with a CLI and execution API. Runtime accepts a surface factory; browser operations, live frames, and operator commands are implemented by the Playwright adapter. Legacy and desktop adapters remain future work.
-
-## Capability contract
-
-A saved capability describes:
-
-- Its name, purpose, schema version, workflow version, and application compatibility.
-- Typed input parameters and output fields.
-- Ordered actions with explicit parameter bindings.
-- Exact role/name, label, or text targets, with uniqueness checks. Frame scopes and fallback targets are not implemented.
-- Application compatibility and a terminal success check; reviewed business-outcome checks live in the application profile.
-- An external application profile supplies bounded recovery rules and risky-action boundaries.
-
-Targets prefer semantic roles, labels, and visible context where available. Missing or ambiguous matches must not silently select an arbitrary control.
-
-A successful discovery does not establish every alternate business condition. Recovery and outcome rules will have documented provenance and separate validation. Parameterization will be checked by replaying with different inputs.
-
-## Failure handling and human control
-
-| Condition | Planned behavior |
-| --- | --- |
-| Record missing or invalid business input | Return a typed business outcome. |
-| Slow page or known transient load failure | Wait or retry within a fixed budget when safe. |
-| Save times out and the result is uncertain | Inspect the visible application state before retrying; escalate if the result cannot be established. |
-| Session expiry or approval needed | Request human intervention with the goal, step, current state, and reason. |
-| Permission denial, ambiguous target, or unrecoverable app error | Stop with a structured explanation and sanitized failure evidence. |
-
-Human takeover uses the existing browser session. The controller stops automated dispatch, settles the current action, explicitly transfers ownership, and records supported human actions with sensitive values removed. On an explicit resume signal, it verifies the current state before continuing. Human-assisted execution is distinguishable from unattended replay in the logs.
-
-## Safety and operating boundaries
-
-The same policy layer applies to discovery and replay. It enforces configurable destination and action allowlists, including navigation caused by UI actions. Risky writes require a configured approval or be blocked; the model's own description of an action as safe will not authorize it.
-
-Observations and evidence are sanitized before model transmission or persistence. Credentials, tokens, browser session state, and raw sensitive values must stay out of capabilities and logs. Page content is untrusted input and cannot override execution policy.
-
-The initial design assumes relatively stable interfaces and prioritizes runtime failures. Structured text observations suit interfaces with usable labels and page structure. Canvas interfaces, remote desktops, and poorly labeled controls may require visual or OS-accessibility adapters; defining an adapter boundary alone does not provide that support.
-
-Cross-tenant reuse will be addressed through application/version metadata, external tenant configuration, constrained overrides, and compatibility checks. Desktop implementation, tenant infrastructure, and a production operator console are outside this build. A local catalog API and minimal live operator controls are implemented.
-
-## Technology
-
-| Technology | Purpose |
-| --- | --- |
-| Python | Engine, CLI, orchestration, and recovery logic |
-| Playwright | Browser observation and interaction |
-| Pydantic | Typed actions, capabilities, inputs, and results |
-| Versioned JSON files | Reviewable capability storage |
-| pytest | Contract, safety, replay, and failure-handling checks |
-| FastAPI, Jinja2, PostgreSQL | Demonstration application and synthetic records, run with Docker Compose |
-| SQLite | Isolated tests and an optional standalone local demo |
-
-Runtime discovery uses the provider selected by `LLM_PROVIDER`: Ollama at `http://127.0.0.1:11434` (model selected through the CLI), or Groq (model selected by `GROQ_MODEL`). The model chooses from typed actions derived from the currently visible controls. Form patterns and declared output checks eliminate invalid bindings locally, without sending sensitive values to the model. These choices describe available UI operations, not a prewritten workflow. Development-assistant activity and scripted test fixtures do not count as runtime discovery evidence.
-
-## Implementation plan
-
-| Stage | Work | Completion check |
-| --- | --- | --- |
-| 1. Define the first workflow | Select the demo, typed inputs/outputs, approval boundary, and model access. | A concrete workflow and its expected outcomes are documented. |
-| 2. Build the demo and contracts | Create the minimal UI, synthetic records, action/result schemas, and repeatable fault conditions. | The workflow can be completed manually with two datasets. |
-| 3. Add surface control and policy | Implement observation, targeting, action execution, redaction, and logs. | Checks cover ambiguous targets, denied actions/navigation, and secret redaction. |
-| 4. Implement genuine discovery | Connect one runtime model and record a successful UI run. | Evidence shows model-selected actions and independently checked success. |
-| 5. Implement capability replay | Validate saved capabilities, bind new inputs, execute checks, and return outputs. | Replay succeeds on new inputs with model access disabled. |
-| 6. Integrate recovery and handoff | Exercise business outcomes, transient errors, uncertain writes, and live human control. | Failure scenarios and actual human takeover/resume produce verifiable evidence. |
-| 7. Make the project reproducible | Finalize setup, exact commands, design documentation, and reviewed evidence. | A clean setup can reproduce the documented discovery and replay flow. |
-
-## Project status and setup
-
-### End-to-end workspace
-
-The React dashboard calls a FastAPI execution backend. Start discovery, watch the real browser, inspect the resulting capability, and replay it with new inputs. Run history, model decisions, ownership, screenshots, and outputs come from the backend. Historical records are separately labeled **Archived evidence**.
-
-The target is **Cedar Bank**, a synthetic banking workspace with 1,003 synthetic customers, checking/savings balances, transaction history, address servicing, debit-card controls and service-request intake. Its server-rendered interface represents a back-office application without a task API. The engine completes tasks only through browser controls.
-
-Three demo sessions are available: **Mira Chen** and **Sam Rivera** (operators), and **Taylor Morgan** (viewer). The backend enforces viewer restrictions, session cookies, CSRF tokens, and allowed origins. Anyone on the local machine can choose an operator identity: this is a local sandbox, not production authentication or tenant isolation. Do not expose the worker publicly.
-
-### One-command local setup
-
-Requires Python 3.11+, Node.js 24, and either a Groq API key or an existing Ollama installation with `mistral:latest` or `llama3.1:latest` for discovery. Replay does not need a model. From the repository root:
+Install Git first, then open PowerShell in the folder where you keep projects:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\start-local.ps1 -OpenBrowser
+git clone https://github.com/nh0397/agent-ui-execution-engine.git
+cd agent-ui-execution-engine
 ```
 
-This installs dependencies, builds the dashboard, prepares Chromium, and starts Cedar Bank at **http://127.0.0.1:8000** and the dashboard/API at **http://127.0.0.1:5174**. Local mode uses SQLite. Background-service logs are under `work/local/`. Healthy existing services are reused; restart the Python processes after changing backend code.
+If you already have the repository, open that folder instead. Do not clone another copy just to restart it.
 
-**Try the complete flow:**
+Create your settings file once:
 
-1. Open **New workflow**, choose **Discover workflow**, and keep the customer-address goal and synthetic inputs.
-2. Select **Authorize the synthetic address save** for unattended discovery, then click **Start discovery**. The configured model chooses UI actions; discovery can take several minutes, including quota-aware pauses.
-3. After verified success, click **Replay this new capability**. The form changes to customer C-205 and another address. Start replay; it makes zero model decisions.
-4. For human handoff, leave save authorization unchecked. At **Your review is needed**, click **Save address** inside the live browser image, then **Resume automation**. You remain in the same browser context. Keyboard, text entry, and scrolling controls are alongside the image.
-5. Exercise transient search failure, interrupted save response, permission denial, or expired session in **Runtime scenario**. C-999 produces a business outcome. For session expiry, restore the session through the image and return to the displayed checkpoint before resuming.
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+notepad .env
+```
 
-`work/dashboard/` stores jobs, discovered capabilities, and sanitized evidence. Execution inputs and raw browser images are not persisted in run evidence. Saved conversations separately retain messages and reviewed input values in private local SQLite storage; use synthetic data. Live images remain in memory. A worker restart marks unfinished runs failed; it cannot restore a lost browser session. Only one run executes at a time. Cancellation takes effect at the next safe checkpoint, after any pending model request returns.
+Use the provider settings in the next section. Keep `.env` private. It is excluded from Git.
 
-### Execution API
+### 2A. Start with Docker
 
-| Endpoint | Behavior |
-| --- | --- |
-| `GET /api/model/status` | Read local request/token accounting and last observed provider limits; no model call. |
-| `GET/PUT /api/conversations/{id}` | Load/save a profile-owned conversation with revision checks. |
-| `GET /api/conversations` | List saved conversations for the current demo profile. |
-| `POST /api/session` | Open a synthetic operator/viewer session and return a CSRF token. |
-| `GET /api/health` | Report backend, banking app, and model availability. |
-| `GET /api/capabilities` | List original and newly discovered typed capabilities. |
-| `POST /api/runs` | Validate inputs and launch real discovery/replay; return a job ID. |
-| `GET /api/runs` / `GET /api/runs/{id}` | Read progress, sanitized events, and final results. |
-| `GET /api/runs/{id}/frame` | View the current in-memory browser image. |
-| `POST /api/runs/{id}/control` | Queue clicks, typing, keys, scrolling, resume, or cancellation. |
-| `GET /api/runs/{id}/evidence` | Export sanitized execution evidence. |
-
-API documentation is at **http://127.0.0.1:5174/api/docs**. Writes use the session cookie, `X-CSRF-Token`, and an allowed `Origin`. `DEMO_ENTRY` configures the permitted target; run requests cannot choose an arbitrary domain. `OLLAMA_URL` configures the model server.
-
-For frontend development, run `npm ci` and `npm run dev` in `frontend/`; Vite proxies `/api` to the worker on port 5174. Build with `npm run build`. Then run `.\.venv\Scripts\python.exe -m pytest -q` from the repository root. Full-stack tests start isolated bank/API servers and run the real replay engine. Scripted operator tests verify the mechanism and are not genuine human demonstration evidence.
-
-### Complete local stack
-
-The first implementation includes the demo, typed contracts, a browser adapter, discovery and replay runners, policy checks, structured evidence, and human-control mechanisms. A genuine local-model run produced a 14-action capability, which replayed successfully with a different customer and address on the SQLite-backed demo. Fresh PostgreSQL-backed discovery and paired replay are verified in evidence/docker-e2e/ (14 model decisions during discovery; zero during replay). A person-operated takeover recording remains pending; automated same-session handoff and session-restoration tests pass. This is an initial implementation, not a production-ready automation service.
-
-To start the demo app and database, open Docker Desktop with Linux containers enabled, then run this single command from the repository root in PowerShell:
+Install Docker Desktop, enable Linux containers, and wait for Docker Desktop to finish starting. You do not need to install Python or Node.js on the host for this route.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -OpenBrowser
 ```
 
-The script creates local configuration if needed, preserves existing data, builds all four containers, waits for health, and opens the dashboard. Startup failures print status and recent logs. Launch discovery or replay from the dashboard. With `LLM_PROVIDER=groq`, the worker uses the server-side key from `.env`. With `LLM_PROVIDER=ollama`, it reaches Ollama at `host.docker.internal:11434`; your Ollama configuration must permit access from Docker. The health panel reports availability, and replay remains usable without a model.
+The first run downloads and builds the containers. The script creates a database password if one is missing, starts four services, and checks that they respond.
 
-The Compose worker includes Python and Chromium. To use the standalone CLI instead, prepare its local environment:
+| Open this | Address |
+| --- | --- |
+| Chat and workflow workspace | http://127.0.0.1:5173 |
+| Cedar Bank | http://127.0.0.1:8000 |
+| Execution API reference | http://127.0.0.1:5173/api/docs |
+
+The four services are `dashboard` (the web screen), `worker` (the Python engine and Chromium), `app` (Cedar Bank), and `db` (PostgreSQL). The database and worker are not directly exposed on host ports.
+
+Check or stop them:
+
+```powershell
+docker compose ps
+docker compose logs --tail 60 worker app
+docker compose down
+```
+
+`docker compose down` keeps saved data. Do not add `-v` unless you intend to delete the database and workflow volumes.
+
+To start again, run `start.ps1` again. After editing provider settings in `.env`, recreate the worker:
+
+```powershell
+docker compose up -d --force-recreate worker
+```
+
+### 2B. Start without Docker
+
+Install **Python 3.11 or later** and a Node.js version supported by the bundled Vite version; **Node.js 22.12 or later in the 22.x line** is a suitable starting point. Make sure `python`, `node`, and `npm.cmd` work in a new PowerShell window.
+
+```powershell
+python --version
+node --version
+npm.cmd --version
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start-local.ps1 -OpenBrowser
+```
+
+The script creates `.venv`, installs Python packages, downloads Playwright Chromium, installs frontend packages, builds the screen, and starts the two Python services in the background. Allow time for downloads on the first run.
+
+| Open this | Address |
+| --- | --- |
+| Chat and execution API | http://127.0.0.1:5174 |
+| Cedar Bank | http://127.0.0.1:8000 |
+| Execution API reference | http://127.0.0.1:5174/api/docs |
+
+Logs are in `work/local/bank.out.log`, `bank.err.log`, `api.out.log`, and `api.err.log`. The startup script reuses healthy services. Running it again does **not** restart an already-running backend after a code or settings change.
+
+To find the processes using these ports:
+
+```powershell
+Get-NetTCPConnection -State Listen -LocalPort 5174,8000 |
+  Select-Object LocalAddress,LocalPort,OwningProcess
+```
+
+Inspect the reported process before stopping it:
+
+```powershell
+Get-CimInstance Win32_Process -Filter "ProcessId = 12345" |
+  Select-Object ProcessId,CommandLine
+# Replace 12345 with the confirmed project process ID.
+Stop-Process -Id 12345
+```
+
+Then run `start-local.ps1` again. Stop both project processes when you are finished. Stopping a worker ends its live browser session; finish or cancel any active run first.
+
+### Which ports should I use?
+
+Use the addresses printed by your startup command. The development screenshots were taken on a custom setup using **5176 for the workspace/API** and **8003 for the bank**. Those are not the startup scripts' defaults. Different workspaces can have different data, even on the same machine.
+
+Do not run Docker and the default non-Docker bank at the same time: both want port 8000.
+
+## Set up the AI provider
+
+There are two different APIs in this project:
+
+- **The model provider API** helps the chat understand requests and lets discovery choose UI actions.
+- **This app's HTTP API** starts runs, returns results, and controls the browser. It is described below.
+
+### Option A: Groq
+
+Obtain a Groq API key from your own account. Put it in the root `.env` file:
+
+```dotenv
+LLM_PROVIDER=groq
+GROQ_API_KEY=replace_with_your_key
+GROQ_MODEL=openai/gpt-oss-20b
+LLM_DAILY_REQUEST_LIMIT=100
+LLM_REQUESTS_PER_MINUTE=10
+```
+
+The model name above is the project's tested configuration. Your provider account must allow that model. Restart the local backend, or recreate the Docker worker, after changing these settings.
+
+The key stays on the Python backend. Do not put it in frontend code, a chat message, screenshots, or a commit. Do not prefix it with `VITE_`.
+
+### Option B: Ollama
+
+Install and start Ollama, then download one of the models supported by the UI:
+
+```powershell
+ollama pull mistral:latest
+```
+
+Use these settings:
+
+```dotenv
+LLM_PROVIDER=ollama
+OLLAMA_URL=http://127.0.0.1:11434
+LLM_DAILY_REQUEST_LIMIT=100
+LLM_REQUESTS_PER_MINUTE=10
+```
+
+Choose `mistral:latest` in workflow setup. `llama3.1:latest` is also supported if you have installed it. Local inference needs enough memory and can be slow.
+
+The Docker worker uses `http://host.docker.internal:11434` to reach Ollama on the host. Ollama must accept that connection. A host-only Ollama listener may work for local Python but not for Docker.
+
+### When does the app call the model?
+
+| Action | Model call? |
+| --- | --- |
+| Match a chat request to a non-empty workflow catalog | Yes |
+| Extract input values from a chat message | Yes |
+| Discover which UI action to take next | Yes, repeatedly |
+| Choose a workflow manually and fill its form | No |
+| Replay a saved workflow | No |
+| Record steps yourself | No |
+| Read model status, history, or evidence | No |
+
+Open **Model status** in chat to see request counts, reported token usage, and the last provider limits the app received. The defaults allow 100 attempts per UTC day and 10 per rolling minute for this workspace. They are application guards, not a promise that your provider quota cannot be exhausted. Other programs may use the same account, and the provider may not report every limit.
+
+Discovery can wait before an unsent request when pacing or reported token capacity requires it. A rejected request is not silently retried. The app reports missing keys, provider errors, timeouts, and rate limits. It does not automatically switch providers.
+
+For Groq, a healthy configuration indicator means a key is present; it does not prove that the key or its remaining quota is valid. A real model request is needed to verify that.
+
+## Try your first task
+
+Start with the bundled address workflow. A fresh workspace normally lists it as `example`. A workspace that was deliberately cleared may hide it.
+
+1. Open the workspace.
+2. Choose **Choose a saved workflow**, or **Tools → Saved workflows**.
+3. Choose the address-update workflow and open replay with new inputs.
+4. Use these synthetic details:
+
+   | Field | Value |
+   | --- | --- |
+   | customer_id | C-205 |
+   | street | 52 Example Road |
+   | city | Sampletown |
+   | postal | 12345 |
+
+5. Keep **Normal operation** as the scenario.
+6. Review the details. To let the engine save the synthetic change, check the write-authorization box. If you leave it unchecked, you must perform the save during human takeover.
+7. Start replay. Watch it search, open the customer, fill the address, review, and save.
+8. Check the final result and **Tools → Past runs**.
+
+This path works without a model. The engine checks the confirmation and saved fields rather than assuming that a click means success.
+
+Once a model is configured, try the same task through chat:
+
+> Update the mailing address for customer C-205 to 52 Example Road, Sampletown, postal code 12345.
+
+The assistant suggests a saved workflow. Select it, review the extracted values, add anything missing, and confirm. A chat message alone does not authorize a write.
+
+If no workflow matches, the app offers learning or recording. It does not secretly invent and run a new workflow. The example chat prompts are suggestions, not a guarantee that every corresponding workflow is already saved.
+
+## Let the AI learn a workflow
+
+**Discovery** means the model looks at the current page, chooses a permitted action, and repeats until the result is verified.
+
+![Discovery setup with a goal, inputs, runtime scenario, and write authorization](docs/images/discovery.png)
+
+1. Click **Discover a workflow**, or open **Tools → Learn a new workflow** and select **Discover workflow**.
+2. Enter this goal:
+
+   > Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output.
+
+3. Enter `C-104`, `41 Example Avenue`, `Sampletown`, and `12345` in the four input fields.
+4. Keep the normal scenario. Review the provider shown below the goal.
+5. Choose whether to authorize the synthetic save or perform it yourself at handoff.
+6. Click **Start discovery**. The real browser opens alongside the chat. Discovery may take several minutes.
+7. On verified success, the app saves a new capability. Choose **Replay this new capability** and use a different customer and address.
+
+A **capability** is the saved workflow file: what inputs it needs, what steps it takes, and what result it must check.
+
+The current discovery form uses an address-change contract. Changing the goal text alone does not turn it into a general-purpose bank agent. To discover a different task through the CLI, supply a matching input/output specification and policy. The model learns the action sequence; it does not create the entire task contract.
+
+## Record a workflow yourself
+
+**Recording** means you operate the managed browser and the engine captures supported steps. You do not need to name parameters before you start.
+
+For a first recording, use a balance inquiry because it does not change bank data:
+
+1. Click **Record a workflow**. Name it `Look up an account balance` and start recording.
+2. In the managed bank view, click **Accounts**.
+3. Click **Account ID** and enter `AC-10002` in the field editor. Press Enter or leave the field to apply it.
+4. Click **Search accounts**, then **Open account**.
+5. Wait for **Account balance verified**.
+6. Click **Stop recording & review**. Check the inferred account input and the result fields. Keep the success heading `Account balance verified`.
+7. Rename an input if its inferred name is unclear. Check which readonly fields should be returned, then choose **Finish and review recording**.
+8. Review the saved steps and masked screenshots. Click **Publish reviewed workflow** to make it available for replay.
+9. Replay it with `AC-10003`. Or ask in chat: `Check the balance of account AC-10003`, then select your published workflow and review the input.
+
+Use **Continue recording** if you stopped too soon. **Cancel run** ends the attempt without publishing it. A stopped recording is still a live session until you finish or cancel it.
+
+Record inside the managed browser, not the separate **Open Cedar Bank** tab. The recorder does not watch other tabs or your desktop.
+
+Clicks and applied text fields get masked before/after screenshots. A text field update is one event, not a video of every keystroke. Scroll actions are logged without screenshots. Passwords, ambiguous targets, and unsupported controls are rejected. The standard recorder is designed for the demo's supported text fields and controls, not every possible website widget.
+
+From **Past runs**, download the step document and images, or create a WebM playback. The playback is assembled from saved masked frames; it is not continuous footage or a cursor recording.
+
+## Take control or stop a run
+
+During automation, the engine owns the managed browser. Clicks and typing from the operator are blocked until ownership changes.
+
+- **Request control:** asks the engine to pause at the next safe boundary.
+- **Your review is needed:** the engine has paused for a protected write or another condition that needs help.
+- **Resume automation:** returns control after you complete the requested action and reach the displayed checkpoint.
+- **Cancel run:** asks the current operation to stop. It does not undo completed changes.
+
+For an address-save handoff, leave write authorization unchecked. When the review screen appears, inspect it, click **Save address** inside the live browser, wait for **Address updated**, and resume. This is the same browser session, not a new login or tab.
+
+You can use the wheel or trackpad over the managed browser while you own it. Scroll buttons and supported keyboard controls are also available. A pending model request or browser operation may need to return before a pause or cancel takes effect.
+
+The control lock only affects this managed session. It does not lock your computer. A worker restart loses the live browser and marks unfinished jobs as failed; it cannot resume that browser later.
+
+## What each screen does
+
+| Screen or control | What it is for |
+| --- | --- |
+| Chat | Describe a task, choose a suggested workflow, supply details, and review before running. Enter sends; Shift+Enter adds a line. |
+| Conversation list | Reopen saved conversations for the selected demo profile. |
+| New request | Start a separate conversation. It does not stop an active run. |
+| Model status | See provider configuration, usage, and last observed limits. |
+| Choose a saved workflow | Pick a workflow directly without asking the model to find one. |
+| Discover a workflow | Open the goal and input form for model-driven learning. |
+| Record a workflow | Teach supported steps through the managed browser. |
+| Tools → Saved workflows | Inspect inputs, outputs, ordered actions, source, and version; start replay. |
+| Tools → Past runs | Inspect results, events, recordings, and available evidence downloads. |
+| Tools → Open Cedar Bank | Explore the target app manually in a separate tab. This tab is not being recorded. |
+| Live browser | Watch the actual Chromium session. Interact only when control belongs to you. |
+| Profile selector | Choose Mira or Sam as an operator, or Taylor as a viewer. These are demo identities, not secure user accounts. |
+
+Conversations are saved locally. Refreshing can restore messages and entered values, but never restores write approval or starts a task automatically. If saving fails, the screen reports it. A revision conflict means another window changed the same conversation; reload before continuing.
+
+![Past runs showing a completed address replay with 14 actions and zero model decisions](docs/images/past-runs.png)
+
+This history screenshot comes from running the PowerShell API example in this guide against a separate test database. It used the bundled reference capability, not a new model discovery.
+
+## What the bank can do
+
+![Cedar Bank customer workspace and synthetic customer directory](docs/images/bank.png)
+
+The seeded database has 1,003 customers, 1,004 accounts, 1,003 debit cards, and more than 4,000 transactions. Directories are paginated, so the first page is not the full database. Seeding preserves existing records and edits.
+
+| Feature | What you can do |
+| --- | --- |
+| Customer servicing | Search a customer, view their details, edit a mailing address, review it, and save. |
+| Accounts | Search an account and view its balance and recent activity. |
+| Debit cards | Search a card, review its state, and freeze or unfreeze it. |
+| Activity | Browse synthetic account transactions. |
+| Statement-copy requests | Open a staff case linked to an account. |
+| Card-replacement requests | Open a staff case linked to a debit card. |
+| Transaction disputes | Open a staff case linked to a transaction. |
+| Request tracking | Move a case from New to In review to Resolved, with notes and a status history. |
+
+![Service request types, filters, and saved cases](docs/images/service-requests.png)
+
+Requests check that the selected record belongs to the customer. Submissions avoid duplicates, and stale status updates are rejected. These are staff cases: they do not produce real statements, issue cards, or refund money.
+
+Useful test records:
+
+| Record | Example |
+| --- | --- |
+| Customers | C-104, C-205, C-306, C-1000 through C-1999 |
+| Accounts for balance recordings | AC-10002, AC-10003 |
+| Card | DC-205 |
+| Deliberately missing customer | C-999 |
+
+Bank features and saved automation workflows are separate. A feature can exist in the bank before anyone teaches the engine how to use it.
+
+## Use the HTTP API
+
+The React screen calls this same API. You can call it from a script instead. This API controls browser workflows; it is not a shortcut that directly updates the bank database.
+
+The examples below use **PowerShell**, the non-Docker API at port **5174**, and the bundled address capability. For Docker, change `$base` to `http://127.0.0.1:5173`. For the custom development workspace, use its actual port.
+
+### 1. Open a session
+
+```powershell
+$base = 'http://127.0.0.1:5174'
+$session = Invoke-RestMethod -Method Post -Uri "$base/api/session" `
+  -Headers @{ Origin = $base } -ContentType 'application/json' `
+  -Body '{"profile_id":"mira"}' -SessionVariable workspace
+
+$headers = @{ Origin = $base; 'X-CSRF-Token' = $session.csrf }
+```
+
+Keep `$workspace`: it contains the session cookie. Keep `$headers`: they contain the Origin and the session's CSRF token, which protects write requests. The model API key is **not** an authentication key for this API.
+
+Sessions last eight hours and disappear when the backend restarts. Use `mira` or `sam` for an operator, or `taylor` for a viewer. Viewer sessions cannot start, control, or publish runs. These profiles are for a local demo, not production authentication.
+
+### 2. Check health and list workflows
+
+```powershell
+Invoke-RestMethod "$base/api/health"
+$catalog = Invoke-RestMethod "$base/api/capabilities" -WebSession $workspace
+$catalog | Select-Object id, @{Name='name';Expression={$_.capability.name}}
+Invoke-RestMethod "$base/api/model/status" -WebSession $workspace
+```
+
+Read the chosen capability's `inputs` before starting it. The fresh-install address workflow has ID `example`. If it has been hidden, use the ID of a published address workflow from your catalog. Do not assume that a bank customer ID is a workflow ID.
+
+### 3. Start an address replay
+
+This example changes the synthetic customer C-205. `approve_writes = $true` explicitly authorizes its protected save for this run.
+
+```powershell
+$body = @{
+  mode = 'replay'
+  capability_id = 'example'
+  inputs = @{
+    customer_id = 'C-205'
+    street = '52 Example Road'
+    city = 'Sampletown'
+    postal = '12345'
+  }
+  scenario = 'normal'
+  approve_writes = $true
+} | ConvertTo-Json -Depth 6
+
+$job = Invoke-RestMethod -Method Post -Uri "$base/api/runs" `
+  -WebSession $workspace -Headers $headers `
+  -ContentType 'application/json' -Body $body
+$job.id
+```
+
+The response is HTTP 202 with a job ID. That means accepted, not completed. Only one run can be active at a time.
+
+### 4. Wait for the result
+
+```powershell
+do {
+  Start-Sleep -Seconds 1
+  $run = Invoke-RestMethod "$base/api/runs/$($job.id)" -WebSession $workspace
+  Write-Host "$($run.status): $($run.code)"
+} while ($run.status -eq 'running')
+
+$run | ConvertTo-Json -Depth 12
+```
+
+The final status is `success`, `business_outcome`, or `failure`. A business outcome means the task reached an expected result such as “Customer not found”; it is not an engine crash. Sensitive outputs in the HTTP run/evidence response are redacted.
+
+If you set `approve_writes` to `false`, do not just wait for completion: watch `live.owner` and `live.intervention`, perform the requested action in the same managed browser, and resume. Otherwise the intervention will time out.
+
+### 5. Download evidence or request cancellation
+
+```powershell
+Invoke-RestMethod "$base/api/runs/$($job.id)/evidence" -WebSession $workspace |
+  ConvertTo-Json -Depth 30 | Set-Content -Encoding utf8 run-evidence.json
+```
+
+For an **active** job, cancellation is:
+
+```powershell
+Invoke-RestMethod -Method Post -Uri "$base/api/runs/$($job.id)/control" `
+  -WebSession $workspace -Headers $headers -ContentType 'application/json' `
+  -Body '{"kind":"abort"}'
+```
+
+### Other run types
+
+Use the same session, headers, and `POST /api/runs` endpoint. For discovery, send:
+
+```json
+{
+  "mode": "discovery",
+  "goal": "Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify all saved fields and return every declared output.",
+  "inputs": {
+    "customer_id": "C-104",
+    "street": "41 Example Avenue",
+    "city": "Sampletown",
+    "postal": "12345"
+  },
+  "scenario": "normal",
+  "approve_writes": true
+}
+```
+
+This makes real model requests. The provider comes from `.env`. With Groq, `GROQ_MODEL` selects the model. The optional request field `model` selects an Ollama model (`mistral:latest` or `llama3.1:latest`); it does not override `GROQ_MODEL`.
+
+For recording, send:
+
+```json
+{
+  "mode": "recording",
+  "name": "Look up an account balance",
+  "goal": "Find an account and verify its balance"
+}
+```
+
+Recording starts a browser for you to operate. It does not automatically perform that goal. The workspace is the easiest way to send recording commands and review the draft.
+
+### All API routes
+
+Open `/api/docs` for request fields, types, and schemas, or `/api/openapi.json` for the machine-readable description. Browser Swagger requests still need a session and valid write headers; use the session example above for scripted calls.
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /api/health` | Check API readiness, bank reachability, and model configuration. No session required. |
+| `POST /api/session` | Choose a demo profile and receive a session cookie and CSRF token. Requires an allowed Origin. |
+| `GET /api/model/status` | Read usage and last observed limits without a model call. |
+| `GET /api/workflow-spec` | Read the built-in discovery input/output contract. |
+| `GET /api/capabilities` | List published workflows and their full contracts. |
+| `POST /api/agent/match` | Send `message`; suggest a saved capability. Does not execute it. |
+| `POST /api/agent/inputs` | Send `message` and `capability_id`; extract supplied values. Does not execute. |
+| `POST /api/runs` | Start discovery, replay, or recording. |
+| `GET /api/runs` | List jobs, newest first. |
+| `GET /api/runs/{id}` | Read status, result, events, and live control state. |
+| `GET /api/runs/{id}/frame` | Read the latest in-memory JPEG. Returns 204 if no frame exists. |
+| `POST /api/runs/{id}/control` | Send supported operator commands. |
+| `POST /api/runs/{id}/publish` | Publish a successfully verified recording draft. |
+| `GET /api/runs/{id}/captures/{filename}` | Read a recorded masked step image. |
+| `GET /api/runs/{id}/document` | Download the recording document and images as a ZIP. |
+| `POST /api/runs/{id}/video` | Build step playback after recording finishes. |
+| `GET /api/runs/{id}/video` | Download the prepared WebM. |
+| `GET /api/runs/{id}/evidence` | Read the sanitized job evidence as JSON. |
+| `GET /api/conversations` | List conversations for the current profile. |
+| `GET /api/conversations/{id}` | Load a saved conversation. |
+| `PUT /api/conversations/{id}` | Save a conversation snapshot with revision checking. |
+
+Except health and session creation, these routes require a session. Write requests also require an allowed Origin and `X-CSRF-Token`.
+
+Control command `kind` can be `click`, `type`, `key`, `scroll`, `request_control`, `resume`, `abort`, `stop_recording`, `continue_recording`, or `finish`. Click coordinates refer to the browser frame, not the surrounding page. Typing uses `text`; keys are limited to Tab, Enter, Escape, and Backspace; scroll uses `delta` from -1000 to 1000. Recording finish also accepts `success_name`, `output_bindings`, and `input_names`. Use the API schema and workspace review form for those bindings. Ordinary input commands are rejected while automation owns the browser.
+
+Conversation IDs are UUIDs. A new snapshot starts with `revision: 0`; each successful save returns the next revision. Snapshots contain `messages` (roles `you` or `agent`), `selected_id`, `values`, `initial_request`, and `run_id`. Send the latest revision on subsequent saves. Saving a conversation does not run anything.
+
+Common responses: **401** means open a session; **403** means check the profile, Origin, or CSRF token; **409** means an active run or state/revision conflict; **422** means invalid input; **429** means a rate or queue limit. Model errors also include readable messages. Inspect the response rather than repeatedly resubmitting a write.
+
+## Use the command line
+
+The CLI is useful when you want explicit files and repeatable commands. Even if Docker runs the bank, install the local Python environment to use this CLI:
 
 ```powershell
 python -m venv .venv
@@ -246,114 +511,233 @@ $env:PLAYWRIGHT_BROWSERS_PATH = "$PWD/.browsers"
 .\.venv\Scripts\python.exe -m playwright install chromium
 ```
 
-Open the dashboard at **http://127.0.0.1:5173**, and Cedar Bank at **http://127.0.0.1:8000**. Compose runs `dashboard`, `worker`, `app`, and `db`. The app creates its schema and seeds customers **C-104**, **C-205**, and **C-306**. Changes survive restarts in `demo-data`; engine results persist in `execution-data`. The database and worker have no published host ports. Dashboard and bank ports bind to localhost. `demo.setup` generates a database password in ignored local configuration, preserving existing credentials.
-
-Verify the demo manually first: search for a customer, open their profile, edit the address, review, save, and inspect the confirmation. `docker compose ps` shows service health. `docker compose down` stops the services while retaining their database volume.
-
-Then, with Groq configured in `.env`, or a local Ollama server running with the specified model installed:
+Keep Cedar Bank running on port 8000. Configure the model in `.env`. Discover an address workflow:
 
 ```powershell
 .\.venv\Scripts\python.exe -m engine.cli discover `
   --model mistral:latest `
   --goal "Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output." `
+  --spec config/address-workflow.json `
+  --profile config/customer-service.json `
+  --entry http://127.0.0.1:8000 `
   --inputs config/inputs-a.json `
   --capability work/generated/update-address.v1.json `
   --approve-writes
+```
 
+`--model` is required by the CLI and selects the Ollama model. When `LLM_PROVIDER=groq`, the provider instead uses `GROQ_MODEL` from the environment. The command above does not switch you back to Ollama.
+
+After discovery succeeds, replay with different inputs:
+
+```powershell
 .\.venv\Scripts\python.exe -m engine.cli replay `
+  --profile config/customer-service.json `
+  --entry http://127.0.0.1:8000 `
   --capability work/generated/update-address.v1.json `
   --inputs config/inputs-b.json `
   --approve-writes
+```
 
+To skip discovery, replace the capability path with `capabilities/update-address.v1.json`. Replay does not require a model. Existing capability files are not overwritten; choose a new filename for a new discovery run.
+
+`--approve-writes` authorizes configured protected actions for that invocation. For manual approval, omit it and add `--headed`. At handoff, save in the open browser and type `resume` in the terminal after the confirmation appears. Type `abort` to stop.
+
+If a headed browser is unavailable, use `--operator-port 8766` and open `http://127.0.0.1:8766` during handoff. That page shows the same live session and accepts operator commands. It exists only while intervention is active, which expires after five minutes.
+
+CLI results go to `runs/<run-id>/` by default; `--runs` changes that folder. The terminal prints status, code, run ID, and step, with sensitive results omitted. A failure exits with code 1. CLI runs are separate from dashboard job history and do not automatically appear in its catalog.
+
+For Python callers, `engine.runtime.replay` accepts a `Capability`, input dictionary, `Profile`, entry URL, and run directory. It returns a typed `Result`. Unlike the persisted evidence, the in-process result can contain sensitive output values; do not log it indiscriminately. The CLI source is a small example of this interface.
+
+## Where things are saved
+
+Workflows are **JSON files**, not rows in the banking database.
+
+| Item | Default local location |
+| --- | --- |
+| Private provider configuration | `.env` |
+| Bank customers, accounts, cards, transactions, and cases | `work/customers.sqlite3` |
+| Published workflows | `work/dashboard/capabilities/` |
+| Unpublished recordings | `work/dashboard/drafts/` |
+| Job summaries | `work/dashboard/job-*.json` |
+| Run events, results, snapshots, recording documents and images | `work/dashboard/runs/<job-id>/<run-id>/` |
+| Saved conversations and entered values | `work/dashboard/conversations.sqlite3` |
+| Model request/token accounting | `work/dashboard/model-usage.sqlite3` |
+| Standalone CLI output | `runs/<run-id>/` |
+| Bundled reference capability | `capabilities/update-address.v1.json` |
+| Reviewed, checked-in evidence | `evidence/` |
+
+`DASHBOARD_STORAGE` changes the workspace root. For example, the custom development workspace uses `work/agent-workspace`. Docker uses the `execution-data` volume for workspace data and `demo-data` for PostgreSQL bank data.
+
+Chat history can contain the values you type. It is private local storage, separate from redacted run evidence. Use synthetic data. Live browser frames remain in memory; they are not the same as the masked images saved during recording.
+
+The `.gitignore` excludes local databases, `.env`, browser profiles, generated runs, and working folders. Review any evidence before deliberately adding it to Git.
+
+## How it works
+
+```mermaid
+flowchart TD
+    A[Describe a task] --> B[Find a saved workflow]
+    B -->|Found| C[Review inputs and confirm]
+    B -->|Not found| D[Choose discovery or recording]
+    D --> E[Complete and verify the task in Chromium]
+    E --> F[Save a reusable workflow]
+    F --> C
+    C --> G[Replay saved steps without model decisions]
+    G --> H[Check the result and save evidence]
+    G -->|Needs help| I[Human takes control of the same browser]
+    I --> G
+```
+
+The model receives structured text observations of the page, such as labels, roles, and headings. It proposes a typed action. Python validates the action and policy before Playwright performs it. The model is not given unrestricted Python or JavaScript execution.
+
+Saved steps point to labels, roles, or text rather than recorded screen coordinates. Input values are supplied at run time. Replay checks outputs and the final success state. It makes no model decisions, though a website or runtime failure can still prevent completion.
+
+| Technology | Why it is here |
+| --- | --- |
+| React, TypeScript, Vite | The chat and workflow workspace. |
+| Python, FastAPI | The execution API and engine. |
+| Playwright and Chromium | Real browser observation and interaction. |
+| Pydantic | Validate actions, workflow contracts, inputs, and results. |
+| Versioned JSON | Keep workflows readable and reviewable. |
+| Jinja2 | Render Cedar Bank's HTML pages. |
+| SQLite / PostgreSQL | Store local data / Docker bank data. |
+| pytest | Verify the engine, API, providers, recording, and browser flows. |
+| Pillow and bundled FFmpeg | Build masked step playback. |
+
+A capability includes `schema_version`, workflow `version`, app identity/version, description, input/output definitions, ordered `steps`, a success target, source, and discovery run ID. Parameters are currently strings with optional patterns, sensitivity flags, and output-to-input equality checks. Step kinds are `click`, `fill`, `read`, and `check`.
+
+The application policy lives in `config/customer-service.json`. It defines permitted origins, routes, actions, protected writes, and known runtime conditions. Tenant-specific origins and credentials belong in configuration, not in a reusable step list.
+
+Key files and folders:
+
+```text
+engine/               Discovery, recording, replay, providers, safety, API
+frontend/             React chat and workflow screens
+demo/                 Cedar Bank pages and database setup
+config/               Workflow specification, app policy, example inputs
+capabilities/         Bundled reference workflow
+tests/                Automated tests
+docs/images/          Screenshots used in this guide
+evidence/             Reviewed real runs and verification notes
+start.ps1             Docker startup
+start-local.ps1       Windows local startup
+compose.yaml          Docker services and volumes
+REPORT.md             Design decisions and tradeoffs
+STORYLINE.md          Suggested demonstration walkthrough
+FINAL_AUDIT.md        Requirement and evidence checklist
+AGENTS.md             Development decisions and working instructions
+```
+
+For a different web application, add its task specification and safety profile, then test the browser adapter against its pages. Desktop control and tenant deployment are extension designs, not implemented products. The surface adapter is separate from workflow and replay logic so another adapter can be added later.
+
+## Test and troubleshoot
+
+### Run automated checks
+
+From the repository root, after installing the local dependencies and browser:
+
+```powershell
 .\.venv\Scripts\python.exe -m pytest -q
+cd frontend
+npm.cmd ci
+npm.cmd run build
+cd ..
 ```
 
-`--approve-writes` explicitly authorizes the configured save action for that invocation. Omit it and use `--headed` to require a person to perform the save. Capability files are not overwritten; use a new output filename for another discovery run. Once a capability exists, replay and tests do not need a model server.
+Tests use isolated data and provider test doubles where appropriate. A passing mocked-provider test is not evidence of a genuine model discovery. The genuine runs are separately documented in `evidence/`.
 
-To replay the checked-in example without running discovery, use `--capability capabilities/update-address.v1.json`. The `evidence/` directory records the genuine discovery, replay, and not-found outcome already demonstrated on the standalone demo.
-
-Run outputs are written under `runs/<run-id>/`. The Python replay API returns typed outputs; CLI output contains status and the run ID. Persisted sensitive outputs are redacted.
-
-### Failure scenarios and human takeover
-
-Stop the demo server, then start it with one of `normal`, `slow`, `transient`, `session-expired`, `permission-denied`, or `uncertain-save`:
+For frontend development, keep the Python API on 5174 and run:
 
 ```powershell
-.\.venv\Scripts\python.exe -m engine.cli demo --scenario session-expired
+cd frontend
+npm.cmd run dev
 ```
 
-Replay with `--headed --approve-writes`. When the terminal requests human intervention, use the same open browser: click **Restore session**, search for the customer from the input file, and reach the requested resume checkpoint (normally the results screen with **Open customer**). Type `resume` in the run terminal. Type `abort` to stop. The intervention expires after five minutes. Session restoration is a synthetic demonstration control, not an authentication implementation.
+Open the address Vite prints. Its `/api` proxy points to 5174. If Vite chooses a different port, add that origin to `DASHBOARD_ORIGINS` before starting the backend. A frontend-only server does not start the Python API or bank.
 
-For a manual save approval, run normal replay with `--headed` and without `--approve-writes`. At handoff, inspect the review screen, click **Save address**, and type `resume` after the confirmation screen appears. Human actions and ownership transitions are recorded; automation does not dispatch actions under human ownership.
-
-Failure injection is part of the demo. Scripted browser tests are clearly labeled test fixtures and do not establish that a person performed a takeover.
-
-If a headed browser is unavailable on your desktop, use `--operator-port 8766` instead of `--headed`, then open **http://127.0.0.1:8766** when intervention is requested. This loopback operator page displays a live image of the same browser session and forwards your clicks, typing, and resume/abort signals. It does not create another application session. Live images stay in memory; supported operator commands also capture masked before/after evidence. The operator page exists only during a handoff.
-
-### Standalone demo and Docker scenarios
-
-For a standalone SQLite demo, stop the Compose services and run:
+For explicit foreground startup, use two PowerShell windows in the repository root after building the frontend:
 
 ```powershell
-.\.venv\Scripts\python.exe -m engine.cli demo
+# Window 1: bank
+.\.venv\Scripts\python.exe -m uvicorn demo.app:create_app --factory --host 127.0.0.1 --port 8000
 ```
 
-For a Docker failure scenario, keep the database running and recreate only the app:
+```powershell
+# Window 2: workspace/API
+$env:DEMO_ENTRY = 'http://127.0.0.1:8000'
+$env:DASHBOARD_ORIGINS = 'http://127.0.0.1:5174,http://localhost:5174,http://127.0.0.1:5173,http://localhost:5173'
+.\.venv\Scripts\python.exe -m uvicorn engine.api:create_app --factory --host 127.0.0.1 --port 5174
+```
+
+Press Ctrl+C in each window to stop. Provider settings are read from `.env`; extra server settings such as `DEMO_ENTRY`, `DASHBOARD_ORIGINS`, `DASHBOARD_STORAGE`, `DEMO_DATABASE`, and `DEMO_SCENARIO` must be set as process environment variables. They are not automatically loaded from `.env` by the local provider loader.
+
+### Try error handling
+
+Choose a runtime scenario in workflow setup. These are deliberately injected demo conditions:
+
+| Scenario | Expected behavior |
+| --- | --- |
+| Normal | Complete and verify the task. |
+| Slow | Wait within the configured timeout. |
+| Transient | Retry the known failed search through its recovery link. |
+| Uncertain save | Check whether the save succeeded; do not submit it twice. |
+| Permission denied | Stop with a failure and evidence. |
+| Session expired | Hand control to a person to restore the session and reach the resume checkpoint. |
+| Customer C-999 | Return the expected “Customer not found” business outcome. |
+
+For CLI scenarios, stop the bank already using port 8000, then start the standalone demo:
 
 ```powershell
-$env:DEMO_SCENARIO = "transient"
+.\.venv\Scripts\python.exe -m engine.cli demo --scenario transient
+```
+
+Run replay in another terminal. For Docker, recreate only the app with a scenario:
+
+```powershell
+$env:DEMO_SCENARIO = 'transient'
+docker compose up -d --force-recreate app
+# Restore normal behavior afterward:
+$env:DEMO_SCENARIO = 'normal'
 docker compose up -d --force-recreate app
 ```
 
-Set `DEMO_SCENARIO` back to `normal` and recreate the app to restore normal behavior. The existing failure scenarios and UI are shared by both database backends.
+### Common problems
 
-```text
-engine/          Discovery, recording, replay, policy, and session control
-frontend/        React dashboard, demo profiles, and reviewed evidence browser
-demo/            Local application with synthetic data
-tests/           Automated verification
-evidence/        Reviewed capabilities, genuine run logs, and failure evidence
-AGENTS.md        Working agreements and decisions
-PLANNING.md      Detailed design notes
-REQUIREMENTS.md  Requirement-to-acceptance mapping
-README.md        Problem, approach, roadmap, and setup
-```
+| Problem | What to check |
+| --- | --- |
+| Page will not open | Check the startup output and use the correct port. Inspect service logs. |
+| Port already in use | Stop the other confirmed project service, or use separate ports and matching settings. |
+| API unavailable | Start the Python worker. Vite alone serves only the frontend. |
+| Bank unavailable | Open its `/health` endpoint and check `DEMO_ENTRY`. |
+| Docker engine unavailable | Start Docker Desktop and wait until `docker info` works. |
+| Chromium executable missing | Run `.venv/Scripts/python.exe -m playwright install chromium` with `PLAYWRIGHT_BROWSERS_PATH` set to the project's `.browsers`. |
+| Model key missing or invalid | Check `.env`, selected provider, and backend restart. Never paste the key into chat. |
+| Model timeout or rate limit | Read Model status and the error. Wait as directed, or select a saved workflow manually. |
+| No matching workflow | Record or discover one first. Bank features are not automatically catalog entries. |
+| Another run is active | Finish or cancel that run before starting another. |
+| Cannot click the managed browser | Check ownership. Request control and wait for the handoff. |
+| Cannot scroll while recording | Keep the pointer over the live browser, confirm human ownership, or use scroll buttons. |
+| Changes disappeared | Check whether you opened a different local/Docker workspace and database. |
+| 403 from the API | Use an allowed Origin, the session cookie, and the returned CSRF token. |
+| New code is not visible | Rebuild frontend assets; restart the backend for Python changes. Rebuild Docker images for container code changes. |
 
-Keep local credentials in environment variables or ignored configuration. Browser profiles, local databases, and unreviewed runs are excluded through `.gitignore`. Only reviewed, sanitized evidence belongs in `evidence/`.
+## What is complete and what is limited
 
-## Demo storyline
+The project includes real model discovery, saved workflows, model-free replay, manual recording, chat history, model usage accounting, live browser viewing, same-session takeover controls, runtime error handling, and evidence exports.
 
-See [STORYLINE.md](STORYLINE.md) for the problem, live demonstration, engineering decisions, and honest scope limits. Discovery requires an explicitly supplied workflow contract and application policy; it learns the action sequence, not an arbitrary task schema.
+The checked-in evidence includes a genuine 15-action Groq discovery and six replays covering normal and failure scenarios with model transport blocked. Earlier local-model and Docker evidence is also preserved. Failed discovery attempts are kept and explained rather than hidden. See [the evidence index](evidence/README.md) and [verification notes](evidence/VERIFICATION.md).
 
-When discovery needs arbitrary manual recovery, the run can resume, but it will not publish a capability containing unrecorded human steps. Rediscover from a clean entry after resolving the obstruction. A manual approval of the already-selected save action remains supported.
+The remaining demonstration gap is a successful **person-operated** takeover recording. Automated tests verify the mechanism, but they are not proof that a person completed it. A prepared live handoff expired without human actions and is labeled that way.
 
-## Record a workflow yourself
+Other limits to understand:
 
-Human demonstration is a second authoring path alongside LLM discovery. Both produce the same replay contract; human recordings are labeled separately.
+- This is a local demonstration, not a production banking service. Demo profiles are not real authentication.
+- One run executes at a time. Browser sessions are not recoverable after a worker restart.
+- The built-in discovery UI teaches address changes. Other tasks need a suitable contract or a supported manual recording.
+- Structured text observation works best with labeled HTML. Canvas-heavy, poorly labeled, or native desktop interfaces need more work. Screenshots shown to the user do not mean the model receives images.
+- The recorder is not a general desktop recorder. Step playback is not continuous video.
+- Redaction depends on declared sensitive fields and the surface's privacy annotations. A new target needs a privacy review before using real data.
+- Arbitrary manual recovery during discovery cannot quietly become missing replay steps. Resolve the obstruction and rediscover when needed; manual completion of the selected protected save is supported.
+- Saved workflows assume a fairly stable UI. Version and revalidate them when the target app changes.
 
-1. Choose **Learn a new workflow > Record workflow**, name it, and start recording.
-2. Click a bank field and type in its inline editor. Enter or leaving the field applies the text; names are inferred automatically. No parameter setup is required during capture.
-3. Click application buttons and links to continue. Clicks and field fills capture masked viewport screenshots. Scrolling is logged without taking screenshots. A field fill is one input event; individual keystrokes and other applications are not recorded.
-4. At the result screen, select **Stop recording & review**. Review or rename the inferred inputs and verify the suggested success heading and readonly output bindings. Select **Finish and review recording** to save the draft. Continue recording if the result is incomplete.
-5. Inspect the draft actions and screenshots, then **Publish reviewed workflow**. Download the step document and images as a ZIP if needed. Drafts never appear as runnable capabilities before publication.
-6. Choose the workflow in **Saved workflows > Replay with new inputs**. The input form is generated from its schema. The engine validates inputs and replays without model decisions.
-
-The engine owns the managed browser during replay and rejects operator clicks/typing. **Request control** pauses at the next safe boundary: a pending model request or browser action must finish first. Complete the manual work, return to the displayed checkpoint, and resume. Cancellation remains available. The lock affects only the managed session, not other browser tabs or the user's computer.
-
-Screenshot persistence is limited to documented human commands. Raw live-view frames remain in memory. Saved images mask form fields, marked sensitive regions, known example values, frames, and canvas/video surfaces before image bytes are written. This relies on the configured surface's sensitive-data annotations; arbitrary websites need a reviewed privacy profile. Credential fields and unsupported or ambiguous targets are rejected.
-
-### A single task workspace
-
-The main screen is a full-page conversation. **Tools → Past runs** holds completed runs and their evidence; saved workflows and learning tools are secondary tools. Cedar Bank is the synthetic application the engine controls, accessible through **Open demo bank**. Try “Check the balance of AC-10002”, select the matching workflow, review the extracted account ID, and run it.
-
-Recorded demonstrations include downloadable step documentation and a playable WebM made from masked before/after images. This is step playback, not continuous motion or a reconstruction of cursor movements. Create it from a completed recording in Tools → Past runs. Encoding uses Pillow and Playwright’s bundled FFmpeg; run the browser installation command during setup.
-
-The desktop workspace starts with the conversation and a bottom-anchored message box. Starting a run opens the managed Chromium session beside the same chat, which reports the run outcome. On smaller screens, the browser and conversation stack. An in-memory Chromium screencast feeds the authenticated live view, refreshed up to four times per second during execution. This is a remote browser viewport, not an iframe or a native browser embedded in React. Request control to interact with that same session. Technical events are collapsed below the result.
-
-### Cedar Bank service requests
-
-The existing bank includes **Service requests** at `/requests`, with statement-copy, card-replacement, and transaction-dispute cases. Each request references an existing customer and an owned account, card, or transaction. Staff review before submission and track New → In review → Resolved with notes and a status history. Three seeded synthetic examples remain stable across restarts. Customer profiles link to their request history. Submission is idempotent and status updates reject stale revisions. These cases track servicing work; they do not generate statements, issue cards, or refund transactions. Automation uses the same HTML forms; request submission and status changes are protected writes in the application policy.
-
-### Demonstration recording
-
-During human recording, click a bank field and type in the inline editor. Press Enter or leave the field to apply the value before the next browser action. Input names are inferred from field labels; **Stop recording & review** pauses capture and lets you rename these inputs and review the inferred success/output checks before publishing. **Continue recording** returns to the same session; **Cancel run** discards completion but retains evidence. Text values remain in memory and saved images are masked. Scrolling is logged without screenshot capture; click/fill evidence captures the viewport rather than the entire page. This is a controlled text-field editor over a remote browser view, not unrestricted native keyboard forwarding. Passwords and unsupported control types remain excluded.
+For the reasoning behind these choices, read [REPORT.md](REPORT.md). For a presentation sequence, read [STORYLINE.md](STORYLINE.md).
