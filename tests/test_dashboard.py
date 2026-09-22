@@ -335,3 +335,26 @@ def test_chat_model_failure_allows_manual_recovery_without_execution(dashboard, 
     expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_enabled()
     assert 'provider-private-data' not in page.locator('body').inner_text()
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]
+
+
+def test_chat_keyboard_and_new_request_keep_execution_explicit(dashboard, monkeypatch):
+    import engine.catalog_agent as agent
+    seen=[]
+    async def match(message, catalog, model):
+        seen.append(message)
+        return {'matches':[], 'model_used':False}
+    monkeypatch.setattr(agent,'match_capabilities',match)
+    page=dashboard
+    editor=page.get_by_label('Message your assistant')
+    editor.fill('Check an account')
+    editor.press('Shift+Enter')
+    editor.press('a')
+    assert seen==[]
+    editor.press('Enter')
+    expect(page.get_by_text("I don't have a matching published workflow.",exact=False)).to_be_visible()
+    assert seen==['Check an account\na']
+    page.get_by_role('button',name='New request',exact=True).click()
+    expect(editor).to_be_empty()
+    expect(editor).to_be_focused()
+    expect(page.get_by_role('log',name='Conversation').locator('article')).to_have_count(0)
+    assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]

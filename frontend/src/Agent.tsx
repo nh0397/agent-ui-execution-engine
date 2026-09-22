@@ -15,6 +15,7 @@ export function Agent({
   record: () => void;
 }) {
   const conversation = useRef<HTMLDivElement>(null);
+  const composer = useRef<HTMLTextAreaElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   useEffect(() => {
     const pane = conversation.current;
@@ -33,6 +34,18 @@ export function Agent({
   const missing = fields.find((field) => !values[field]);
   const say = (message: string, matches?: string[]) =>
     setMessages((old) => [...old, { role: "agent", text: message, matches }]);
+  function newRequest() {
+    setMessages([]);
+    setText("");
+    setSelected(null);
+    setValues({});
+    setApproved(false);
+    setRetryMessage(null);
+    setShowWorkflows(false);
+    setManual(false);
+    setInitialRequest("");
+    composer.current?.focus();
+  }
   async function readValues(
     item: CatalogItem,
     message: string,
@@ -116,7 +129,7 @@ export function Agent({
       );
       say(
         reply.matches.length
-          ? "I found a saved workflow. Choose it below and I'll ask for its inputs."
+          ? "This saved workflow can help. Choose it to review the details from your message."
           : "I don't have a matching published workflow. Record a demonstration using Record a workflow, then ask me again.",
         reply.matches,
       );
@@ -146,7 +159,7 @@ export function Agent({
         csrf,
       );
       say(
-        `Started ${selected.capability.name}. Watch the live browser below. Replay follows the saved steps without LLM decisions.`,
+        `Started ${selected.capability.name}. The live browser is opening so you can follow its progress.`,
       );
       setSelected(null);
       setValues({});
@@ -159,30 +172,14 @@ export function Agent({
     }
   }
   return (
-    <section className="panel agent-panel">
-      <p className="eyebrow">START WITH AN ACTIVITY</p>
-      <h2>What would you like to get done?</h2>
-      <p>
-        Describe the activity you want me to perform, including any IDs or details you know.
-        I’ll look for a saved workflow and help you review the inputs. Nothing runs until you confirm.
-      </p>
-      <div className="agent-examples" hidden={messages.length > 0}>
-        {[
-          "Check the balance of account AC-10002",
-          "Update the mailing address for customer C-1001",
-          "Freeze debit card DC-205",
-        ].map((example) => (
-          <button
-            className="button secondary"
-            key={example}
-            disabled={!!selected || busy}
-            onClick={() => setText(example)}
-          >
-            {example}
-          </button>
-        ))}
+    <section className={`panel agent-panel conversational ${messages.length ? "has-messages" : "is-empty"}`}>
+      <div className="conversation-heading">
+        <div><p className="eyebrow">WORKFLOW ASSISTANT</p>
+          <h2>{messages.length ? "Let’s get this done." : "What would you like to do?"}</h2></div>
+        {messages.length > 0 && <button className="text-button" disabled={busy} onClick={newRequest} title="Clear this draft conversation. Does not stop an active run.">New request</button>}
       </div>
-      <div ref={conversation} className="agent-conversation" aria-live="polite">
+      {!messages.length && <p className="chat-intro">Tell me the activity and any customer, account, or card details you know. I’ll help you review everything before it runs.</p>}
+      <div ref={conversation} className="agent-conversation" role="log" aria-label="Conversation" aria-live="polite">
         {messages.map((message, index) => (
           <article
             key={index}
@@ -190,14 +187,14 @@ export function Agent({
               message.role === "you" ? "agent-question" : "agent-answer"
             }
           >
-            <small>{message.role === "you" ? "YOU" : "ASSISTANT"}</small>
+            <small>{message.role === "you" ? "You" : "Assistant"}</small>
             <p>{message.text}</p>
             {message.matches?.map((id) => {
               const item = catalog.find((candidate) => candidate.id === id);
               return item ? (
                 <div className="agent-match" key={id}>
                   <h3>{item.capability.name}</h3>
-                  <p>{item.capability.description}</p>
+                  <details className="workflow-description"><summary>What this workflow does</summary><p>{item.capability.description}</p></details>
                   <small>
                     {item.capability.steps.length} recorded actions · Version{" "}
                     {item.capability.version}
@@ -219,17 +216,14 @@ export function Agent({
       {retryMessage !== null && !busy && (
         <button className="button secondary" onClick={() => selected ? void readValues(selected, retryMessage, values) : void findWorkflow(retryMessage)}>Retry last message</button>
       )}
-      {!selected && catalog.length > 0 && !busy && (
-        <button className="button secondary" onClick={() => setShowWorkflows(!showWorkflows)}>Choose a saved workflow</button>
-      )}
       {showWorkflows && !selected && <div className="agent-match">
         <p>Select a workflow yourself. These are your saved workflows, not model recommendations.</p>
         {catalog.map((item) => <button key={item.id} className="button secondary" disabled={busy || viewer} onClick={() => void choose(item)}>{item.capability.name}</button>)}
       </div>}
-      {selected && <div className="agent-manual">
+      {selected && <div className="agent-manual chat-review">
         <button className="text-button" disabled={busy} onClick={() => setManual(!manual)}>{manual ? "Hide input fields" : "Enter or edit details manually"}</button>
         {manual && <fieldset disabled={busy || viewer}><legend>Details for {selected.capability.name}</legend>
-          <p>Only the fields listed here were captured in this workflow.</p>
+          <p>Check or correct these details. This workflow changes only the fields listed here.</p>
           {fields.map((field) => <label key={field}>{field.replaceAll("_", " ")}
             <input aria-label={`Workflow input ${field}`} value={values[field] || ""} onChange={(e) => { setValues({ ...values, [field]: e.target.value }); setApproved(false); }} />
           </label>)}
@@ -238,15 +232,15 @@ export function Agent({
       </div>}
       {selected && !missing && (
         <div className="agent-match">
-          <h3>Review {selected.capability.name}</h3>
-          <dl>
+          <h3>Ready when you are</h3>
+          {!manual && <dl>
             {fields.map((field) => (
               <div key={field}>
                 <dt>{field}</dt>
                 <dd>{values[field]}</dd>
               </div>
             ))}
-          </dl>
+          </dl>}
           <label>
             <input
               type="checkbox"
@@ -272,6 +266,13 @@ export function Agent({
         <label htmlFor="agent-request">Message your assistant</label>
         <textarea
           id="agent-request"
+          ref={composer}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              if (!busy && csrf && text.trim()) event.currentTarget.form?.requestSubmit();
+            }
+          }}
           value={text}
           onChange={(event) => setText(event.target.value)}
           rows={2}
@@ -280,27 +281,45 @@ export function Agent({
           placeholder={
             missing
               ? `Enter ${missing}`
-              : "For example: Check the balance of account AC-10002"
+              : messages.length ? "Add details or ask for a correction…" : "For example: Check the balance of account AC-10002"
           }
         />
-        <button
+        <div className="composer-footer"><span>Enter to send · Shift + Enter for a new line</span><button
           className="button primary"
           disabled={busy || !csrf || !text.trim()}
         >
           {busy ? "Working…" : "Send message"}
-        </button>
+        </button></div>
       </form>
+      <div className="agent-examples" hidden={messages.length > 0}>
+        {[
+          "Check the balance of account AC-10002",
+          "Update the mailing address for customer C-1001",
+          "Freeze debit card DC-205",
+        ].map((example) => (
+          <button
+            className="button secondary"
+            key={example}
+            disabled={!!selected || busy}
+            onClick={() => { setText(example); composer.current?.focus(); }}
+          >
+            {example}
+          </button>
+        ))}
+      </div>
+      <div className="chat-secondary-actions">
+      {!selected && catalog.length > 0 && !busy && (
+        <button className="text-button" onClick={() => setShowWorkflows(!showWorkflows)}>Choose a saved workflow</button>
+      )}
       <button
-        className="button secondary"
+        className="text-button"
         disabled={viewer || busy}
         onClick={record}
       >
         Record a workflow
       </button>
-      <p className="muted">
-        Conversation stays in this page’s memory. The local model understands
-        requests; you review extracted values before deterministic replay.
-      </p>
+      </div>
+      <p className="chat-footnote">Nothing runs until you confirm. Conversation clears when you refresh.</p>
     </section>
   );
 }

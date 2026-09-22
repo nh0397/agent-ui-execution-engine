@@ -669,3 +669,35 @@
 .assistant-guide p { color: #64716c; font-size: 13px; line-height: 1.6; }
 .workspace-context { margin-top: 24px; }
 @media (max-width: 700px) { .assistant-guide { grid-template-columns: 1fr; gap: 16px; } }
+
+.conversational .conversation-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.conversational .conversation-heading h2 { margin:8px 0 12px; }
+.conversational .chat-intro { color:#566d63; line-height:1.65; margin-bottom:24px; }
+.conversational .agent-conversation:empty { display:none; }
+.conversational .agent-conversation { padding:4px 0; scroll-behavior:smooth; }
+.conversational .agent-question { margin:16px 0 16px auto; max-width:82%; width:fit-content; border-radius:16px 16px 4px 16px; background:#e8f0e9; padding:14px 18px; }
+.conversational .agent-answer { padding:14px 0; max-width:94%; }
+.conversational article small { font-size:11px; color:#5b7266; font-weight:600; }
+.conversational article p { margin:6px 0; line-height:1.65; overflow-wrap:anywhere; white-space:pre-wrap; }
+.conversational .agent-match { border:1px solid #dbe5de; border-radius:12px; padding:16px; background:#f8faf7; }
+.conversational .workflow-description { margin:10px 0; font-size:13px; color:#52675e; }
+.conversational .workflow-description summary { cursor:pointer; }
+.conversational .agent-composer { margin-top:18px; padding:14px 16px 12px; border:1px solid #b6cbbd; border-radius:16px; background:#fff; box-shadow:0 3px 14px #244f3510; }
+.conversational .agent-composer:focus-within { outline:2px solid #488065; outline-offset:2px; }
+.conversational .agent-composer label { font-size:12px; color:#4a6656; }
+.assistant-home .conversational .agent-composer textarea,.floating-assistant .conversational .agent-composer textarea { border:0; box-shadow:none; outline:none; background:transparent; padding:10px 0; margin:4px 0; min-height:76px; resize:vertical; }
+.conversational .composer-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.conversational .composer-footer span { font-size:11px; color:#728177; }
+.conversational .composer-footer .button { margin:0; flex-shrink:0; }
+.conversational .agent-examples { margin:18px 0; gap:8px; }
+.conversational .agent-examples .button { border-radius:20px; font-size:12px; padding:9px 13px; }
+.conversational .chat-secondary-actions { display:flex; gap:18px; flex-wrap:wrap; margin-top:20px; padding-top:16px; border-top:1px solid #edf0eb; }
+.conversational .chat-footnote { font-size:11px; color:#7b887f; margin:14px 0 0; }
+.conversational .chat-review { margin-top:18px; padding:16px; border:1px solid #dbe5de; border-radius:12px; }
+.conversational .chat-review fieldset { padding:12px 0 0; border:0; margin:0; min-width:0; }
+.conversational .chat-review legend { font-weight:600; }
+.conversational .chat-review p { font-size:12px; color:#64756a; line-height:1.6; }
+.conversational .chat-review label { display:block; margin:12px 0; }
+.conversational.has-messages .conversation-heading h2 { font-size:24px; }
+@media(max-width:600px) { .conversational .composer-footer span { display:none; } .conversational .composer-footer { justify-content:flex-end; } .conversational .conversation-heading { align-items:flex-start; } }
+@media(prefers-reduced-motion:reduce) { .conversational .agent-conversation { scroll-behavior:auto; } }

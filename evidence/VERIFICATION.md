@@ -53,3 +53,7 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 
 - Overview opens directly into the conversation, with activity examples and input guidance. The idle browser placeholder is removed. The same assistant stays mounted and becomes a popup during live execution. Secondary workflow/history/service tools remain accessible.
 - TypeScript and production build passed; all nine dashboard tests passed. Visually inspected 1440px desktop and 390px mobile renders, with no horizontal overflow on mobile.
+
+## Conversational chat refinement
+
+- TypeScript and production build passed; ten dashboard tests passed, including Enter versus Shift+Enter, draft reset/focus, and no implicit execution. Inspected desktop and mobile renders; no horizontal mobile overflow. This change affects presentation and chat interaction, not model discovery behavior.
