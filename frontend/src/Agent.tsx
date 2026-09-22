@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, type FormEvent } from "react";
-import { request, type CatalogItem } from "./api";
+import { request, type Run, type CatalogItem } from "./api";
 type Message = { role: "you" | "agent"; text: string; matches?: string[] };
 export function Agent({
   catalog,
@@ -7,15 +7,22 @@ export function Agent({
   viewer,
   onRun,
   record,
+  discover,
+  runs,
 }: {
   catalog: CatalogItem[];
   csrf: string;
   viewer: boolean;
   onRun: (id: string) => void;
   record: () => void;
+  discover: (goal: string) => void;
+  runs: Run[];
 }) {
   const conversation = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
+  const [chatRun, setChatRun] = useState<string | null>(null);
+  const reported = useRef(new Set<string>());
+  const [noMatch, setNoMatch] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   useEffect(() => {
     const pane = conversation.current;
@@ -34,8 +41,17 @@ export function Agent({
   const missing = fields.find((field) => !values[field]);
   const say = (message: string, matches?: string[]) =>
     setMessages((old) => [...old, { role: "agent", text: message, matches }]);
+  const execution = runs.find((run) => run.id === chatRun);
+  useEffect(() => {
+    if (!execution || execution.status === "running" || reported.current.has(execution.id)) return;
+    reported.current.add(execution.id);
+    const outcome = execution.status === "success" ? "Completed" : execution.status === "business_outcome" ? "The bank returned an expected outcome" : "I couldn’t complete the task";
+    setMessages((old) => [...old, { role: "agent", text: `${outcome}: ${execution.code}. You can inspect the result and recorded steps in the browser panel.` }]);
+  }, [execution?.id, execution?.status, execution?.code]);
   function newRequest() {
     setMessages([]);
+    setNoMatch(false);
+    setChatRun(null);
     setText("");
     setSelected(null);
     setValues({});
@@ -118,6 +134,7 @@ export function Agent({
   }
   async function findWorkflow(input: string) {
     setInitialRequest(input);
+    setNoMatch(false);
     setRetryMessage(null);
     setShowWorkflows(false);
     setBusy(true);
@@ -127,10 +144,11 @@ export function Agent({
         { method: "POST", body: JSON.stringify({ message: input }) },
         csrf,
       );
+      setNoMatch(reply.matches.length === 0);
       say(
         reply.matches.length
           ? "This saved workflow can help. Choose it to review the details from your message."
-          : "I don't have a matching published workflow. Record a demonstration using Record a workflow, then ask me again.",
+          : "I don't have a matching published workflow yet. I can help you set up an agent discovery, or you can show me the steps by recording a demonstration.",
         reply.matches,
       );
     } catch (error) {
@@ -164,6 +182,7 @@ export function Agent({
       setSelected(null);
       setValues({});
       setApproved(false);
+      setChatRun(result.id);
       onRun(result.id);
     } catch (error) {
       say((error as Error).message);
@@ -173,13 +192,14 @@ export function Agent({
   }
   return (
     <section className={`panel agent-panel conversational ${messages.length ? "has-messages" : "is-empty"}`}>
+      <div ref={conversation} className="chat-thread">
       <div className="conversation-heading">
         <div><p className="eyebrow">WORKFLOW ASSISTANT</p>
           <h2>{messages.length ? "Let’s get this done." : "What would you like to do?"}</h2></div>
         {messages.length > 0 && <button className="text-button" disabled={busy} onClick={newRequest} title="Clear this draft conversation. Does not stop an active run.">New request</button>}
       </div>
       {!messages.length && <p className="chat-intro">Tell me the activity and any customer, account, or card details you know. I’ll help you review everything before it runs.</p>}
-      <div ref={conversation} className="agent-conversation" role="log" aria-label="Conversation" aria-live="polite">
+      <div className="agent-conversation" role="log" aria-label="Conversation" aria-live="polite">
         {messages.map((message, index) => (
           <article
             key={index}
@@ -212,6 +232,8 @@ export function Agent({
           </article>
         ))}
       </div>
+      {noMatch && !selected && <div className="chat-next-step"><button className="button primary" disabled={busy || viewer} onClick={() => discover(initialRequest)}>Learn with the agent</button><button className="button secondary" disabled={busy || viewer} onClick={record}>Show the steps</button><p>You’ll review the setup before discovery or recording begins.</p></div>}
+      {execution?.status === "running" && <p role="status" className="chat-execution">{execution.live?.owner === "human" ? "I need your help in the browser. Review the message there to continue." : "Working in the browser. You can watch each step alongside this conversation."}</p>}
       {busy && <p role="status">{selected ? "Reading the details in your message…" : "Checking your saved workflows…"} The local model may take a moment.</p>}
       {retryMessage !== null && !busy && (
         <button className="button secondary" onClick={() => selected ? void readValues(selected, retryMessage, values) : void findWorkflow(retryMessage)}>Retry last message</button>
@@ -262,6 +284,23 @@ export function Agent({
           </button>
         </div>
       )}
+      <div className="agent-examples" hidden={messages.length > 0}>
+        {[
+          "Check the balance of account AC-10002",
+          "Update the mailing address for customer C-1001",
+          "Freeze debit card DC-205",
+        ].map((example) => (
+          <button
+            className="button secondary"
+            key={example}
+            disabled={!!selected || busy}
+            onClick={() => { setText(example); composer.current?.focus(); }}
+          >
+            {example}
+          </button>
+        ))}
+      </div>
+      </div>
       <form onSubmit={submit} className="agent-composer">
         <label htmlFor="agent-request">Message your assistant</label>
         <textarea
@@ -291,22 +330,6 @@ export function Agent({
           {busy ? "Working…" : "Send message"}
         </button></div>
       </form>
-      <div className="agent-examples" hidden={messages.length > 0}>
-        {[
-          "Check the balance of account AC-10002",
-          "Update the mailing address for customer C-1001",
-          "Freeze debit card DC-205",
-        ].map((example) => (
-          <button
-            className="button secondary"
-            key={example}
-            disabled={!!selected || busy}
-            onClick={() => { setText(example); composer.current?.focus(); }}
-          >
-            {example}
-          </button>
-        ))}
-      </div>
       <div className="chat-secondary-actions">
       {!selected && catalog.length > 0 && !busy && (
         <button className="text-button" onClick={() => setShowWorkflows(!showWorkflows)}>Choose a saved workflow</button>

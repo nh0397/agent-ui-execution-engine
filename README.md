@@ -321,11 +321,11 @@ Screenshot persistence is limited to documented human commands. Raw live-view fr
 
 ### A single task workspace
 
-**Overview** holds the conversation and current task; **History** holds completed runs and their evidence. Saved workflows and learning tools open within the workspace. Cedar Bank is the synthetic application the engine controls, accessible through **Open demo bank**. Try “Check the balance of AC-10002”, select the matching workflow, review the extracted account ID, and run it.
+The main screen is a full-page conversation. **Tools → Past runs** holds completed runs and their evidence; saved workflows and learning tools are secondary tools. Cedar Bank is the synthetic application the engine controls, accessible through **Open demo bank**. Try “Check the balance of AC-10002”, select the matching workflow, review the extracted account ID, and run it.
 
-Recorded demonstrations include downloadable step documentation and a playable WebM made from masked before/after images. This is step playback, not continuous motion or a reconstruction of cursor movements. Create it from a completed recording in History. Encoding uses Pillow and Playwright’s bundled FFmpeg; run the browser installation command during setup.
+Recorded demonstrations include downloadable step documentation and a playable WebM made from masked before/after images. This is step playback, not continuous motion or a reconstruction of cursor movements. Create it from a completed recording in Tools → Past runs. Encoding uses Pillow and Playwright’s bundled FFmpeg; run the browser installation command during setup.
 
-The desktop workspace gives the browser the main area and opens chat through the floating **Ask assistant** button. The pane starts blank; starting a run opens the managed Chromium session there. An in-memory Chromium screencast feeds the authenticated live view, refreshed up to four times per second during execution. This is a remote browser viewport, not an iframe or a native browser embedded in React. Request control to interact with that same session. Technical events are collapsed below the result.
+The desktop workspace starts with the conversation and a bottom-anchored message box. Starting a run opens the managed Chromium session beside the same chat, which reports the run outcome. On smaller screens, the browser and conversation stack. An in-memory Chromium screencast feeds the authenticated live view, refreshed up to four times per second during execution. This is a remote browser viewport, not an iframe or a native browser embedded in React. Request control to interact with that same session. Technical events are collapsed below the result.
 
 ### Cedar Bank service requests
 

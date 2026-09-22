@@ -43,6 +43,7 @@ def dashboard(tmp_path,monkeypatch):
         for sock in sockets: sock.close()
 
 def setup_replay(page):
+    page.locator('.chat-tools > summary').click()
     page.get_by_role('button',name='Learn a new workflow',exact=True).click()
     page.get_by_role('button',name='Replay capability').click()
     expect(page.get_by_role('button',name='Start replay',exact=True)).to_be_enabled(timeout=15000)
@@ -62,7 +63,11 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
     page.get_by_label('Message your assistant').fill('Update the mailing address')
     page.get_by_role('button', name='Send message', exact=True).click()
     if not matched:
-        expect(page.get_by_text("I don't have a matching published workflow.", exact=False)).to_be_visible(timeout=10000)
+        expect(page.get_by_text("I don't have a matching published workflow yet.", exact=False)).to_be_visible(timeout=10000)
+        page.get_by_role('button', name='Learn with the agent', exact=True).click()
+        expect(page.get_by_label('Goal', exact=True)).to_have_value('Update the mailing address')
+        page.locator('.chat-tools > summary').click()
+        page.get_by_role('button', name='Back to chat', exact=True).click()
         page.get_by_role('button', name='Record a workflow', exact=True).click()
         expect(page.get_by_role('button',name='Start recording',exact=True)).to_be_visible()
         return
@@ -78,6 +83,7 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
     page.get_by_role('button',name='Run workflow',exact=True).click()
     expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]['model_decisions'] == 0
+    expect(page.get_by_role('log',name='Conversation')).to_contain_text('Completed:',timeout=10000)
 
 
 def test_dashboard_executes_replay_and_verifies_live_result(dashboard):
@@ -90,8 +96,9 @@ def test_dashboard_executes_replay_and_verifies_live_result(dashboard):
     assert result['model_decisions']==0 and result['actions']==14
     assert result['result']['outputs']['street']=='[REDACTED]'
     page.set_viewport_size({'width':390,'height':844})
-    for name in ('Overview','History'):
-        page.get_by_role('navigation').get_by_role('button',name=name).click()
+    for name in ('Back to chat','Past runs'):
+        page.locator('.chat-tools > summary').click()
+        page.get_by_role('button',name=name,exact=True).click()
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),name
 
 def test_scripted_operator_uses_same_live_session_and_resumes(dashboard):
@@ -118,10 +125,13 @@ def test_viewer_and_runtime_failure(dashboard):
     page=dashboard
     page.get_by_label('Choose demo profile').click()
     page.get_by_role('button',name='Taylor Morgan',exact=False).click()
+    page.locator('.chat-tools > summary').click()
     expect(page.get_by_role('button',name='Learn a new workflow',exact=True)).to_be_disabled()
+    page.locator('.chat-tools > summary').click()
     expect(page.get_by_role('button',name='Send message',exact=True)).to_be_disabled()
     page.get_by_label('Choose demo profile').click()
     page.get_by_role('button',name='Sam Rivera',exact=False).click()
+    page.locator('.chat-tools > summary').click()
     page.get_by_role('button',name='Learn a new workflow',exact=True).click()
     page.get_by_role('button',name='Replay capability').click()
     page.get_by_label('Runtime scenario').select_option('permission-denied')
@@ -150,6 +160,7 @@ def test_dashboard_records_reviews_publishes_and_replays(dashboard, monkeypatch)
             return result
     monkeypatch.setattr(recording,'BrowserSurface',InspectedSurface)
     page=dashboard
+    page.locator('.chat-tools > summary').click()
     page.get_by_role('button',name='Learn a new workflow',exact=True).click()
     page.get_by_role('button',name='Record workflow',exact=False).click()
     page.get_by_label('Workflow name').fill('Manual address update')
@@ -226,6 +237,7 @@ def test_mouse_wheel_scrolls_managed_browser_not_dashboard(dashboard, monkeypatc
             observed['y'] = self.page.evaluate('window.scrollY')
     monkeypatch.setattr(recording, 'BrowserSurface', ScrollSurface)
     page = dashboard
+    page.locator('.chat-tools > summary').click()
     page.get_by_role('button',name='Learn a new workflow',exact=True).click()
     page.get_by_role('button',name='Record workflow',exact=False).click()
     page.get_by_role('button',name='Start recording',exact=True).click()
@@ -254,6 +266,7 @@ def test_inline_recording_infers_inputs_and_stops_for_review(dashboard, monkeypa
             return super().frame()
     monkeypatch.setattr(recording,'BrowserSurface',LocatedSurface)
     page=dashboard
+    page.locator('.chat-tools > summary').click()
     page.get_by_role('button',name='Learn a new workflow',exact=True).click()
     page.get_by_role('button',name='Record workflow',exact=False).click()
     page.get_by_label('Workflow name').fill('Natural balance recording')
@@ -351,7 +364,7 @@ def test_chat_keyboard_and_new_request_keep_execution_explicit(dashboard, monkey
     editor.press('a')
     assert seen==[]
     editor.press('Enter')
-    expect(page.get_by_text("I don't have a matching published workflow.",exact=False)).to_be_visible()
+    expect(page.get_by_text("I don't have a matching published workflow yet.",exact=False)).to_be_visible()
     assert seen==['Check an account\na']
     page.get_by_role('button',name='New request',exact=True).click()
     expect(editor).to_be_empty()

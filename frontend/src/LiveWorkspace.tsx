@@ -49,7 +49,7 @@ const pages = [
   "Banking app",
 ] as const;
 type Page = (typeof pages)[number];
-const icons = [LayoutDashboard, Workflow, Box, Activity, Monitor, ExternalLink];
+
 function Badge({
   children,
   tone = "neutral",
@@ -468,83 +468,17 @@ export default function LiveWorkspace() {
     setPage("New workflow");
   }
   return (
-    <div className="app-shell">
-      <aside className="sidebar">
-        <a
-          href="#"
-          className="brand"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate("Overview");
-          }}
-        >
-          <span className="brand-mark">
-            <Workflow size={23} />
-          </span>
-          <span>
-            agent<span className="brand-light">ui</span>
-            <small>EXECUTION WORKSPACE</small>
-          </span>
-        </a>
-        <div className="workspace-label">
-          <span className="workspace-icon">C</span>
-          <span>
-            Cedar Bank sandbox<small>Local execution environment</small>
-          </span>
-        </div>
-        <div className="nav-label">WORKSPACE</div>
-        <nav aria-label="Main navigation">
-          {pages.map((name, i) => {
-            if (name !== "Overview" && name !== "Run history") return null;
-            const Icon = icons[i];
-            return (
-              <button
-                key={name}
-                className={`nav-item ${(name === "Overview" ? page !== "Run history" : page === name) ? "active" : ""}`}
-                onClick={() => navigate(name)}
-                aria-current={page === name ? "page" : undefined}
-              >
-                <Icon size={18} />
-                {name === "Run history" ? "History" : name}
-              </button>
-            );
-          })}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="guard-card">
-            <ShieldCheck />
-            <strong>Real UI. Real execution.</strong>
-            <p>
-              The model discovers.
-              <br />
-              Saved capabilities replay.
-            </p>
-            <span>
-              {online
-                ? "Execution API connected"
-                : "Connecting to execution API…"}
-            </span>
-          </div>
-          <button
-            className="profile-button"
-            onClick={() => setProfileDialog(true)}
-          >
-            <span className="avatar">{person.initials}</span>
-            <span>
-              {person.name}
-              <small>{person.role} · demo session</small>
-            </span>
-            <ChevronDown size={15} />
-          </button>
-        </div>
-      </aside>
+    <div className={`app-shell chat-product ${page === "Live session" ? "watching" : ""} ${page === "Overview" ? "chat-landing" : ""}`}>
       <div className="content-shell">
         <header className="topbar">
-          <div>
-            <span className="breadcrumb">Workspace</span>
-            <span className="slash">/</span>
-            <strong>{page === "Run history" ? "History" : "Overview"}</strong>
-          </div>
+          <button className="chat-brand text-button" onClick={() => navigate("Overview")}>agentui <span>Banking assistant</span></button>
+          <details className="chat-tools" onClick={(event) => { if ((event.target as HTMLElement).closest("button,a")) event.currentTarget.open = false; }}><summary>Tools</summary><div>
+            <button className="text-button" onClick={() => navigate("Overview")}>Back to chat</button>
+            <button className="text-button" disabled={viewer || !online} onClick={() => navigate("New workflow")}>Learn a new workflow</button>
+            <button className="text-button" onClick={() => navigate("Capabilities")}>Saved workflows</button>
+            <button className="text-button" onClick={() => navigate("Run history")}>Past runs</button>
+            <a href={health?.bank_url || "http://127.0.0.1:8003"} target="_blank" rel="noreferrer">Open Cedar Bank</a>
+          </div></details>
           <div className="top-actions">
             <span className="evidence-indicator">
               <span className={online ? "" : "offline"} />
@@ -586,7 +520,7 @@ export default function LiveWorkspace() {
                     : "A complete local workspace for discovering and replaying UI workflows."}
               </p>
             </div>
-            {page !== "New workflow" && (
+            {false && (
               <button
                 className="button secondary"
                 onClick={() => navigate("New workflow")}
@@ -629,36 +563,13 @@ export default function LiveWorkspace() {
             </section>
           )}
           <div className="task-desktop full-browser">
-            {page !== "Overview" && <button
-              className="chat-launcher"
-              aria-label={chatOpen ? "Minimize assistant" : "Open assistant"}
-              aria-expanded={chatOpen}
-              aria-controls="floating-assistant"
-              onClick={() => setChatOpen(!chatOpen)}
-            >
-              <Sparkles size={20} /> {chatOpen ? "Minimize" : "Assistant"}
-            </button>}
-            <div
-              id="floating-assistant"
-              className={page === "Overview" ? "assistant-home" : "floating-assistant"}
-              hidden={page !== "Overview" && !chatOpen}
-              role={page === "Overview" ? "region" : "dialog"}
-              aria-label="Workflow assistant"
-            >
-              {page !== "Overview" && <div className="chat-popup-header">
-                <strong>Workflow assistant</strong>
-                <button
-                  className="text-button"
-                  aria-label="Close assistant"
-                  onClick={() => setChatOpen(false)}
-                >
-                  <X size={18} />
-                </button>
-              </div>}
+            <div id="floating-assistant" className="chat-main" hidden={page !== "Overview" && page !== "Live session"} role="region" aria-label="Workflow assistant">
               <Agent
                 key={person.id}
                 catalog={catalog}
                 csrf={csrf}
+                runs={runs}
+                discover={(goal) => { setGoal(goal); setMode("discovery"); setPage("New workflow"); }}
                 viewer={viewer}
                 onRun={(id) => {
                   setChatOpen(false);
@@ -674,13 +585,6 @@ export default function LiveWorkspace() {
               />
             </div>
             <div className="browser-workspace">
-              {page === "Overview" && (
-                <section className="assistant-guide" aria-label="How the assistant works">
-                  <div><span>01</span><h3>Describe the activity</h3><p>Say what to do and include the customer, account, or card ID you know.</p></div>
-                  <div><span>02</span><h3>Check the details</h3><p>Choose a saved workflow, fill any missing details, and confirm before it runs.</p></div>
-                  <div><span>03</span><h3>Watch and verify</h3><p>The live browser opens during execution. Review the result and recorded steps afterward.</p></div>
-                </section>
-              )}
               {page === "Live session" && (
                 <>
                   {current ? (
@@ -1089,158 +993,6 @@ export default function LiveWorkspace() {
               </button>
             )}
           </div>
-          {page === "Overview" && (
-            <details className="workspace-summary">
-              <summary>Execution overview and service status</summary>
-              <section className="hero">
-                <div>
-                  <Badge tone="hero-badge">
-                    CONNECTED AUTOMATION WORKSPACE
-                  </Badge>
-                  <h2>
-                    Give the engine a goal.
-                    <br />
-                    Watch it work through the UI.
-                  </h2>
-                  <p>
-                    Search a customer, update their address, and verify the
-                    result.
-                    <br />
-                    Capture a reusable capability and run it again with new
-                    inputs.
-                  </p>
-                  <button
-                    className="button light"
-                    disabled={viewer || !online}
-                    onClick={() => {
-                      setMode("discovery");
-                      navigate("New workflow");
-                    }}
-                  >
-                    <Sparkles size={16} /> Start discovery
-                  </button>
-                </div>
-                <div className="service-health">
-                  <h3>Environment</h3>
-                  <div>
-                    <span>Execution API</span>
-                    <Badge tone={online ? "green" : "red"}>
-                      {online ? "Connected" : "Unavailable"}
-                    </Badge>
-                  </div>
-                  <div>
-                    <span>Cedar Bank + database</span>
-                    <Badge tone={health?.bank ? "green" : "red"}>
-                      {health?.bank ? "Ready" : "Unavailable"}
-                    </Badge>
-                  </div>
-                  <div>
-                    <span>Local model service</span>
-                    <Badge tone={health?.model ? "green" : "amber"}>
-                      {health?.model ? "Ready" : "Unavailable"}
-                    </Badge>
-                  </div>
-                  <small>
-                    Replay works without a model. Discovery requires an
-                    installed local model.
-                  </small>
-                </div>
-              </section>
-              <section className="stats">
-                {[
-                  {
-                    name: "Live runs",
-                    value: runs.length,
-                    note: "Started through this workspace",
-                  },
-                  {
-                    name: "Completed",
-                    value: runs.filter((r) => r.status === "success").length,
-                    note: "Verified terminal outcomes",
-                  },
-                  {
-                    name: "Capabilities",
-                    value: catalog.length,
-                    note: "Includes the original example",
-                  },
-                  {
-                    name: "Active session",
-                    value: active
-                      ? active.live?.owner === "human"
-                        ? "Your turn"
-                        : "Running"
-                      : "Idle",
-                    note: active
-                      ? "One session at a time"
-                      : "Ready for a new workflow",
-                  },
-                ].map((m) => (
-                  <article className="stat" key={m.name}>
-                    <span className="stat-title">{m.name}</span>
-                    <strong>{m.value}</strong>
-                    <small>{m.note}</small>
-                  </article>
-                ))}
-              </section>
-              <div className="section-heading">
-                <div>
-                  <h2>Live run history</h2>
-                  <p>Results from the connected execution backend.</p>
-                </div>
-                <button
-                  className="text-button"
-                  onClick={() => navigate("Run history")}
-                >
-                  View runs <ArrowRight size={15} />
-                </button>
-              </div>
-              <section className="panel">
-                <RunTable
-                  visibleRuns={visibleRuns}
-                  runs={runs}
-                  viewer={viewer}
-                  onLive={(id) => {
-                    setSelected(id);
-                    setPage("Live session");
-                  }}
-                  onDetail={setDetail}
-                  onNew={() => navigate("New workflow")}
-                />
-              </section>
-              <div className="bottom-grid">
-                <section className="panel next-step">
-                  <p className="eyebrow">THE APPLICATION UNDER AUTOMATION</p>
-                  <h3>Cedar Bank customer workspace</h3>
-                  <p>
-                    Three synthetic customers, checking and savings accounts,
-                    transaction history, and an address-change flow with review
-                    and confirmation.
-                  </p>
-                  <a
-                    className="button secondary"
-                    href={health?.bank_url || "http://127.0.0.1:8000"}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Open banking application <ExternalLink size={15} />
-                  </a>
-                </section>
-                <section className="panel featured-cap">
-                  <h3>Prior verified evidence</h3>
-                  <p>
-                    The original discovery and replay records remain available
-                    for comparison. They are separate from the live runs above.
-                  </p>
-                  <button
-                    className="text-button"
-                    onClick={() => setShowArchive(true)}
-                  >
-                    Inspect archived evidence <ArrowUpRight size={15} />
-                  </button>
-                </section>
-              </div>
-            </details>
-          )}
           {page === "New workflow" && (
             <div className="form-layout">
               <form className="panel workflow-form" onSubmit={start}>
