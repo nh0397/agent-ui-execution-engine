@@ -759,3 +759,10 @@
 @media(max-width:600px) { .chat-tools summary span:not(:last-child) { display:none; } .workflow-choice-footer { align-items:stretch; flex-direction:column; } .workflow-choice-footer .button { width:100%; } }
 
 @media(max-width:600px) { .workflow-choice { display:flex; flex-direction:column; } .workflow-choice h3 { order:1; } .workflow-choice-footer { order:2; margin-top:4px; padding-top:4px; border:0; } .workflow-choice-footer .button { order:-1; } .workflow-choice .workflow-description { order:3; } .workflow-choice .workflow-scope { order:4; } .workflow-choice .workflow-choice-hint { order:5; } }
+
+.conversation-storage { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 0; flex-shrink:0; }
+.conversation-storage select { max-width:60%; padding:8px; border:1px solid #dfe6df; border-radius:8px; background:white; font-size:12px; }
+.model-status { position:relative; font-size:12px; }
+.model-status[open] { max-width:420px; max-height:220px; overflow:auto; padding:12px; background:#f1f6f0; }
+.model-status summary { cursor:pointer; }
+.model-status p { margin:8px 0; line-height:1.5; }

@@ -67,3 +67,12 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 
 - Highlighted Tools, added explicit next-step selection guidance and supported fields, separated action buttons from metadata, and disabled stale suggestions. Type checking/build passed; ten dashboard tests passed. Desktop/mobile selection rendering inspected with an explicit mocked match response (not model evidence); mobile action verified clear of the composer.
 - Submission readiness remains conditional on a person-operated takeover/resume demonstration and final clean-setup, documentation, and public-evidence review. Existing genuine discovery/replay evidence remains intact.
+
+## Hosted provider, persistent conversations, and clean setup
+
+- Installed the declared Python/test dependencies into a new virtual environment. Ran the complete suite there: **78 passed**, with two dependency deprecation warnings. Browser tests reused the installed Playwright Chromium binaries. TypeScript checking, the production Vite build, and PowerShell startup-script parsing passed.
+- Added provider transport tests for server-only keys, usage accounting, rate-limit cooldown, application budget, and sanitized timeout errors. These Groq responses are **test doubles**, not hosted-model execution evidence. No Groq key or live Groq run was available.
+- Conversation tests verify persistence across restart, profile ownership, revision conflicts, key scrubbing, and no implicit execution. The browser reload test restores reviewed fields but clears write approval.
+- The live dashboard on port 5176 rendered the new history/status controls without JavaScript errors; a 390px mobile viewport had no horizontal overflow. Production backend restarted after confirming there were no active runs. No bank writes were performed by that presentation check.
+- Repository review found no tracked private environment/database files or matching Groq/OpenAI secret-key patterns. This pattern check is a limited check, not a guarantee of universal secret detection. Private conversations and model accounting remain ignored.
+- Existing genuine Ollama discovery/replay evidence remains unchanged. Person-operated takeover/resume remains an explicit pending demonstration. Current provider changes were verified locally, not by rebuilding the Docker deployment.

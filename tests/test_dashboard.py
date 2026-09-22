@@ -371,3 +371,27 @@ def test_chat_keyboard_and_new_request_keep_execution_explicit(dashboard, monkey
     expect(editor).to_be_focused()
     expect(page.get_by_role('log',name='Conversation').locator('article')).to_have_count(0)
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]
+
+
+def test_conversation_reload_restores_details_without_write_approval(dashboard,monkeypatch):
+    import engine.catalog_agent as agent
+    async def match(*args):return {'matches':['example'],'model_used':False}
+    async def extract(*args):return {'customer_id':'C-205','street':'92 Persistent Lane','city':'Exampleton','postal':'23456'}
+    monkeypatch.setattr(agent,'match_capabilities',match)
+    monkeypatch.setattr(agent,'extract_inputs',extract)
+    page=dashboard;base=page.url.rstrip('/')
+    page.get_by_label('Message your assistant').fill('Change my address')
+    page.get_by_role('button',name='Send message',exact=True).click()
+    page.get_by_role('button',name='Use this workflow',exact=True).click()
+    expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_enabled()
+    page.get_by_label('Authorize changes for this synthetic run').check()
+    for _ in range(50):
+        chats=page.request.get(base+'/api/conversations').json()
+        if chats and page.request.get(base+'/api/conversations/'+chats[0]['id']).json()['values'].get('street')=='92 Persistent Lane':break
+        page.wait_for_timeout(100)
+    else:raise AssertionError('Conversation was not saved')
+    page.reload()
+    expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_enabled(timeout=10000)
+    expect(page.get_by_label('Workflow input street',exact=True)).to_have_value('92 Persistent Lane')
+    expect(page.get_by_label('Authorize changes for this synthetic run')).not_to_be_checked()
+    assert page.request.get(base+'/api/runs').json()==[]

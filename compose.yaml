@@ -24,6 +24,10 @@ services:
     environment:
       DEMO_ENTRY: http://cedar.test:8000
       OLLAMA_URL: http://host.docker.internal:11434
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+      LLM_DAILY_REQUEST_LIMIT: ${LLM_DAILY_REQUEST_LIMIT:-100}
       DASHBOARD_STORAGE: /project/work/dashboard
     volumes:
       - execution-data:/project/work/dashboard

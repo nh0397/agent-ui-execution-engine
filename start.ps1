@@ -31,6 +31,22 @@ try {
         Write-Host 'Created local configuration.'
     }
 
+    $configText = [System.IO.File]::ReadAllText($configPath)
+    $defaults = @{ LLM_PROVIDER='ollama'; GROQ_API_KEY=''; GROQ_MODEL='openai/gpt-oss-20b'; LLM_DAILY_REQUEST_LIMIT='100' }
+    foreach ($setting in $defaults.GetEnumerator()) {
+        if ($configText -notmatch ('(?m)^' + $setting.Key + '=')) {
+            [System.IO.File]::AppendAllText($configPath, "`n$($setting.Key)=$($setting.Value)`n")
+        }
+    }
+    if ($configText -notmatch '(?m)^DEMO_DB_PASSWORD=\S+') {
+        $bytes = New-Object byte[] 24
+        $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+        try { $rng.GetBytes($bytes) } finally { $rng.Dispose() }
+        $generated = [BitConverter]::ToString($bytes).Replace('-', '').ToLowerInvariant()
+        $updated = [System.IO.File]::ReadAllText($configPath) -replace '(?m)^DEMO_DB_PASSWORD=.*\r?\n?', ''
+        [System.IO.File]::WriteAllText($configPath, $updated + "`nDEMO_DB_PASSWORD=$generated`n")
+    }
+
     Write-Host 'Building and starting the dashboard, execution worker, banking app, and database...'
     & docker compose up --build -d --wait --wait-timeout 120
     if ($LASTEXITCODE -ne 0) {
@@ -44,7 +60,7 @@ try {
     if ($dashboard.StatusCode -ne 200) { throw 'The dashboard is unavailable.' }
     $execution = Invoke-RestMethod 'http://127.0.0.1:5173/api/health' -TimeoutSec 15
     if (-not $execution.bank) { throw 'The execution worker cannot reach the banking app.' }
-    if (-not $execution.model) { Write-Host 'Replay is ready. Discovery needs Ollama reachable from Docker at host.docker.internal:11434.' }
+    if (-not $execution.model) { Write-Host 'Replay is ready. Discovery needs a configured model provider. Check LLM_PROVIDER and Model status.' }
     Write-Host "`nDashboard ready: http://127.0.0.1:5173"
     Write-Host "`nApp ready: http://127.0.0.1:8000"
     Write-Host 'Synthetic customers: C-104 and C-205'

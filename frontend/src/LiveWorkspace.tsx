@@ -221,6 +221,8 @@ export default function LiveWorkspace() {
     bank_url?: string;
     model: boolean;
     models?: string[];
+    provider?: string;
+    configured_model?: string;
   } | null>(null);
   const [runs, setRuns] = useState<Run[]>([]);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
@@ -1064,7 +1066,7 @@ export default function LiveWorkspace() {
                           onChange={(e) => setGoal(e.target.value)}
                         />
                       </label>
-                      <label>
+                      {health?.provider === "groq" ? <p>Discovery model: Groq · {health.configured_model}. Configured in the backend environment.</p> : <label>
                         Local model
                         <select
                           value={model}
@@ -1073,7 +1075,7 @@ export default function LiveWorkspace() {
                           <option>mistral:latest</option>
                           <option>llama3.1:latest</option>
                         </select>
-                      </label>
+                      </label>}
                     </>
                   ) : (
                     <label>
@@ -1166,7 +1168,7 @@ export default function LiveWorkspace() {
                       !health?.bank ||
                       (mode === "replay" &&
                         !catalog.some((c) => c.id === capId)) ||
-                      (mode === "discovery" && !health?.models?.includes(model))
+                      (mode === "discovery" && (health?.provider === "groq" ? !health?.model : !health?.models?.includes(model)))
                     }
                   >
                     <Play size={16} />

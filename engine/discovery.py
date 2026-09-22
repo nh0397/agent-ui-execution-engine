@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import httpx
+from engine.provider import chat_sync, config as provider_config
 
 from engine.contracts import Capability, Decision
 from engine.runtime import Runtime
@@ -66,7 +67,7 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
     actions = []
     manual_recovery = False
     filled_by_document = {}
-    runtime.evidence.event("mode", mode="discovery", model=model, provider="ollama")
+    runtime.evidence.event("mode", mode="discovery", model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b") if provider_config()=="groq" else model, provider=provider_config())
     try:
         with httpx.Client(base_url=os.getenv("OLLAMA_URL", "http://127.0.0.1:11434"), timeout=180, trust_env=False) as client:
             for _ in range(30):
@@ -95,9 +96,7 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                         filled_by_document.clear()
                         continue
                     schema = {"type": "object", "properties": {"choice": {"type": "string", "enum": ["HUMAN", *names]}, "reason": {"type": "string"}}, "required": ["choice", "reason"], "additionalProperties": False}
-                    response = client.post("/api/chat", json={"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}})
-                    response.raise_for_status()
-                    body = response.json()
+                    body = chat_sync(client, {"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}})
                     choice = json.loads(body["message"]["content"])
                     selected = choice["choice"]
                     if selected != "HUMAN" and selected not in names:

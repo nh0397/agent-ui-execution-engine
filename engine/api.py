@@ -20,6 +20,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from engine.contracts import Capability, Profile, WorkflowSpec
 from engine.runtime import replay, validate_values
+from engine.provider import ModelError, status as model_status, config as provider_config
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = [
@@ -31,6 +32,8 @@ SCENARIOS = ("normal", "slow", "transient", "session-expired", "permission-denie
 
 
 def chat_error(exc):
+    if isinstance(exc, ModelError):
+        return HTTPException(exc.status, str(exc))
     # Never expose provider response bodies: they may echo request data.
     if isinstance(exc, httpx.TimeoutException):
         return HTTPException(504, "The local model took too long to reply. Your request is still here. Retry, or choose a saved workflow below.")
@@ -92,6 +95,7 @@ def create_app(root: Path | None = None):
     root = Path(root or ROOT)
     if (root / ".browsers").exists():
         os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", str(root / ".browsers"))
+    provider_config()
     storage = Path(os.getenv("DASHBOARD_STORAGE", str(root / "work/dashboard")))
     storage.mkdir(parents=True, exist_ok=True)
     runs_root = storage / "runs"
@@ -147,6 +151,14 @@ def create_app(root: Path | None = None):
         if request.method != "GET" and not secrets.compare_digest(request.headers.get("x-csrf-token", ""), value["csrf"]):
             raise HTTPException(403, "Invalid session token")
         return value
+
+    from engine.conversations import install as install_conversations
+    install_conversations(app, session, storage)
+
+    @app.get("/api/model/status")
+    def provider_status(request: Request):
+        session(request)
+        return model_status()
 
     def catalog():
         # A reset workspace can hide the bundled example without deleting evidence.
@@ -205,6 +217,11 @@ def create_app(root: Path | None = None):
                         checks["models"] = [m["name"] for m in reply.json().get("models", [])]
                 except httpx.HTTPError:
                     checks[name] = False
+        if provider_config() == "groq":
+            checks["model"] = bool(os.getenv("GROQ_API_KEY"))
+            checks["models"] = [os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")] if checks["model"] else []
+            checks["provider"] = "groq"
+            checks["configured_model"] = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
         return {"status": "ready", "bank_url": os.getenv("DEMO_PUBLIC_URL", entry if "127.0.0.1" in entry or "localhost" in entry else "http://127.0.0.1:8000"), **checks}
 
     @app.post("/api/session")
@@ -248,7 +265,7 @@ def create_app(root: Path | None = None):
         saved = {key: Capability.model_validate_json(path.read_text(encoding="utf-8")) for key, path in catalog().items()}
         try:
             result = await match_capabilities(body.message.strip(), saved, body.model)
-        except httpx.HTTPError as exc:
+        except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
             raise HTTPException(502, "The model could not return a valid catalog selection. Please try again.")
@@ -268,7 +285,7 @@ def create_app(root: Path | None = None):
         from engine.catalog_agent import extract_inputs
         try:
             values = await extract_inputs(body.message, Capability.model_validate_json(path.read_text(encoding="utf-8")), body.model)
-        except httpx.HTTPError as exc:
+        except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
             raise HTTPException(502, "I couldn't safely extract the inputs. Please describe the values again.")

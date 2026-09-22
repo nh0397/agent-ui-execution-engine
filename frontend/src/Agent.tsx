@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, type FormEvent } from "react";
+import { ModelStatus, useConversationHistory, type ChatSnapshot } from "./ConversationHistory";
 import { request, type Run, type CatalogItem } from "./api";
-type Message = { role: "you" | "agent"; text: string; matches?: string[] };
+type Message = { role: "you" | "agent"; text: string; matches?: string[] | null };
 export function Agent({
   catalog,
   csrf,
@@ -34,9 +35,16 @@ export function Agent({
   const [showWorkflows, setShowWorkflows] = useState(false);
   const [manual, setManual] = useState(false);
   const [initialRequest, setInitialRequest] = useState("");
-  const [selected, setSelected] = useState<CatalogItem | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = catalog.find(item => item.id === selectedId) || null;
+  const setSelected = (item:CatalogItem|null) => setSelectedId(item?.id || null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [approved, setApproved] = useState(false);
+  const history = useConversationHistory({messages,selected_id:selectedId,values,initial_request:initialRequest,run_id:chatRun}, (saved:ChatSnapshot) => {
+    setMessages(saved.messages);setSelectedId(saved.selected_id);setValues(saved.values);
+    setInitialRequest(saved.initial_request);setChatRun(saved.run_id);setApproved(false);
+    setManual(!!saved.selected_id);setNoMatch(false);setRetryMessage(null);setText("");setShowWorkflows(false);
+  }, csrf);
   const fields = Object.keys(selected?.capability.inputs || {});
   const awaitingChoice = !selected && !busy && !!messages.at(-1)?.matches?.length;
   const missing = fields.find((field) => !values[field]);
@@ -47,21 +55,11 @@ export function Agent({
     if (!execution || execution.status === "running" || reported.current.has(execution.id)) return;
     reported.current.add(execution.id);
     const outcome = execution.status === "success" ? "Completed" : execution.status === "business_outcome" ? "The bank returned an expected outcome" : "I couldn’t complete the task";
-    setMessages((old) => [...old, { role: "agent", text: `${outcome}: ${execution.code}. You can inspect the result and recorded steps in the browser panel.` }]);
+    const text = `${outcome}: ${execution.code}. You can inspect the result and recorded steps in the browser panel.`;
+    setMessages((old) => old.some(message => message.role === "agent" && message.text === text) ? old : [...old, {role:"agent",text}]);
   }, [execution?.id, execution?.status, execution?.code]);
   function newRequest() {
-    setMessages([]);
-    setNoMatch(false);
-    setChatRun(null);
-    setText("");
-    setSelected(null);
-    setValues({});
-    setApproved(false);
-    setRetryMessage(null);
-    setShowWorkflows(false);
-    setManual(false);
-    setInitialRequest("");
-    composer.current?.focus();
+    void history.load("").then(() => composer.current?.focus());
   }
   async function readValues(
     item: CatalogItem,
@@ -94,7 +92,7 @@ export function Agent({
     } catch (error) {
       setRetryMessage(message);
       setManual(true);
-      say("I couldn’t read the details automatically. You can enter them below, or retry. Nothing has been run.");
+      say((error as Error).message + " You can enter the details manually below; nothing has been run.");
     } finally {
       setBusy(false);
     }
@@ -114,7 +112,7 @@ export function Agent({
   async function submit(event: FormEvent) {
     event.preventDefault();
     const input = text.trim();
-    if (!input || busy) return;
+    if (!input || busy || !history.ready) return;
     setText("");
     setMessages((old) => [...old, { role: "you", text: input }]);
     if (input.toLowerCase() === "cancel") {
@@ -194,11 +192,17 @@ export function Agent({
   }
   return (
     <section className={`panel agent-panel conversational ${messages.length ? "has-messages" : "is-empty"}`}>
+      <div className="conversation-storage">
+        <select aria-label="Saved conversations" value={history.items.some(item=>item.id===history.id) ? history.id : ""} disabled={busy || !history.ready} onChange={e=>void history.load(e.target.value)}>
+          <option value="">New conversation</option>{history.items.map(item=><option key={item.id} value={item.id}>{item.title}</option>)}
+        </select><ModelStatus csrf={csrf}/>
+      </div>
+      {history.error && <p role="alert">{history.error}</p>}
       <div ref={conversation} className="chat-thread">
       <div className="conversation-heading">
         <div><p className="eyebrow">WORKFLOW ASSISTANT</p>
           <h2>{messages.length ? "Let’s get this done." : "What would you like to do?"}</h2></div>
-        {messages.length > 0 && <button className="text-button" disabled={busy} onClick={newRequest} title="Clear this draft conversation. Does not stop an active run.">New request</button>}
+        {messages.length > 0 && <button className="text-button" disabled={busy || !history.ready} onClick={newRequest} title="Clear this draft conversation. Does not stop an active run.">New request</button>}
       </div>
       {!messages.length && <p className="chat-intro">Tell me the activity and any customer, account, or card details you know. I’ll help you review everything before it runs.</p>}
       <div className="agent-conversation" role="log" aria-label="Conversation" aria-live="polite">
@@ -312,6 +316,7 @@ export function Agent({
         <textarea
           id="agent-request"
           ref={composer}
+          disabled={!history.ready}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
@@ -331,7 +336,7 @@ export function Agent({
         />
         <div className="composer-footer"><span>Enter to send · Shift + Enter for a new line</span><button
           className="button primary"
-          disabled={busy || !csrf || !text.trim()}
+          disabled={busy || !csrf || !history.ready || !text.trim()}
         >
           {busy ? "Working…" : "Send message"}
         </button></div>
@@ -348,7 +353,7 @@ export function Agent({
         Record a workflow
       </button>
       </div>
-      <p className="chat-footnote">Nothing runs until you confirm. Conversation clears when you refresh.</p>
+      <p className="chat-footnote">Nothing runs until you confirm. Conversations are saved locally for this demo profile.</p>
     </section>
   );
 }

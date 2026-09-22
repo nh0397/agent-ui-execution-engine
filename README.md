@@ -4,11 +4,28 @@ Turn an agent's intent into a reusable, verifiable workflow through a real user 
 
 For a hands-on first run, follow [Create and test your first workflow](WALKTHROUGH.md), including storage locations, recording, replay, and failure checks.
 
+## Model configuration and saved conversations
+
+Copy `.env.example` to `.env` if configuration does not already exist. Keep existing database credentials. To use Groq, fill these entries in the private `.env`:
+
+```dotenv
+LLM_PROVIDER=groq
+GROQ_API_KEY=
+GROQ_MODEL=openai/gpt-oss-20b
+LLM_DAILY_REQUEST_LIMIT=100
+```
+
+Put your key after `GROQ_API_KEY=`. To return to the local model, set `LLM_PROVIDER=ollama`. Restart the Python backend after changes; for Docker run `docker compose up --build -d worker`. Process environment variables override `.env`. Groq uses `GROQ_MODEL` for both chat and discovery; the discovery CLI's `--model` selects only the Ollama model. Keys stay on the backend, outside Git and the browser bundle. A configured key has not necessarily been verified by the provider.
+
+**Model status** in chat shows today's application request count, last observed response, provider-reported remaining limits when available, and retry timing after a rate limit. The daily application guard resets at midnight UTC and counts attempts, including failed calls. It is separate from account-wide provider quotas. Missing quota headers mean unknown, not unlimited. Rate limits, invalid credentials and timeouts produce actionable messages; there is no automatic retry, provider switch, or billing upgrade. Explicit saved-workflow selection and deterministic replay remain available without model calls.
+
+**Saved conversations** restores messages, reviewed fields and run references after a refresh or backend restart. **New request** creates a separate conversation. Write approval is deliberately cleared when restoring a chat. Storage is `DASHBOARD_STORAGE/conversations.sqlite3`; model accounting is `model-usage.sqlite3` beside it. These ignored databases contain private local state and must not be submitted as evidence. Conversation writes check revisions to prevent silent overwrites from another window. Demo profiles partition history for demonstration; they are not secure production authentication. Known Groq keys are scrubbed, but chat storage is not a universal personal-data redactor.
+
 ## Banking services and workflow agent
 
 Cedar Bank supports mailing-address changes, account-balance inquiries, and debit-card freeze/unfreeze with review and confirmation. It seeds 1,000 additional synthetic members, their accounts and cards, and 4,000 transactions without overwriting existing edits. Directories are paginated.
 
-Record a demonstration in **Learn a new workflow → Record workflow**, bind field values to parameters, verify outputs, and publish the reviewed capability. In the main workspace conversation, describe the task: local Ollama matches it against published capability metadata. Choose the proposed workflow, supply details together in ordinary language, review the values and authorization, and explicitly start replay. The conversation stays visible alongside the browser. Missing matches offer recording. Catalog matching is probabilistic and includes a guard for known opposite effects; it never authorizes execution. Task matching and extraction of explicitly supplied inputs use the local model. Extracted values must appear in your message and pass the selected capability schema; review them before running. Type `cancel` to clear a draft request. The existing LLM UI discovery form still uses the address-update contract.
+Record a demonstration in **Learn a new workflow → Record workflow**, bind field values to parameters, verify outputs, and publish the reviewed capability. In the main workspace conversation, describe the task: the configured model matches it against published capability metadata. Choose the proposed workflow, supply details together in ordinary language, review the values and authorization, and explicitly start replay. The conversation stays visible alongside the browser. Missing matches offer recording. Catalog matching is probabilistic and includes a guard for known opposite effects; it never authorizes execution. Task matching and extraction of explicitly supplied inputs use the configured model. Extracted values must appear in your message and pass the selected capability schema; review them before running. Type `cancel` to clear a draft request. The existing LLM UI discovery form still uses the address-update contract.
 
 Bank records live in SQLite or PostgreSQL. Workflow definitions remain versioned JSON files under `DASHBOARD_STORAGE/capabilities`; drafts, run logs and masked recording screenshots are separate files. A database-backed workflow catalog is not implemented.
 
@@ -141,7 +158,7 @@ Cross-tenant reuse will be addressed through application/version metadata, exter
 | FastAPI, Jinja2, PostgreSQL | Demonstration application and synthetic records, run with Docker Compose |
 | SQLite | Isolated tests and an optional standalone local demo |
 
-Runtime discovery connects to a local Ollama server at `http://127.0.0.1:11434`; the model is selected through the CLI. The model chooses from typed actions derived from the currently visible controls. Form patterns and declared output checks eliminate invalid bindings locally, without sending sensitive values to the model. These choices describe available UI operations, not a prewritten workflow. Development-assistant activity and scripted test fixtures do not count as runtime discovery evidence.
+Runtime discovery uses the provider selected by `LLM_PROVIDER`: Ollama at `http://127.0.0.1:11434` (model selected through the CLI), or Groq (model selected by `GROQ_MODEL`). The model chooses from typed actions derived from the currently visible controls. Form patterns and declared output checks eliminate invalid bindings locally, without sending sensitive values to the model. These choices describe available UI operations, not a prewritten workflow. Development-assistant activity and scripted test fixtures do not count as runtime discovery evidence.
 
 ## Implementation plan
 
@@ -167,7 +184,7 @@ Three demo sessions are available: **Mira Chen** and **Sam Rivera** (operators),
 
 ### One-command local setup
 
-Requires Python 3.11+, Node.js 24, and an existing Ollama installation with `mistral:latest` or `llama3.1:latest` for discovery. Replay does not need Ollama. From the repository root:
+Requires Python 3.11+, Node.js 24, and either a Groq API key or an existing Ollama installation with `mistral:latest` or `llama3.1:latest` for discovery. Replay does not need a model. From the repository root:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\start-local.ps1 -OpenBrowser
@@ -183,7 +200,7 @@ This installs dependencies, builds the dashboard, prepares Chromium, and starts 
 4. For human handoff, leave save authorization unchecked. At **Your review is needed**, click **Save address** inside the live browser image, then **Resume automation**. You remain in the same browser context. Keyboard, text entry, and scrolling controls are alongside the image.
 5. Exercise transient search failure, interrupted save response, permission denial, or expired session in **Runtime scenario**. C-999 produces a business outcome. For session expiry, restore the session through the image and return to the displayed checkpoint before resuming.
 
-`work/dashboard/` stores jobs, discovered capabilities, and sanitized evidence. Inputs and raw browser images are not persisted by the API. Images remain in memory. A worker restart marks unfinished runs failed; it cannot restore a lost browser session. Only one run executes at a time. Cancellation takes effect at the next safe checkpoint, after any pending model request returns.
+`work/dashboard/` stores jobs, discovered capabilities, and sanitized evidence. Execution inputs and raw browser images are not persisted in run evidence. Saved conversations separately retain messages and reviewed input values in private local SQLite storage; use synthetic data. Live images remain in memory. A worker restart marks unfinished runs failed; it cannot restore a lost browser session. Only one run executes at a time. Cancellation takes effect at the next safe checkpoint, after any pending model request returns.
 
 ### Execution API
 
