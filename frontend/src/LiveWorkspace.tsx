@@ -565,7 +565,7 @@ export default function LiveWorkspace() {
               <p className="eyebrow">FROM INTENT TO EXECUTION</p>
               <h1>
                 {page === "Overview"
-                  ? "Your banking workflow assistant."
+                  ? "Your banking workspace."
                   : page === "New workflow"
                     ? "Give your workflow a goal."
                     : page === "Capabilities"
@@ -577,7 +577,9 @@ export default function LiveWorkspace() {
                           : "Meet Cedar Bank."}
               </h1>
               <p className="subtitle">
-                {page === "New workflow"
+                {page === "Overview"
+                  ? "Tell the assistant what you need done. Review the details, then watch it work in the bank."
+                  : page === "New workflow"
                   ? "Start the real Python engine against the banking application."
                   : page === "Live session"
                     ? "Watch the same browser the engine operates. Intervene when control passes to you."
@@ -586,7 +588,7 @@ export default function LiveWorkspace() {
             </div>
             {page !== "New workflow" && (
               <button
-                className="button primary"
+                className="button secondary"
                 onClick={() => navigate("New workflow")}
                 disabled={viewer || !online}
               >
@@ -626,58 +628,24 @@ export default function LiveWorkspace() {
               </div>
             </section>
           )}
-          <div className="workspace-context">
-            <span>
-              Cedar Bank is the synthetic application this assistant operates.
-            </span>
-            <a
-              href={health?.bank_url || "http://127.0.0.1:8003"}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open demo bank ↗
-            </a>
-            <button
-              className="text-button"
-              onClick={() => navigate("Capabilities")}
-            >
-              Saved workflows ({catalog.length})
-            </button>
-            {active && (
-              <button
-                className="text-button"
-                onClick={() => navigate("Live session")}
-              >
-                Watch active run
-              </button>
-            )}
-            {page !== "Overview" && (
-              <button
-                className="text-button"
-                onClick={() => navigate("Overview")}
-              >
-                Back to conversation
-              </button>
-            )}
-          </div>
           <div className="task-desktop full-browser">
-            <button
+            {page !== "Overview" && <button
               className="chat-launcher"
               aria-label={chatOpen ? "Minimize assistant" : "Open assistant"}
               aria-expanded={chatOpen}
               aria-controls="floating-assistant"
               onClick={() => setChatOpen(!chatOpen)}
             >
-              <Sparkles size={20} /> {chatOpen ? "Minimize" : "Ask assistant"}
-            </button>
+              <Sparkles size={20} /> {chatOpen ? "Minimize" : "Assistant"}
+            </button>}
             <div
               id="floating-assistant"
-              className="floating-assistant"
-              hidden={!chatOpen}
-              role="dialog"
+              className={page === "Overview" ? "assistant-home" : "floating-assistant"}
+              hidden={page !== "Overview" && !chatOpen}
+              role={page === "Overview" ? "region" : "dialog"}
               aria-label="Workflow assistant"
             >
-              <div className="chat-popup-header">
+              {page !== "Overview" && <div className="chat-popup-header">
                 <strong>Workflow assistant</strong>
                 <button
                   className="text-button"
@@ -686,14 +654,13 @@ export default function LiveWorkspace() {
                 >
                   <X size={18} />
                 </button>
-              </div>
+              </div>}
               <Agent
                 key={person.id}
                 catalog={catalog}
                 csrf={csrf}
                 viewer={viewer}
                 onRun={(id) => {
-                  setChatOpen(false);
                   setChatOpen(false);
                   setSelected(id);
                   void refresh();
@@ -708,30 +675,10 @@ export default function LiveWorkspace() {
             </div>
             <div className="browser-workspace">
               {page === "Overview" && (
-                <section
-                  className="panel browser-panel ready-browser"
-                  aria-label="Browser workspace"
-                >
-                  <div className="browser-chrome">
-                    <span />
-                    <span />
-                    <span />
-                    <div>
-                      <Monitor size={13} /> about:blank
-                    </div>
-                  </div>
-                  <div className="blank-browser">
-                    <Monitor size={40} />
-                    <h2>Your browser will open here</h2>
-                    <p>
-                      Describe a task in the chat, review the details, then run
-                      it.
-                    </p>
-                    <small>
-                      When execution starts, this view shows the actual Chromium
-                      session.
-                    </small>
-                  </div>
+                <section className="assistant-guide" aria-label="How the assistant works">
+                  <div><span>01</span><h3>Describe the activity</h3><p>Say what to do and include the customer, account, or card ID you know.</p></div>
+                  <div><span>02</span><h3>Check the details</h3><p>Choose a saved workflow, fill any missing details, and confirm before it runs.</p></div>
+                  <div><span>03</span><h3>Watch and verify</h3><p>The live browser opens during execution. Review the result and recorded steps afterward.</p></div>
                 </section>
               )}
               {page === "Live session" && (
@@ -1107,6 +1054,40 @@ export default function LiveWorkspace() {
                 </>
               )}
             </div>
+          </div>
+          <div className="workspace-context">
+            <span>
+              Cedar Bank is the synthetic application this assistant operates.
+            </span>
+            <a
+              href={health?.bank_url || "http://127.0.0.1:8003"}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open demo bank ↗
+            </a>
+            <button
+              className="text-button"
+              onClick={() => navigate("Capabilities")}
+            >
+              Saved workflows ({catalog.length})
+            </button>
+            {active && (
+              <button
+                className="text-button"
+                onClick={() => navigate("Live session")}
+              >
+                Watch active run
+              </button>
+            )}
+            {page !== "Overview" && (
+              <button
+                className="text-button"
+                onClick={() => navigate("Overview")}
+              >
+                Back to conversation
+              </button>
+            )}
           </div>
           {page === "Overview" && (
             <details className="workspace-summary">

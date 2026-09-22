@@ -160,17 +160,17 @@ export function Agent({
   }
   return (
     <section className="panel agent-panel">
-      <p className="eyebrow">YOUR WORKFLOW ASSISTANT</p>
-      <h2>What can I help you do?</h2>
+      <p className="eyebrow">START WITH AN ACTIVITY</p>
+      <h2>What would you like to get done?</h2>
       <p>
-        Ask for a banking task. I'll find a saved workflow, ask for the inputs,
-        and let you review before running it.
+        Describe the activity you want me to perform, including any IDs or details you know.
+        I’ll look for a saved workflow and help you review the inputs. Nothing runs until you confirm.
       </p>
       <div className="agent-examples" hidden={messages.length > 0}>
         {[
-          "Look up an account balance",
-          "Update a mailing address",
-          "Freeze a debit card",
+          "Check the balance of account AC-10002",
+          "Update the mailing address for customer C-1001",
+          "Freeze debit card DC-205",
         ].map((example) => (
           <button
             className="button secondary"
@@ -280,7 +280,7 @@ export function Agent({
           placeholder={
             missing
               ? `Enter ${missing}`
-              : "Describe a task, or type cancel to reset"
+              : "For example: Check the balance of account AC-10002"
           }
         />
         <button

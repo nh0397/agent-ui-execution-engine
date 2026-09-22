@@ -652,3 +652,20 @@
 .interactive-bank-view {
   overflow: hidden;
 }
+
+/* The conversation is the landing page; it remains mounted during execution. */
+.assistant-home { max-width: 940px; margin: 8px auto 0; }
+.assistant-home .agent-panel { padding: clamp(24px, 4vw, 48px); border-radius: 20px; box-shadow: 0 12px 36px #173c2c08; }
+.assistant-home .agent-panel h2 { font-size: clamp(26px, 3vw, 36px); letter-spacing: -1px; margin: 12px 0; }
+.assistant-home .agent-panel > p { line-height: 1.65; max-width: 680px; }
+.assistant-home .agent-examples { gap: 8px; margin: 24px 0; }
+.assistant-home .agent-examples .button { white-space: normal; text-align: left; }
+.assistant-home .agent-conversation { max-height: 45vh; overflow: auto; overscroll-behavior: contain; }
+.assistant-home .agent-composer textarea { min-height: 110px; box-sizing: border-box; background: #fbfcfa; }
+.assistant-home .agent-composer .button { margin-bottom: 16px; }
+.assistant-guide { max-width: 940px; margin: 28px auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; }
+.assistant-guide span { color: #658075; font-size: 12px; font-weight: 700; }
+.assistant-guide h3 { margin: 8px 0; font-size: 15px; }
+.assistant-guide p { color: #64716c; font-size: 13px; line-height: 1.6; }
+.workspace-context { margin-top: 24px; }
+@media (max-width: 700px) { .assistant-guide { grid-template-columns: 1fr; gap: 16px; } }

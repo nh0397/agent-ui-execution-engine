@@ -48,3 +48,8 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 - Nineteen catalog/API/dashboard tests passed, including failure classification, private-error redaction, and manual recovery without execution. Type checking and the production frontend build passed after releasing an idle model from memory.
 - Genuine local Mistral calls through the running API and Playwright-driven chat matched the saved Customer address change workflow for the user's synthetic C-1001 request. The UI extraction returned customer_id=C-1001 and street_address=Central Avenue. No banking workflow was executed. This verifies catalog chat, not a new LLM discovery run.
 - The saved workflow has only customer ID and street address inputs. Its unchanged city/postal fields are not represented as newly parameterized values. Chat now exposes the accepted fields and allows corrections before run confirmation.
+
+## Assistant-first landing page
+
+- Overview opens directly into the conversation, with activity examples and input guidance. The idle browser placeholder is removed. The same assistant stays mounted and becomes a popup during live execution. Secondary workflow/history/service tools remain accessible.
+- TypeScript and production build passed; all nine dashboard tests passed. Visually inspected 1440px desktop and 390px mobile renders, with no horizontal overflow on mobile.

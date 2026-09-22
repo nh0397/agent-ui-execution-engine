@@ -33,7 +33,7 @@ def dashboard(tmp_path,monkeypatch):
             errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
             page.goto(api_url,wait_until='networkidle')
             expect(page.get_by_text('Live API connected',exact=True)).to_be_visible(timeout=15000)
-            page.get_by_role('button',name='Open assistant',exact=True).click()
+            expect(page.get_by_label('Message your assistant')).to_be_visible()
             yield page
             assert not errors
             browser.close()
