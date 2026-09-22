@@ -93,3 +93,8 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 - A person-operated takeover was prepared on the loopback operator page. Until actual save/resume events and verified success exist, it remains pending. Scripted handoff tests are not relabeled as human evidence.
 
 Final live checks: CLI replay against Docker/PostgreSQL succeeded (15 actions). Dashboard API replay succeeded for C-306 with zero additional model requests. The prepared operator session expired with no person commands; the genuine person-operated acceptance check remains pending.
+
+## Bordered chat and action visibility
+- TypeScript checking and the production frontend build passed. All 11 dashboard regression tests passed.
+- Live Playwright presentation checks at 1440px desktop and 390px mobile verified the bordered chat, visible workflow buttons, no horizontal overflow, and no page errors. The Discover a workflow button opened the existing goal configuration. These checks made no model calls or banking writes.
+

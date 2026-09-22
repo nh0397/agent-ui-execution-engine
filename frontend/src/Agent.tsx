@@ -202,7 +202,7 @@ export function Agent({
       <div className="conversation-heading">
         <div><p className="eyebrow">WORKFLOW ASSISTANT</p>
           <h2>{messages.length ? "Let’s get this done." : "What would you like to do?"}</h2></div>
-        {messages.length > 0 && <button className="text-button" disabled={busy || !history.ready} onClick={newRequest} title="Clear this draft conversation. Does not stop an active run.">New request</button>}
+        {messages.length > 0 && <button className="button secondary" disabled={busy || !history.ready} onClick={newRequest} title="Start a separate saved conversation. Does not stop an active run.">New request</button>}
       </div>
       {!messages.length && <p className="chat-intro">Tell me the activity and any customer, account, or card details you know. I’ll help you review everything before it runs.</p>}
       <div className="agent-conversation" role="log" aria-label="Conversation" aria-live="polite">
@@ -243,7 +243,7 @@ export function Agent({
       </div>
       {noMatch && !selected && <div className="chat-next-step"><button className="button primary" disabled={busy || viewer} onClick={() => discover(initialRequest)}>Learn with the agent</button><button className="button secondary" disabled={busy || viewer} onClick={record}>Show the steps</button><p>You’ll review the setup before discovery or recording begins.</p></div>}
       {execution?.status === "running" && <p role="status" className="chat-execution">{execution.live?.owner === "human" ? "I need your help in the browser. Review the message there to continue." : "Working in the browser. You can watch each step alongside this conversation."}</p>}
-      {busy && <p role="status">{selected ? "Reading the details in your message…" : "Checking your saved workflows…"} The local model may take a moment.</p>}
+      {busy && <p role="status">{selected ? "Reading the details in your message…" : "Checking your saved workflows…"} The model may take a moment.</p>}
       {retryMessage !== null && !busy && (
         <button className="button secondary" onClick={() => selected ? void readValues(selected, retryMessage, values) : void findWorkflow(retryMessage)}>Retry last message</button>
       )}
@@ -341,17 +341,19 @@ export function Agent({
           {busy ? "Working…" : "Send message"}
         </button></div>
       </form>
-      <div className="chat-secondary-actions">
+      <div className="chat-alternatives"><p className="chat-action-label">Other ways to start <span>Choose a saved workflow, let the agent learn, or demonstrate the steps.</span></p><div className="chat-secondary-actions" role="group" aria-label="Workflow actions">
       {!selected && catalog.length > 0 && !busy && (
-        <button className="text-button" onClick={() => setShowWorkflows(!showWorkflows)}>Choose a saved workflow</button>
+        <button className="button secondary" aria-expanded={showWorkflows} onClick={() => setShowWorkflows(!showWorkflows)}>Choose a saved workflow</button>
       )}
+      <button className="button secondary" disabled={viewer || busy} onClick={() => discover(text.trim() || initialRequest)}>Discover a workflow</button>
       <button
-        className="text-button"
+        className="button secondary"
         disabled={viewer || busy}
         onClick={record}
       >
         Record a workflow
       </button>
+      </div>
       </div>
       <p className="chat-footnote">Nothing runs until you confirm. Conversations are saved locally for this demo profile.</p>
     </section>
