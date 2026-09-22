@@ -96,3 +96,12 @@ def test_setup_preserves_key_and_fills_blank_database_password(tmp_path, monkeyp
     assert 'GROQ_API_KEY=existing-private-key' in first
     assert 'LLM_PROVIDER=groq' in first
     assert len(next(line.split('=',1)[1] for line in first.splitlines() if line.startswith('DEMO_DB_PASSWORD=')))==48
+
+def test_application_pacing_blocks_before_provider_call(isolated,monkeypatch):
+    monkeypatch.setenv('LLM_DAILY_REQUEST_LIMIT','100')
+    monkeypatch.setenv('LLM_REQUESTS_PER_MINUTE','2')
+    provider.reserve('test')
+    provider.reserve('test')
+    with pytest.raises(provider.ModelError) as error:provider.reserve('test')
+    assert error.value.code=='app_rate'
+    assert provider.status()['requests_today']==2

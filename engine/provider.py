@@ -7,7 +7,7 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
-ENV_KEYS = {"LLM_PROVIDER", "GROQ_API_KEY", "GROQ_MODEL", "OLLAMA_URL", "LLM_DAILY_REQUEST_LIMIT"}
+ENV_KEYS = {"LLM_PROVIDER", "GROQ_API_KEY", "GROQ_MODEL", "OLLAMA_URL", "LLM_DAILY_REQUEST_LIMIT", "LLM_REQUESTS_PER_MINUTE"}
 
 def config():
     path = ROOT / ".env"
@@ -38,10 +38,13 @@ def status():
     provider = config()
     with connect() as db:
         count = db.execute("SELECT count(*) FROM calls WHERE provider=? AND at>=?", (provider, int(time.time() // 86400)*86400)).fetchone()[0]
+        tokens = db.execute("SELECT COALESCE(SUM(input_tokens),0), COALESCE(SUM(output_tokens),0) FROM calls WHERE provider=? AND at>=?", (provider, int(time.time() // 86400)*86400)).fetchone()
         row = db.execute("SELECT data FROM health WHERE provider=?", (provider,)).fetchone()
     return {"provider":provider, "model":os.getenv("GROQ_MODEL", "openai/gpt-oss-20b") if provider=="groq" else "local selection",
             "configured":provider=="ollama" or bool(os.getenv("GROQ_API_KEY")), "requests_today":count,
             "daily_request_limit":int(os.getenv("LLM_DAILY_REQUEST_LIMIT", "100")),
+            "requests_per_minute":int(os.getenv("LLM_REQUESTS_PER_MINUTE", "10")),
+            "input_tokens_today":tokens[0], "output_tokens_today":tokens[1],
             "observation":json.loads(row[0]) if row else None}
 
 def reserve(model):
@@ -57,6 +60,9 @@ def reserve(model):
         n=db.execute("SELECT count(*) FROM calls WHERE provider=? AND at>=?",(provider,int(time.time()//86400)*86400)).fetchone()[0]
         if n>=int(os.getenv("LLM_DAILY_REQUEST_LIMIT","100")):
             raise ModelError("app_budget", "This application's daily model request limit has been reached. It resets at 00:00 UTC. Saved workflows can still replay without a model.",429)
+        recent=db.execute("SELECT count(*),min(at) FROM calls WHERE provider=? AND at>?",(provider,time.time()-60)).fetchone()
+        if recent[0]>=int(os.getenv("LLM_REQUESTS_PER_MINUTE","10")):
+            raise ModelError("app_rate", f"Application pacing limit reached. Retry in {max(1,int(recent[1]+60-time.time())+1)} seconds. No provider call was made.",429)
         cursor=db.execute("INSERT INTO calls VALUES(?,?,?,'pending',NULL,NULL)",(time.time(),provider,model))
         return provider,cursor.lastrowid
 

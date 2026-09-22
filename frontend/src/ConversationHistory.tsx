@@ -47,7 +47,7 @@ export function useConversationHistory(snapshot:ChatSnapshot, restore:(s:ChatSna
   },[serialized,ready,id,csrf]);
   return {ready,error,id,items,load};
 }
-type UsageStatus = { provider:string; model:string; configured:boolean; requests_today:number; daily_request_limit:number; observation:null|{state:string; retry_at?:number; limits?:Record<string,string>} };
+type UsageStatus = { provider:string; model:string; configured:boolean; requests_today:number; daily_request_limit:number; requests_per_minute:number; input_tokens_today:number; output_tokens_today:number; observation:null|{state:string; retry_at?:number; limits?:Record<string,string>} };
 export function ModelStatus({csrf}:{csrf:string}) {
   const [value,setValue]=useState<UsageStatus|null>(null);
   const [error,setError]=useState(false);
@@ -56,10 +56,11 @@ export function ModelStatus({csrf}:{csrf:string}) {
     const poll=()=>request<UsageStatus>("/model/status").then(data=>{if(!disposed){setValue(data);setError(false);}}).catch(()=>{if(!disposed)setError(true);});
     void poll();const timer=setInterval(poll,10000);return()=>{disposed=true;clearInterval(timer);};
   },[csrf]);
-  return <details className="model-status"><summary>Model status {value ? `· ${value.provider}` : ""}</summary>
+  return <details className="model-status"><summary>Model status {value ? `· ${value.provider} · ${value.requests_today}/${value.daily_request_limit} calls${value.requests_today >= value.daily_request_limit * .8 ? " · Limit approaching" : ""}` : ""}</summary>
     {error ? <p>Usage status unavailable.</p> : value ? <>
       <p>{value.model} · {value.configured ? "Configured" : "API key required"}</p>
       <p>App requests today: {value.requests_today} / {value.daily_request_limit}. Resets at 00:00 UTC.</p>
+      <p>Maximum {value.requests_per_minute} calls per minute. Reported tokens today: {value.input_tokens_today} input / {value.output_tokens_today} output.</p>
       <p>Last response: {value.observation?.state || "No requests yet"}.</p>
       {value.observation?.retry_at && <p>Retry after {new Date(value.observation.retry_at*1000).toLocaleTimeString()}.</p>}
       {value.observation?.limits ? <p>Provider-reported requests remaining: {value.observation.limits["x-ratelimit-remaining-requests"] ?? "unknown"}. Tokens remaining: {value.observation.limits["x-ratelimit-remaining-tokens"] ?? "unknown"}. These are the last observed limits, shared with other uses of your account.</p> : <p>Provider remaining quota is unknown. The app counter is not your account’s billing total.</p>}

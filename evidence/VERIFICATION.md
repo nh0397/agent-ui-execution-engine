@@ -76,3 +76,8 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 - The live dashboard on port 5176 rendered the new history/status controls without JavaScript errors; a 390px mobile viewport had no horizontal overflow. Production backend restarted after confirming there were no active runs. No bank writes were performed by that presentation check.
 - Repository review found no tracked private environment/database files or matching Groq/OpenAI secret-key patterns. This pattern check is a limited check, not a guarantee of universal secret detection. Private conversations and model accounting remain ignored.
 - Existing genuine Ollama discovery/replay evidence remains unchanged. Person-operated takeover/resume remains an explicit pending demonstration. Current provider changes were verified locally, not by rebuilding the Docker deployment.
+
+## Groq connection and pacing verification
+
+- One genuine Groq JSON request succeeded using openai/gpt-oss-20b: 147 reported input tokens and 69 output tokens. This verifies connectivity/transport, not browser discovery. No bank action was performed.
+- Seven provider/history tests passed, including a new rolling-minute guard test. TypeScript and production frontend build passed. App guards are 100 attempts per UTC day and 10 per rolling minute; monitoring reads local accounting without making model calls. Provider quotas remain shared and cannot be guaranteed by this application.
