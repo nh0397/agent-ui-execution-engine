@@ -1,0 +1,9 @@
+{
+  "job_id": "1339cba4-81b6-4b21-9a51-58a7102afab9",
+  "run_id": "f4f9dde4-e056-4f27-9cb4-b20594691c08",
+  "status": "success",
+  "code": "completed",
+  "additional_model_calls": 0,
+  "capability": "groq-address-v1",
+  "customer_id": "C-306"
+}

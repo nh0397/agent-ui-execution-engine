@@ -104,8 +104,8 @@ def create_app(root: Path | None = None):
     artifacts.mkdir(exist_ok=True)
     drafts = storage / "drafts"
     drafts.mkdir(exist_ok=True)
-    spec = WorkflowSpec.model_validate_json((root / "config/address-workflow.json").read_text())
-    base_profile = Profile.model_validate_json((root / "config/customer-service.json").read_text())
+    spec = WorkflowSpec.model_validate_json((root / "config/address-workflow.json").read_text(encoding="utf-8"))
+    base_profile = Profile.model_validate_json((root / "config/customer-service.json").read_text(encoding="utf-8"))
     entry = os.getenv("DEMO_ENTRY", "http://127.0.0.1:8000").rstrip("/")
     profile = base_profile.model_copy(update={"origins": [entry]})
     origins = set(os.getenv("DASHBOARD_ORIGINS", "http://127.0.0.1:5174,http://127.0.0.1:5173,http://localhost:5173,http://localhost:5174,http://127.0.0.1:8001").split(","))
@@ -118,7 +118,7 @@ def create_app(root: Path | None = None):
     active = threading.Lock()
     video_lock = threading.Lock()
     for path in storage.glob("job-*.json"):
-        job = json.loads(path.read_text())
+        job = json.loads(path.read_text(encoding="utf-8"))
         if job["status"] == "running":
             job.update(status="failure", code="Worker restarted; session cannot be resumed")
         jobs[job["id"]] = job
@@ -191,11 +191,11 @@ def create_app(root: Path | None = None):
         recording_files = list((runs_root / job["id"]).glob("*/recording.json"))
         if recording_files:
             try:
-                value["recording"] = {**value["recording"], "steps": json.loads(recording_files[0].read_text())}
+                value["recording"] = {**value["recording"], "steps": json.loads(recording_files[0].read_text(encoding="utf-8"))}
             except json.JSONDecodeError:
                 pass
         draft = drafts / f"{job['id']}.json"
-        value["draft"] = json.loads(draft.read_text()) if job["status"] == "success" and draft.exists() else None
+        value["draft"] = json.loads(draft.read_text(encoding="utf-8")) if job["status"] == "success" and draft.exists() else None
         value["has_video"] = any((runs_root / job["id"]).glob("*/steps.webm"))
         result_paths = list((runs_root / job["id"]).glob("*/result.json"))
         if result_paths:
@@ -335,7 +335,7 @@ def create_app(root: Path | None = None):
         cap_path = catalog().get(invocation.capability_id)
         if invocation.mode == "replay" and cap_path is None:
             raise HTTPException(400, "Unknown capability")
-        contract = Capability.model_validate_json(cap_path.read_text()) if invocation.mode == "replay" else spec
+        contract = Capability.model_validate_json(cap_path.read_text(encoding="utf-8")) if invocation.mode == "replay" else spec
         try:
             if invocation.mode != "recording":
                 validate_values(contract.inputs, invocation.inputs)
@@ -392,7 +392,7 @@ def create_app(root: Path | None = None):
         draft = drafts / f"{job_id}.json"
         if job["mode"] != "recording" or job["status"] != "success" or not draft.exists():
             raise HTTPException(409, "A verified recording draft is required")
-        cap = Capability.model_validate_json(draft.read_text())
+        cap = Capability.model_validate_json(draft.read_text(encoding="utf-8"))
         destination = artifacts / f"{job_id}.json"
         if not destination.exists():
             with destination.open("x", encoding="utf-8") as f:

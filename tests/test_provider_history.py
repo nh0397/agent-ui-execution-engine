@@ -105,3 +105,52 @@ def test_application_pacing_blocks_before_provider_call(isolated,monkeypatch):
     with pytest.raises(provider.ModelError) as error:provider.reserve('test')
     assert error.value.code=='app_rate'
     assert provider.status()['requests_today']==2
+
+def test_discovery_pacing_waits_before_sending_and_cancellation_stops(isolated,monkeypatch):
+    clock=[1000.0]
+    monkeypatch.setattr(provider.time,'time',lambda:clock[0])
+    monkeypatch.setattr(provider.time,'sleep',lambda seconds:None)
+    monkeypatch.setenv('LLM_REQUESTS_PER_MINUTE','1')
+    provider.reserve('test')
+    sent=[]
+    class Client:
+        def post(self,url,**kwargs):
+            sent.append(url)
+            return httpx.Response(200,request=httpx.Request('POST',url),json={'choices':[{'message':{'content':'{}'}}]})
+    def cancelled():raise RuntimeError('operator cancelled')
+    with pytest.raises(RuntimeError,match='operator cancelled'):
+        provider.chat_sync(Client(),PAYLOAD,wait_for_capacity=cancelled)
+    assert sent==[]
+    waits=[]
+    def advance():
+        waits.append(True)
+        clock[0]+=61
+    assert provider.chat_sync(Client(),PAYLOAD,wait_for_capacity=advance)['message']['content']=='{}'
+    assert len(waits)==1 and len(sent)==1
+
+
+def test_reported_token_headroom_blocks_before_sending(isolated,monkeypatch):
+    monkeypatch.setattr(provider.time,'time',lambda:1000.0)
+    with provider.connect() as db:
+        db.execute('INSERT INTO health VALUES(?,?)',('groq',json.dumps({'checked_at':990,'limits':{'x-ratelimit-remaining-tokens':'50','x-ratelimit-reset-tokens':'1m2.5s'}})))
+    with pytest.raises(provider.ModelError) as error:provider.reserve('test',100)
+    assert error.value.code=='token_headroom'
+    assert provider.status()['requests_today']==0
+    monkeypatch.setattr(provider.time,'time',lambda:1053.0)
+    provider.reserve('test',100)
+    assert provider.status()['requests_today']==1
+    assert provider.reset_seconds('1m2.5s')==62.5
+    assert provider.reset_seconds('200ms')==.2
+    assert provider.reset_seconds('unknown')==0
+
+def test_discovery_never_retries_provider_rejection(isolated):
+    calls=[]
+    class Client:
+        def post(self,url,**kwargs):
+            calls.append(url)
+            return httpx.Response(429,request=httpx.Request('POST',url),headers={'retry-after':'2'})
+    def must_not_wait():raise AssertionError('A submitted request must not be retried')
+    with pytest.raises(provider.ModelError) as error:
+        provider.chat_sync(Client(),PAYLOAD,wait_for_capacity=must_not_wait)
+    assert error.value.code=='rate_limit'
+    assert len(calls)==1

@@ -207,3 +207,23 @@ def test_live_screencast_updates_between_workflow_actions(tmp_path, server):
         assert not list(tmp_path.rglob('*.jpg'))
     finally:
         surface.close()
+
+
+def test_observed_nested_link_name_resolves_in_accessible_tree(tmp_path,server):
+    from engine.surface import BrowserSurface
+    from engine.safety import Evidence,Policy
+    from engine.contracts import Target
+    os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH",str(Path(".browsers").resolve()))
+    origin=server("normal")
+    profile=Profile.model_validate_json(Path("config/customer-service.json").read_text(encoding="utf-8"))
+    profile.origins=[origin]
+    surface=BrowserSurface(Policy(profile),Evidence(tmp_path/'evidence',[]))
+    try:
+        surface.open(origin)
+        links=[c for c in surface.observe()['controls'] if c['role']=='link' and 'Mailing address' in c['name']]
+        assert len(links)==1
+        target=Target(by='role',role='link',name=links[0]['name'])
+        assert surface.target(target).count()==1
+        surface.execute(Action(kind='click',target=target,reason='Open address service'),{})
+        assert surface.visible(Target(by='label',name='Customer ID'))
+    finally:surface.close()

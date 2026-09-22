@@ -1,0 +1,16 @@
+{
+  "status": "success",
+  "run_id": "caf40ba1-4530-4b3e-bed6-1871d9722aa3",
+  "code": "completed",
+  "outputs": {
+    "customer_id": "C-205",
+    "confirmation_reference": "UPD-F662500EAB6C",
+    "street": "[REDACTED]",
+    "city": "[REDACTED]",
+    "postal": "[REDACTED]"
+  },
+  "step": 15,
+  "expected": "",
+  "observed": "",
+  "human_assisted": false
+}

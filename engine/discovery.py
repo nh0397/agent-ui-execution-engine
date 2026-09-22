@@ -2,6 +2,7 @@
 import json
 import re
 import os
+import time
 from pathlib import Path
 
 import httpx
@@ -53,6 +54,14 @@ Select the correct input_key for a field by its label.
 Actions on the same textbox with different input keys are alternatives, not a to-do list.
 For example an email input belongs in an email field, never in an unrelated order ID field.
 All input values are already available to the executor; you do not need to see them.
+The control's filled flag only means it contains some existing value, NOT the requested value.
+Every available fill action is an input binding that has NOT been applied on this document.
+Apply all relevant requested input bindings even when a field already contains old data.
+A fill action binds the supplied input immediately. bound_fields lists the fields you have updated.
+Submit/search buttons are withheld until their required fields are filled. If a button
+is unavailable and available fill actions remain, apply those input bindings before submitting.
+Use the current observation and actual recent_actions; never assume a fill occurred.
+Do not select navigation links when the required form is already visible.
 After filling a search field, activate the search control. After filling an edit form,
 activate its review or submit control. Do not repeat completed fills on the same page.
 For read actions select the output_key that corresponds to the visible field's label.
@@ -64,6 +73,17 @@ Reasons are brief action purposes, not a reasoning transcript.
 
 def discover(spec, inputs, profile, entry, directory, model, goal, capability_path, **options):
     runtime = Runtime(spec, inputs, profile, entry, directory, **options)
+    waiting = False
+    def wait_for_capacity():
+        nonlocal waiting
+        runtime.check_cancel()
+        if time.monotonic() - runtime.start > 900:
+            raise PolicyError("Run deadline exceeded while waiting for model capacity")
+        if not waiting:
+            runtime.evidence.event("model_capacity_wait", reason="Pre-request pacing/headroom check; no provider request sent")
+            waiting = True
+        runtime.surface.pump_events()
+
     actions = []
     manual_recovery = False
     filled_by_document = {}
@@ -89,14 +109,15 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                         suffix = f" using input {a.input_key}" if a.input_key else f" into output {a.output_key}" if a.output_key else ""
                         return f"{a.kind} '{a.target.name}'{suffix}"
                     names = {description(a): a for a in candidates}
-                    prompt = runtime.evidence.clean({"goal": goal, "observation": observation, "recent_actions": [description(a) for a in actions[-6:]], "outputs_still_required": [key for key in spec.outputs if key not in runtime.outputs], "available_actions": list(names)})
+                    prompt = runtime.evidence.clean({"goal": goal, "observation": observation, "bound_fields": sorted(filled), "recent_actions": [description(a) for a in actions[-6:]], "outputs_still_required": [key for key in spec.outputs if key not in runtime.outputs], "available_actions": list(names)})
                     if not names:
                         runtime.intervene("No valid actions remain; restore a usable application state or abort")
                         manual_recovery = True
                         filled_by_document.clear()
                         continue
                     schema = {"type": "object", "properties": {"choice": {"type": "string", "enum": ["HUMAN", *names]}, "reason": {"type": "string"}}, "required": ["choice", "reason"], "additionalProperties": False}
-                    body = chat_sync(client, {"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}})
+                    body = chat_sync(client, {"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}}, wait_for_capacity=wait_for_capacity)
+                    waiting = False
                     choice = json.loads(body["message"]["content"])
                     selected = choice["choice"]
                     if selected != "HUMAN" and selected not in names:

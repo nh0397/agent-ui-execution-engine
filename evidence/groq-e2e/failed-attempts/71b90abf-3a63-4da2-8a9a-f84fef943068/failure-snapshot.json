@@ -1,0 +1,1313 @@
+{
+  "observation": {
+    "text": "C Cedar BankSTAFF WORKSPACECustomer workspaceAccountsDebit cardsService requestsActivitySandbox institutionAll records are syntheticRetail banking / Customer serviceHomeCedar Bank / Customer operationsCustomer workspaceSynthetic sandboxCustomers1003Accounts1004Total balance \u00b7 synthetic[REDACTED] 01 / CUSTOMER CAREMailing addressFind a customer, review their new address, and save a verified change.Start below \u2193 02 / ACCOUNT SERVICESBalance inquiryFind a checking or savings account and review its balance and activity.Look up an account \u2192 03 / CARD SECURITYFreeze a debit cardFind a card, review the change, and freeze or restore its status.Manage debit cards \u2192 Find a customerLook up a customer record to review their profile and manage their mailing address. Customer IDSearch customers Sample records: C-104, C-205, and C-306. Use C-999 to exercise a missing-record outcome.Customer directoryCustomerNameStatusC-1000[REDACTED]ActiveC-1001[REDACTED]ActiveC-1002[REDACTED]ActiveC-1003[REDACTED]ActiveC-1004[REDACTED]ActiveC-1005[REDACTED]ActiveC-1006[REDACTED]ActiveC-1007[REDACTED]ActiveC-1008[REDACTED]ActiveC-1009[REDACTED]ActiveC-1010[REDACTED]ActiveC-1011[REDACTED]ActiveC-1012[REDACTED]ActiveC-1013[REDACTED]ActiveC-1014[REDACTED]ActiveC-1015[REDACTED]ActiveC-1016[REDACTED]ActiveC-1017[REDACTED]ActiveC-1018[REDACTED]ActiveC-1019[REDACTED]Active Page 1 \u00b7 Up to 20 records per page Next pageCedar Bank sandbox \u00b7 Synthetic demonstration data \u00b7 Scenario: normal",
+    "controls": [
+      {
+        "role": "link",
+        "name": "Customer workspace",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Accounts",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Debit cards",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Service requests",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Activity",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Home",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "01 / CUSTOMER CAREMailing addressFind a customer, review their new address, and save a verified change.Start below \u2193",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "02 / ACCOUNT SERVICESBalance inquiryFind a checking or savings account and review its balance and activity.Look up an account \u2192",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "03 / CARD SECURITYFreeze a debit cardFind a card, review the change, and freeze or restore its status.Manage debit cards \u2192",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "heading",
+        "name": "Find a customer",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "textbox",
+        "name": "Customer ID",
+        "readonly": false,
+        "filled": false,
+        "pattern": "C-[0-9]+",
+        "required": true,
+        "form": 0
+      },
+      {
+        "role": "button",
+        "name": "Search customers",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": 0
+      },
+      {
+        "role": "link",
+        "name": "Next page",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      }
+    ],
+    "app": "customer-service",
+    "app_version": "1",
+    "document_id": 2
+  },
+  "dom": {
+    "tag": "BODY",
+    "role": null,
+    "label": null,
+    "children": [
+      {
+        "tag": "ASIDE",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "B",
+                "role": null,
+                "label": null,
+                "children": [
+                  "C"
+                ]
+              },
+              "Cedar Bank"
+            ]
+          },
+          {
+            "tag": "SMALL",
+            "role": null,
+            "label": null,
+            "children": [
+              "STAFF WORKSPACE"
+            ]
+          },
+          {
+            "tag": "NAV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Customer workspace"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Accounts"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Debit cards"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Service requests"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Activity"
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              "Sandbox institution",
+              {
+                "tag": "BR",
+                "role": null,
+                "label": null,
+                "children": []
+              },
+              "All records are synthetic"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "HEADER",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "STRONG",
+            "role": null,
+            "label": null,
+            "children": [
+              "Retail banking / Customer service"
+            ]
+          },
+          {
+            "tag": "A",
+            "role": null,
+            "label": null,
+            "children": [
+              "Home"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "DIV",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              "Cedar Bank / Customer operations"
+            ]
+          },
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "H2",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Customer workspace"
+                ]
+              },
+              {
+                "tag": "SPAN",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Synthetic sandbox"
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "DIV",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "SPAN",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Customers"
+                    ]
+                  },
+                  {
+                    "tag": "STRONG",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "1003"
+                    ]
+                  }
+                ]
+              },
+              {
+                "tag": "DIV",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "SPAN",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Accounts"
+                    ]
+                  },
+                  {
+                    "tag": "STRONG",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "1004"
+                    ]
+                  }
+                ]
+              },
+              {
+                "tag": "DIV",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "SPAN",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Total balance \u00b7 synthetic"
+                    ]
+                  },
+                  {
+                    "tag": "STRONG",
+                    "text": "[REDACTED]"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "SECTION",
+            "role": null,
+            "label": "Banking services",
+            "children": [
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "SPAN",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "01 / CUSTOMER CARE"
+                    ]
+                  },
+                  {
+                    "tag": "H3",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Mailing address"
+                    ]
+                  },
+                  {
+                    "tag": "P",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Find a customer, review their new address, and save a verified change."
+                    ]
+                  },
+                  {
+                    "tag": "B",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Start below \u2193"
+                    ]
+                  }
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "SPAN",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "02 / ACCOUNT SERVICES"
+                    ]
+                  },
+                  {
+                    "tag": "H3",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Balance inquiry"
+                    ]
+                  },
+                  {
+                    "tag": "P",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Find a checking or savings account and review its balance and activity."
+                    ]
+                  },
+                  {
+                    "tag": "B",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Look up an account \u2192"
+                    ]
+                  }
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "SPAN",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "03 / CARD SECURITY"
+                    ]
+                  },
+                  {
+                    "tag": "H3",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Freeze a debit card"
+                    ]
+                  },
+                  {
+                    "tag": "P",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Find a card, review the change, and freeze or restore its status."
+                    ]
+                  },
+                  {
+                    "tag": "B",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Manage debit cards \u2192"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "MAIN",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "H1",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Find a customer"
+                ]
+              },
+              {
+                "tag": "P",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Look up a customer record to review their profile and manage their mailing address."
+                ]
+              },
+              {
+                "tag": "FORM",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "LABEL",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Customer ID"
+                    ]
+                  },
+                  {
+                    "tag": "INPUT",
+                    "text": "[REDACTED]"
+                  },
+                  {
+                    "tag": "BUTTON",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Search customers"
+                    ]
+                  }
+                ]
+              },
+              {
+                "tag": "P",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Sample records: C-104, C-205, and C-306. Use C-999 to exercise a missing-record outcome."
+                ]
+              },
+              {
+                "tag": "SECTION",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "H2",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Customer directory"
+                    ]
+                  },
+                  {
+                    "tag": "TABLE",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      {
+                        "tag": "TBODY",
+                        "role": null,
+                        "label": null,
+                        "children": [
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TH",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "Customer"
+                                ]
+                              },
+                              {
+                                "tag": "TH",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "Name"
+                                ]
+                              },
+                              {
+                                "tag": "TH",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "Status"
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1000"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1001"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1002"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1003"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1004"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1005"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1006"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1007"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1008"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1009"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1010"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1011"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1012"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1013"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1014"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1015"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1016"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1017"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1018"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "tag": "TR",
+                            "role": null,
+                            "label": null,
+                            "children": [
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  "C-1019"
+                                ]
+                              },
+                              {
+                                "tag": "TD",
+                                "text": "[REDACTED]"
+                              },
+                              {
+                                "tag": "TD",
+                                "role": null,
+                                "label": null,
+                                "children": [
+                                  {
+                                    "tag": "SPAN",
+                                    "role": null,
+                                    "label": null,
+                                    "children": [
+                                      "Active"
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "tag": "NAV",
+                "role": null,
+                "label": "Directory pages",
+                "children": [
+                  {
+                    "tag": "P",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Page 1 \u00b7 Up to 20 records per page"
+                    ]
+                  },
+                  {
+                    "tag": "A",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Next page"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "FOOTER",
+            "role": null,
+            "label": null,
+            "children": [
+              "Cedar Bank sandbox \u00b7 Synthetic demonstration data \u00b7 Scenario: normal"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

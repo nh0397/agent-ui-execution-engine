@@ -1,0 +1,10 @@
+{
+  "status": "business_outcome",
+  "run_id": "173e298b-5e13-411b-9a2b-b4f5be1dd856",
+  "code": "Customer not found",
+  "outputs": {},
+  "step": 3,
+  "expected": "click: Search customers",
+  "observed": "Customer not found",
+  "human_assisted": false
+}

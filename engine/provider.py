@@ -1,6 +1,8 @@
 """Server-only model transport, bounded usage accounting, and safe status."""
 import json
 import os
+import re
+import math
 import sqlite3
 import time
 from pathlib import Path
@@ -47,7 +49,15 @@ def status():
             "input_tokens_today":tokens[0], "output_tokens_today":tokens[1],
             "observation":json.loads(row[0]) if row else None}
 
-def reserve(model):
+def reset_seconds(value):
+    """Parse documented duration headers; unknown formats give no prediction."""
+    if not re.fullmatch(r'(?:[0-9]+(?:\.[0-9]+)?(?:ms|s|m|h))+', value or ''):
+        return 0
+    units={'ms':.001,'s':1,'m':60,'h':3600}
+    return sum(float(n)*units[u] for n,u in re.findall(r'([0-9]+(?:\.[0-9]+)?)(ms|s|m|h)',value))
+
+
+def reserve(model, estimated_tokens=0):
     provider = config()
     if provider=="groq" and not os.getenv("GROQ_API_KEY"):
         raise ModelError("missing_key", "Groq is selected but GROQ_API_KEY is empty. Add it to the private .env file and restart the backend.")
@@ -57,6 +67,13 @@ def reserve(model):
         last=json.loads(row[0]) if row else {}
         if last.get("retry_at",0)>time.time():
             raise ModelError("rate_limit", f"The model is rate-limited. Retry in {max(1,int(last['retry_at']-time.time()))} seconds. Your conversation is saved.",429)
+        limits=last.get('limits',{})
+        if provider=='groq' and estimated_tokens:
+            try: remaining=int(limits.get('x-ratelimit-remaining-tokens','-1'))
+            except ValueError: remaining=-1
+            reset_at=last.get('checked_at',0)+reset_seconds(limits.get('x-ratelimit-reset-tokens',''))
+            if 0 <= remaining < estimated_tokens and reset_at>time.time():
+                raise ModelError('token_headroom', 'Waiting for provider-reported token capacity before sending another request.',429)
         n=db.execute("SELECT count(*) FROM calls WHERE provider=? AND at>=?",(provider,int(time.time()//86400)*86400)).fetchone()[0]
         if n>=int(os.getenv("LLM_DAILY_REQUEST_LIMIT","100")):
             raise ModelError("app_budget", "This application's daily model request limit has been reached. It resets at 00:00 UTC. Saved workflows can still replay without a model.",429)
@@ -114,7 +131,7 @@ def complete(provider, call_id, response=None, error=None):
 
 async def chat(payload):
     url,headers,data=prepare(payload)
-    provider,call_id=reserve(data['model'])
+    provider,call_id=reserve(data['model'], math.ceil(len(json.dumps(data.get('messages',[])).encode('utf-8'))/4)+data.get('max_completion_tokens',0))
     try:
         async with httpx.AsyncClient(timeout=90,trust_env=False) as client:
             response=await client.post(url,headers=headers,json=data)
@@ -122,9 +139,19 @@ async def chat(payload):
         return complete(provider,call_id,error=exc)
     return complete(provider,call_id,response)
 
-def chat_sync(client,payload):
+def chat_sync(client,payload, wait_for_capacity=None):
     url,headers,data=prepare(payload)
-    provider,call_id=reserve(data['model'])
+    while True:
+        try:
+            provider,call_id=reserve(data['model'], math.ceil(len(json.dumps(data.get('messages',[])).encode('utf-8'))/4)+data.get('max_completion_tokens',0))
+            break
+        except ModelError as exc:
+            # No request has been sent. Local pacing or observed token headroom may wait.
+            # Provider 429s, daily budgets and credentials still fail immediately.
+            if exc.code not in {'app_rate', 'token_headroom'} or wait_for_capacity is None:
+                raise
+            wait_for_capacity()
+            time.sleep(.1)
     try: response=client.post(url,headers=headers,json=data)
     except httpx.HTTPError as exc: return complete(provider,call_id,error=exc)
     return complete(provider,call_id,response)

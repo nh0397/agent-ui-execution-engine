@@ -1,0 +1,241 @@
+{
+  "name": "update_customer_address",
+  "description": "Update the specified customer's mailing address and verify the saved fields.",
+  "inputs": {
+    "customer_id": {
+      "type": "string",
+      "sensitive": false,
+      "pattern": "C-[0-9]+",
+      "equals_input": null
+    },
+    "street": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": null
+    },
+    "city": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": null
+    },
+    "postal": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": "[0-9]{5}",
+      "equals_input": null
+    }
+  },
+  "outputs": {
+    "customer_id": {
+      "type": "string",
+      "sensitive": false,
+      "pattern": null,
+      "equals_input": "customer_id"
+    },
+    "confirmation_reference": {
+      "type": "string",
+      "sensitive": false,
+      "pattern": "UPD-[A-F0-9]+",
+      "equals_input": null
+    },
+    "street": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": "street"
+    },
+    "city": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": "city"
+    },
+    "postal": {
+      "type": "string",
+      "sensitive": true,
+      "pattern": null,
+      "equals_input": "postal"
+    }
+  },
+  "success": {
+    "by": "role",
+    "name": "Address updated",
+    "role": "heading"
+  },
+  "schema_version": 1,
+  "version": 1,
+  "app": "customer-service",
+  "app_version": "1",
+  "steps": [
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "01 / CUSTOMER CARE Mailing address Find a customer, review their new address, and save a verified change. Start below \u2193",
+        "role": "link"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Navigate to the mailing address page to update customer address"
+    },
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Customer ID",
+        "role": "textbox"
+      },
+      "input_key": "customer_id",
+      "output_key": null,
+      "reason": "Fill the customer ID to initiate the search for the record."
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Search customers",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Search for customer record"
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Open customer",
+        "role": "link"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Open customer record to edit address"
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Edit mailing address",
+        "role": "link"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Navigate to the address edit form to update and verify the customer\u2019s mailing address."
+    },
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Street address",
+        "role": "textbox"
+      },
+      "input_key": "street",
+      "output_key": null,
+      "reason": "Update street address field"
+    },
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "City",
+        "role": "textbox"
+      },
+      "input_key": "city",
+      "output_key": null,
+      "reason": "Fill city field"
+    },
+    {
+      "kind": "fill",
+      "target": {
+        "by": "label",
+        "name": "Postal code",
+        "role": "textbox"
+      },
+      "input_key": "postal",
+      "output_key": null,
+      "reason": "Fill the missing postal code to complete the address update"
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Review changes",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Submit updated address"
+    },
+    {
+      "kind": "click",
+      "target": {
+        "by": "role",
+        "name": "Save address",
+        "role": "button"
+      },
+      "input_key": null,
+      "output_key": null,
+      "reason": "Submit updated address"
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved customer ID",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "customer_id",
+      "reason": "Read customer ID"
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Confirmation reference",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "confirmation_reference",
+      "reason": "Read confirmation reference"
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved street address",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "street",
+      "reason": "Read saved street address"
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved city",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "city",
+      "reason": "Read city"
+    },
+    {
+      "kind": "read",
+      "target": {
+        "by": "label",
+        "name": "Saved postal code",
+        "role": "textbox"
+      },
+      "input_key": null,
+      "output_key": "postal",
+      "reason": "Read remaining postal code"
+    }
+  ],
+  "discovery_run": "5d0c770a-9cfb-40cb-82af-b1417add58ac",
+  "source": "llm",
+  "recording_actor": "human"
+}

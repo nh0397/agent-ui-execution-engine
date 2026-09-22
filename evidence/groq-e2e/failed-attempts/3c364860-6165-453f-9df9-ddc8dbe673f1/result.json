@@ -1,0 +1,10 @@
+{
+  "status": "failure",
+  "run_id": "3c364860-6165-453f-9df9-ddc8dbe673f1",
+  "code": "Human intervention requires a headed run",
+  "outputs": {},
+  "step": 1,
+  "expected": "click: 01 / CUSTOMER CARE Mailing address Find a customer, review their new address, and save a verified change. Start below \u2193",
+  "observed": "Human intervention requires a headed run",
+  "human_assisted": false
+}

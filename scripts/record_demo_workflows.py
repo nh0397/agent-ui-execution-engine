@@ -26,7 +26,7 @@ def main():
     os.environ.setdefault('PLAYWRIGHT_BROWSERS_PATH', str(root/'.browsers'))
     storage = Path(args.storage)
     for folder in ('runs', 'capabilities', 'drafts'): (storage/folder).mkdir(parents=True, exist_ok=True)
-    profile = Profile.model_validate_json((root/'config/customer-service.json').read_text())
+    profile = Profile.model_validate_json((root/'config/customer-service.json').read_text(encoding="utf-8"))
     profile.origins = [args.entry]
     examples = [
         ('Look up an account balance', [('link','Accounts'),('focus','Account ID'),('fill','account_id','AC-10000'),('button','Search accounts'),('link','Open account')],
@@ -66,7 +66,7 @@ def main():
                         surface_factory=DemonstrationSurface, recording_actor='automated_demo')
         recording_job.update(status=result.status,code=result.code,run_id=result.run_id,finished=time.time())
         if result.status == 'success':
-            cap = Capability.model_validate_json(draft.read_text())
+            cap = Capability.model_validate_json(draft.read_text(encoding="utf-8"))
             (storage/'capabilities'/f"{recording_job['id']}.json").write_text(cap.model_dump_json(indent=2),encoding='utf-8')
             recording_job.update(capability_id=recording_job['id'],code='Automated demonstration recorded and published')
         save(recording_job)

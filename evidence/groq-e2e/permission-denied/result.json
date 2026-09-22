@@ -1,0 +1,10 @@
+{
+  "status": "failure",
+  "run_id": "eaf79aff-0ab4-4e73-a4a9-8803fb845a11",
+  "code": "Permission denied",
+  "outputs": {},
+  "step": 5,
+  "expected": "click: Edit mailing address",
+  "observed": "Permission denied",
+  "human_assisted": false
+}

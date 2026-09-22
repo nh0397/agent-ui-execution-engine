@@ -54,7 +54,7 @@ class BrowserSurface:
           }, true);
         })();""")
         self.page = self.context.new_page()
-        self.page.set_default_timeout(4000)
+        self.page.set_default_timeout(10000)
         self.page.on("dialog", self._dialog)
         self.page.on("framenavigated", self._navigated)
         self.page.on("framenavigated", lambda frame: self.evidence.event("human_navigation", session_id=self.session_id) if self.owner == "human" else None)
@@ -135,7 +135,7 @@ class BrowserSurface:
           copy.querySelectorAll('input,textarea').forEach(e=>{e.removeAttribute('value');e.textContent=''});
           const controls=[...document.querySelectorAll('a,button,input:not([type=hidden]),select,textarea,h1')].filter(visible).map(e=>({
             role:e.tagName==='A'?'link':e.tagName==='BUTTON'?'button':e.tagName==='H1'?'heading':'textbox',
-            name:e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label') || (['INPUT','TEXTAREA','SELECT'].includes(e.tagName)?'':e.textContent.trim()),
+            name:e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label') || (['INPUT','TEXTAREA','SELECT'].includes(e.tagName)?'':(e.innerText || e.textContent).replace(/\\s+/g,' ').trim()),
             readonly:!!e.readOnly, filled:!!e.value, pattern:e.getAttribute('pattern'),
             required:!!e.required, form:e.form?[...document.forms].indexOf(e.form):null
           }));

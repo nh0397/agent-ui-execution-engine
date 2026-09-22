@@ -2,6 +2,8 @@
 
 Turn an agent's intent into a reusable, verifiable workflow through a real user interface.
 
+For requirement coverage and remaining acceptance work, see [the final audit](FINAL_AUDIT.md). Final Groq discovery, new-input replay and error evidence are indexed in [evidence/](evidence/README.md).
+
 For a hands-on first run, follow [Create and test your first workflow](WALKTHROUGH.md), including storage locations, recording, replay, and failure checks.
 
 ## Model configuration and saved conversations
@@ -18,7 +20,7 @@ LLM_REQUESTS_PER_MINUTE=10
 
 Put your key after `GROQ_API_KEY=`. To return to the local model, set `LLM_PROVIDER=ollama`. Restart the Python backend after changes; for Docker run `docker compose up --build -d worker`. Process environment variables override `.env`. Groq uses `GROQ_MODEL` for both chat and discovery; the discovery CLI's `--model` selects only the Ollama model. Keys stay on the backend, outside Git and the browser bundle. A configured key has not necessarily been verified by the provider.
 
-**Model status** in chat shows today's application request count, last observed response, provider-reported remaining limits when available, and retry timing after a rate limit. The daily application guard resets at midnight UTC and counts attempts, including failed calls. It is separate from account-wide provider quotas. An additional rolling-minute guard defaults to 10 attempts per minute; exceeding it stops before calling the provider. Chat warns at 80% of the daily guard and displays reported token totals. Long discovery runs can hit this conservative pacing guard and stop; no workflow action is retried automatically. Missing quota headers mean unknown, not unlimited. Rate limits, invalid credentials and timeouts produce actionable messages; there is no automatic retry, provider switch, or billing upgrade. Explicit saved-workflow selection and deterministic replay remain available without model calls.
+**Model status** in chat shows today's application request count, last observed response, provider-reported remaining limits when available, and retry timing after a rate limit. The daily application guard resets at midnight UTC and counts attempts, including failed calls. It is separate from account-wide provider quotas. An additional rolling-minute guard defaults to 10 attempts per minute; exceeding it stops before calling the provider. Chat warns at 80% of the daily guard and displays reported token totals. Discovery waits before sending when local pacing or reported token headroom is insufficient, while pumping browser events and checking cancellation/deadline. Chat returns an actionable message instead of waiting. A provider rejection still stops the run; neither a provider request nor a workflow action is retried automatically. Token headroom uses an estimate, not a guarantee of available account quota. Missing quota headers mean unknown, not unlimited. Rate limits, invalid credentials and timeouts produce actionable messages; there is no automatic retry, provider switch, or billing upgrade. Explicit saved-workflow selection and deterministic replay remain available without model calls.
 
 **Saved conversations** restores messages, reviewed fields and run references after a refresh or backend restart. **New request** creates a separate conversation. Write approval is deliberately cleared when restoring a chat. Storage is `DASHBOARD_STORAGE/conversations.sqlite3`; model accounting is `model-usage.sqlite3` beside it. These ignored databases contain private local state and must not be submitted as evidence. Conversation writes check revisions to prevent silent overwrites from another window. Demo profiles partition history for demonstration; they are not secure production authentication. Known Groq keys are scrubbed, but chat storage is not a universal personal-data redactor.
 
@@ -179,7 +181,7 @@ Runtime discovery uses the provider selected by `LLM_PROVIDER`: Ollama at `http:
 
 The React dashboard calls a FastAPI execution backend. Start discovery, watch the real browser, inspect the resulting capability, and replay it with new inputs. Run history, model decisions, ownership, screenshots, and outputs come from the backend. Historical records are separately labeled **Archived evidence**.
 
-The target is **Cedar Bank**, a synthetic banking workspace with three customers, checking/savings balances, transaction history, and address servicing. Its server-rendered interface represents a back-office application without a task API. The engine completes tasks only through browser controls.
+The target is **Cedar Bank**, a synthetic banking workspace with 1,003 synthetic customers, checking/savings balances, transaction history, address servicing, debit-card controls and service-request intake. Its server-rendered interface represents a back-office application without a task API. The engine completes tasks only through browser controls.
 
 Three demo sessions are available: **Mira Chen** and **Sam Rivera** (operators), and **Taylor Morgan** (viewer). The backend enforces viewer restrictions, session cookies, CSRF tokens, and allowed origins. Anyone on the local machine can choose an operator identity: this is a local sandbox, not production authentication or tenant isolation. Do not expose the worker publicly.
 
@@ -196,7 +198,7 @@ This installs dependencies, builds the dashboard, prepares Chromium, and starts 
 **Try the complete flow:**
 
 1. Open **New workflow**, choose **Discover workflow**, and keep the customer-address goal and synthetic inputs.
-2. Select **Authorize the synthetic address save** for unattended discovery, then click **Start discovery**. The local model chooses UI actions; CPU discovery can take several minutes.
+2. Select **Authorize the synthetic address save** for unattended discovery, then click **Start discovery**. The configured model chooses UI actions; discovery can take several minutes, including quota-aware pauses.
 3. After verified success, click **Replay this new capability**. The form changes to customer C-205 and another address. Start replay; it makes zero model decisions.
 4. For human handoff, leave save authorization unchecked. At **Your review is needed**, click **Save address** inside the live browser image, then **Resume automation**. You remain in the same browser context. Keyboard, text entry, and scrolling controls are alongside the image.
 5. Exercise transient search failure, interrupted save response, permission denial, or expired session in **Runtime scenario**. C-999 produces a business outcome. For session expiry, restore the session through the image and return to the displayed checkpoint before resuming.
@@ -207,6 +209,9 @@ This installs dependencies, builds the dashboard, prepares Chromium, and starts 
 
 | Endpoint | Behavior |
 | --- | --- |
+| `GET /api/model/status` | Read local request/token accounting and last observed provider limits; no model call. |
+| `GET/PUT /api/conversations/{id}` | Load/save a profile-owned conversation with revision checks. |
+| `GET /api/conversations` | List saved conversations for the current demo profile. |
 | `POST /api/session` | Open a synthetic operator/viewer session and return a CSRF token. |
 | `GET /api/health` | Report backend, banking app, and model availability. |
 | `GET /api/capabilities` | List original and newly discovered typed capabilities. |
@@ -230,7 +235,7 @@ To start the demo app and database, open Docker Desktop with Linux containers en
 powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -OpenBrowser
 ```
 
-The script creates local configuration if needed, preserves existing data, builds all four containers, waits for health, and opens the dashboard. Startup failures print status and recent logs. Launch discovery or replay from the dashboard. The worker reaches Ollama at `host.docker.internal:11434`; your Ollama configuration must permit access from Docker. The health panel reports availability, and replay remains usable without a model.
+The script creates local configuration if needed, preserves existing data, builds all four containers, waits for health, and opens the dashboard. Startup failures print status and recent logs. Launch discovery or replay from the dashboard. With `LLM_PROVIDER=groq`, the worker uses the server-side key from `.env`. With `LLM_PROVIDER=ollama`, it reaches Ollama at `host.docker.internal:11434`; your Ollama configuration must permit access from Docker. The health panel reports availability, and replay remains usable without a model.
 
 The Compose worker includes Python and Chromium. To use the standalone CLI instead, prepare its local environment:
 
@@ -245,7 +250,7 @@ Open the dashboard at **http://127.0.0.1:5173**, and Cedar Bank at **http://127.
 
 Verify the demo manually first: search for a customer, open their profile, edit the address, review, save, and inspect the confirmation. `docker compose ps` shows service health. `docker compose down` stops the services while retaining their database volume.
 
-Then, with a local Ollama server running and the specified model installed:
+Then, with Groq configured in `.env`, or a local Ollama server running with the specified model installed:
 
 ```powershell
 .\.venv\Scripts\python.exe -m engine.cli discover `
@@ -283,7 +288,7 @@ For a manual save approval, run normal replay with `--headed` and without `--app
 
 Failure injection is part of the demo. Scripted browser tests are clearly labeled test fixtures and do not establish that a person performed a takeover.
 
-If a headed browser is unavailable on your desktop, use `--operator-port 8766` instead of `--headed`, then open **http://127.0.0.1:8766** when intervention is requested. This loopback operator page displays a live image of the same browser session and forwards your clicks, typing, and resume/abort signals. It does not create another application session. Images stay in memory and are not saved as evidence. The operator page exists only during a handoff.
+If a headed browser is unavailable on your desktop, use `--operator-port 8766` instead of `--headed`, then open **http://127.0.0.1:8766** when intervention is requested. This loopback operator page displays a live image of the same browser session and forwards your clicks, typing, and resume/abort signals. It does not create another application session. Live images stay in memory; supported operator commands also capture masked before/after evidence. The operator page exists only during a handoff.
 
 ### Standalone demo and Docker scenarios
 

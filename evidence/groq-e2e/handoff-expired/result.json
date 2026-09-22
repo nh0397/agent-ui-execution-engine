@@ -1,0 +1,10 @@
+{
+  "status": "failure",
+  "run_id": "2ceceb25-c602-4038-af37-e9a86e5e432d",
+  "code": "Intervention aborted or expired",
+  "outputs": {},
+  "step": 9,
+  "expected": "click: Save address",
+  "observed": "Intervention aborted or expired",
+  "human_assisted": true
+}

@@ -1,0 +1,138 @@
+{
+  "provider": "groq",
+  "model": "openai/gpt-oss-20b",
+  "surface": "Cedar Bank through Playwright; SQLite on localhost:8003",
+  "discovery_attempts": [
+    {
+      "run_id": "30328865-1d0c-471e-a770-cbe792ff0278",
+      "status": "failure",
+      "code": "Human intervention requires a headed run",
+      "model_decisions": 7,
+      "path": "failed-attempts/30328865-1d0c-471e-a770-cbe792ff0278"
+    },
+    {
+      "run_id": "3c364860-6165-453f-9df9-ddc8dbe673f1",
+      "status": "failure",
+      "code": "Human intervention requires a headed run",
+      "model_decisions": 2,
+      "path": "failed-attempts/3c364860-6165-453f-9df9-ddc8dbe673f1"
+    },
+    {
+      "run_id": "5d0c770a-9cfb-40cb-82af-b1417add58ac",
+      "status": "success",
+      "code": "completed",
+      "model_decisions": 15,
+      "path": "discovery"
+    },
+    {
+      "run_id": "5e82813d-554b-46f7-825c-87ef097e6a36",
+      "status": "failure",
+      "code": "TimeoutError",
+      "model_decisions": 2,
+      "path": "failed-attempts/5e82813d-554b-46f7-825c-87ef097e6a36"
+    },
+    {
+      "run_id": "5ffee57f-1f6a-4d5f-b945-84acba0c5fae",
+      "status": "failure",
+      "code": "TimeoutError",
+      "model_decisions": 4,
+      "path": "failed-attempts/5ffee57f-1f6a-4d5f-b945-84acba0c5fae"
+    },
+    {
+      "run_id": "71b90abf-3a63-4da2-8a9a-f84fef943068",
+      "status": "failure",
+      "code": "TimeoutError",
+      "model_decisions": 2,
+      "path": "failed-attempts/71b90abf-3a63-4da2-8a9a-f84fef943068"
+    },
+    {
+      "run_id": "ba2391c2-ad2b-4aee-8a28-b90695208132",
+      "status": "failure",
+      "code": "The provider rate limit or quota has been reached. Your conversation is saved. Check Model status for retry timing; no automatic retry or provider switch will occur.",
+      "model_decisions": 3,
+      "path": "failed-attempts/ba2391c2-ad2b-4aee-8a28-b90695208132"
+    }
+  ],
+  "replays": [
+    {
+      "case": "replay",
+      "status": "success",
+      "code": "completed",
+      "run_id": "6fe5ae3d-5159-46ce-9146-250943270ca3",
+      "model_transport": "blocked",
+      "model_decisions": 0,
+      "recoveries": 0
+    },
+    {
+      "case": "not-found",
+      "status": "business_outcome",
+      "code": "Customer not found",
+      "run_id": "173e298b-5e13-411b-9a2b-b4f5be1dd856",
+      "model_transport": "blocked",
+      "model_decisions": 0,
+      "recoveries": 0
+    },
+    {
+      "case": "transient",
+      "status": "success",
+      "code": "completed",
+      "run_id": "3b0ed15a-55e1-44a1-96ad-a7e05090b3ed",
+      "model_transport": "blocked",
+      "model_decisions": 0,
+      "recoveries": 1
+    },
+    {
+      "case": "permission-denied",
+      "status": "failure",
+      "code": "Permission denied",
+      "run_id": "eaf79aff-0ab4-4e73-a4a9-8803fb845a11",
+      "model_transport": "blocked",
+      "model_decisions": 0,
+      "recoveries": 0
+    },
+    {
+      "case": "uncertain-save",
+      "status": "success",
+      "code": "completed",
+      "run_id": "deca7519-2870-497c-a4e9-b64a7bf9d4ba",
+      "model_transport": "blocked",
+      "model_decisions": 0,
+      "recoveries": 1
+    },
+    {
+      "case": "slow",
+      "status": "success",
+      "code": "completed",
+      "run_id": "82c1b644-2071-4c40-8c11-f6fe9d6520e4",
+      "model_transport": "blocked",
+      "model_decisions": 0,
+      "recoveries": 0
+    }
+  ],
+  "human_handoff": "pending actual person participation",
+  "discovery_run": "5d0c770a-9cfb-40cb-82af-b1417add58ac",
+  "capability_sha256": "e4afb8dd9527f04eba03fc67de1a20cf2db09885af693df998c55a1186d80335",
+  "additional_checks": {
+    "docker_replay": {
+      "path": "docker-replay",
+      "run_id": "caf40ba1-4530-4b3e-bed6-1871d9722aa3",
+      "status": "success",
+      "surface": "PostgreSQL bank on localhost:8000"
+    },
+    "dashboard_replay": {
+      "job_id": "1339cba4-81b6-4b21-9a51-58a7102afab9",
+      "run_id": "f4f9dde4-e056-4f27-9cb4-b20594691c08",
+      "status": "success",
+      "code": "completed",
+      "additional_model_calls": 0,
+      "capability": "groq-address-v1",
+      "customer_id": "C-306"
+    },
+    "handoff_expiry": {
+      "path": "handoff-expired",
+      "status": "failure",
+      "code": "Intervention aborted or expired",
+      "person_actions": 0
+    }
+  }
+}

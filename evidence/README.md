@@ -1,21 +1,24 @@
-# Run evidence
+# Evidence index
 
-These are genuine application runs against the standalone SQLite demo, copied from the engine's run directories after checking redaction. They are not PostgreSQL-container verification or scripted test fixtures.
+Start with **[groq-e2e/manifest.json](groq-e2e/manifest.json)** for the final Groq verification:
 
-- `discovery/`: successful Mistral/Ollama discovery, 14 model-selected actions, saved capability, and verified result.
-- `replay/`: the saved capability replayed for a different customer and address, with 14 actions and no model-decision events.
-- `replay-not-found/`: the same capability returned a structured business outcome for a nonexistent customer; includes a sanitized structural DOM snapshot.
-- `manifest.json`: actual run IDs, statuses, and event counts derived from the logs.
+| Evidence | What it establishes |
+| --- | --- |
+| [Groq discovery](groq-e2e/discovery/events.jsonl) and [capability](groq-e2e/discovery/capability.json) | Genuine runtime model choices through Cedar Bank: 15 actions and independently verified success. |
+| [New-input replay](groq-e2e/replay/result.json) | Same capability, different inputs, checked outputs, zero model decisions; model HTTP transport was blocked. |
+| [Not found](groq-e2e/not-found/result.json) | Expected business outcome, with sanitized structural evidence. |
+| [Transient recovery](groq-e2e/transient/events.jsonl) | One bounded recovery action, then verified success. |
+| [Uncertain save](groq-e2e/uncertain-save/events.jsonl) | Reconciled visible result without blindly resubmitting. |
+| [Permission denial](groq-e2e/permission-denied/result.json) | Safe stop with failure snapshot. |
+| [Slow loading](groq-e2e/slow/result.json) | Bounded browser waits completed successfully. |
+| [Docker/PostgreSQL replay](groq-e2e/docker-replay/result.json) | The exact CLI replay command completed 15 actions against the container bank. |
+| [Dashboard API replay](groq-e2e/dashboard-replay/result.json) | Newly learned capability completed for C-306, with zero additional model calls; visible in local Past runs. |
+| [Expired handoff](groq-e2e/handoff-expired/result.json) | A real paused session expired safely without person input. This is not a successful human demonstration. |
+| [Catalog chat](groq-e2e/catalog-chat.json) | Genuine Groq matching and exact input extraction through FastAPI; no bank action. |
+| [Failed discovery attempts](groq-e2e/failed-attempts/) | Six genuine failures encountered during the audit: targeting, model dead ends, provider rate limiting and timeouts. Changes were made between attempts; this is not a measured reliability sample. |
 
-The checked-in reusable capability is also at `capabilities/update-address.v1.json` in the repository root. Earlier failed discovery attempts remain in ignored local development runs. No test fixture is presented as model discovery.
+The manifest links actual run IDs and the capability hash. Groq runs used the local SQLite bank. Existing **e2e/** and **docker-e2e/** contain genuine earlier Ollama discovery and paired replays; docker-e2e used PostgreSQL. Other scripted recorder/operator evidence is explicitly labeled. It is never a substitute for model discovery or actual human participation.
 
-Actual human takeover/resume evidence is pending. The first headed handoff was aborted because its browser was not visible on the user's desktop. A loopback operator view has been added, but that run has not yet been demonstrated with a human.
+A person-operated final takeover/resume demonstration remains pending until recorded and verified. The same-session mechanism is exercised by automated tests. See [verification notes](VERIFICATION.md) and [submission status](../SUBMISSION_STATUS.md).
 
-Model observations and persisted outputs omit sensitive address values. Source configuration contains explicitly synthetic example inputs so the commands are reproducible. No credentials or session state are included here.
-# Connected Cedar Bank verification
-
-`e2e/manifest.json` indexes the latest genuine runs. A React dashboard action launched local Ollama discovery through FastAPI against the Cedar Bank UI: 14 model decisions, 14 actions, verified success, and a saved capability. The dashboard then replayed that artifact for another customer/address with 14 actions and zero model decisions. A fresh banking browser session confirmed persistence.
-
-The same API/capability also completed transient recovery and uncertain-save reconciliation, returned a missing-customer business outcome, and stopped on permission denial. Their sanitized logs and failure DOM evidence are in `e2e/`. These runs used standalone SQLite; they do not establish Docker/PostgreSQL verification.
-
-The full-stack tests exercise the real live-session control queue and verify ownership transfer, a scripted operator save, same-session resume, and final success. Scripted operator input is **not** claimed as a genuine human demonstration. The live dashboard supports a person doing the same steps; a person-operated evidence recording remains outstanding.
+Published run evidence redacts configured sensitive values. Only synthetic example inputs are checked into config/. Private API keys, conversation databases, browser session state and raw live images are excluded.

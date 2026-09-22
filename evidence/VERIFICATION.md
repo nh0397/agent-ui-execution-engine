@@ -81,3 +81,15 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 
 - One genuine Groq JSON request succeeded using openai/gpt-oss-20b: 147 reported input tokens and 69 output tokens. This verifies connectivity/transport, not browser discovery. No bank action was performed.
 - Seven provider/history tests passed, including a new rolling-minute guard test. TypeScript and production frontend build passed. App guards are 100 attempts per UTC day and 10 per rolling minute; monitoring reads local accounting without making model calls. Provider quotas remain shared and cannot be guaranteed by this application.
+
+## Final PDF audit and Groq vertical slice
+
+- Rechecked all ten original PDF pages and saved FINAL_AUDIT.md. New evidence/groq-e2e contains a genuine successful 15-decision Groq discovery, six real new-capability replays with model transport blocked, and six failed discovery attempts encountered while fixing integration issues.
+- Replays verified all requested output values locally. Published sensitive outputs remain redacted. Not-found is a business outcome; permission denial is a failure with structural snapshot; transient and uncertain-save cases each have one explicit recovery action; slow loading succeeds.
+- Genuine live catalog chat selected groq-address-v1 and extracted all four supplied fields exactly in two model requests, without executing a bank task.
+- Fixed normalized rendered link names, explicit current-document input-binding state, pre-request capacity waiting, and Windows UTF-8 artifact decoding. A submitted provider rejection still stops; pacing cannot retry a UI action. Browser action timeout is bounded at ten seconds.
+- Full regression: 83 passed with two dependency deprecation warnings. After the encoding fix, 16 API/provider/CLI tests passed, including a new cp1252-host simulation (84 tests in the final collection). Earlier TypeScript/production build passed; final audit made no frontend changes.
+- Docker Compose build/start completed with app, database, worker and dashboard healthy. The final worker rebuild includes the encoding fix. Public GitHub visibility checked. Local workspace is 5176/8003; Docker workspace is 5173/8000, with separate data stores.
+- A person-operated takeover was prepared on the loopback operator page. Until actual save/resume events and verified success exist, it remains pending. Scripted handoff tests are not relabeled as human evidence.
+
+Final live checks: CLI replay against Docker/PostgreSQL succeeded (15 actions). Dashboard API replay succeeded for C-306 with zero additional model requests. The prepared operator session expired with no person commands; the genuine person-operated acceptance check remains pending.

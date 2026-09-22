@@ -1,0 +1,14 @@
+{
+  "provider": "groq",
+  "transport": "real localhost FastAPI endpoints to Groq",
+  "matched_capability": "groq-address-v1",
+  "extraction_exact_match": true,
+  "fields": [
+    "customer_id",
+    "street",
+    "city",
+    "postal"
+  ],
+  "requests_used": 2,
+  "bank_workflow_executed": false
+}

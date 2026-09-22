@@ -1,0 +1,352 @@
+{
+  "observation": {
+    "text": "C Cedar BankSTAFF WORKSPACECustomer workspaceAccountsDebit cardsService requestsActivitySandbox institutionAll records are syntheticRetail banking / Customer serviceHomeCedar Bank / Customer operationsCustomer workspaceSynthetic sandbox Edit mailing addressCustomer ID: C-104 Street addressCityPostal codeReview changes Cedar Bank sandbox \u00b7 Synthetic demonstration data \u00b7 Scenario: normal",
+    "controls": [
+      {
+        "role": "link",
+        "name": "Customer workspace",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Accounts",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Debit cards",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Service requests",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Activity",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Home",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "heading",
+        "name": "Edit mailing address",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "textbox",
+        "name": "Street address",
+        "readonly": false,
+        "filled": true,
+        "pattern": null,
+        "required": true,
+        "form": 0
+      },
+      {
+        "role": "textbox",
+        "name": "City",
+        "readonly": false,
+        "filled": true,
+        "pattern": null,
+        "required": true,
+        "form": 0
+      },
+      {
+        "role": "textbox",
+        "name": "Postal code",
+        "readonly": false,
+        "filled": true,
+        "pattern": "[0-9]{5}",
+        "required": true,
+        "form": 0
+      },
+      {
+        "role": "button",
+        "name": "Review changes",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": 0
+      }
+    ],
+    "app": "customer-service",
+    "app_version": "1",
+    "document_id": 5
+  },
+  "dom": {
+    "tag": "BODY",
+    "role": null,
+    "label": null,
+    "children": [
+      {
+        "tag": "ASIDE",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "B",
+                "role": null,
+                "label": null,
+                "children": [
+                  "C"
+                ]
+              },
+              "Cedar Bank"
+            ]
+          },
+          {
+            "tag": "SMALL",
+            "role": null,
+            "label": null,
+            "children": [
+              "STAFF WORKSPACE"
+            ]
+          },
+          {
+            "tag": "NAV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Customer workspace"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Accounts"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Debit cards"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Service requests"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Activity"
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              "Sandbox institution",
+              {
+                "tag": "BR",
+                "role": null,
+                "label": null,
+                "children": []
+              },
+              "All records are synthetic"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "HEADER",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "STRONG",
+            "role": null,
+            "label": null,
+            "children": [
+              "Retail banking / Customer service"
+            ]
+          },
+          {
+            "tag": "A",
+            "role": null,
+            "label": null,
+            "children": [
+              "Home"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "DIV",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              "Cedar Bank / Customer operations"
+            ]
+          },
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "H2",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Customer workspace"
+                ]
+              },
+              {
+                "tag": "SPAN",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Synthetic sandbox"
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "MAIN",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "H1",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Edit mailing address"
+                ]
+              },
+              {
+                "tag": "P",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Customer ID: C-104"
+                ]
+              },
+              {
+                "tag": "FORM",
+                "role": null,
+                "label": null,
+                "children": [
+                  {
+                    "tag": "LABEL",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Street address"
+                    ]
+                  },
+                  {
+                    "tag": "INPUT",
+                    "text": "[REDACTED]"
+                  },
+                  {
+                    "tag": "LABEL",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "City"
+                    ]
+                  },
+                  {
+                    "tag": "INPUT",
+                    "text": "[REDACTED]"
+                  },
+                  {
+                    "tag": "LABEL",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Postal code"
+                    ]
+                  },
+                  {
+                    "tag": "INPUT",
+                    "text": "[REDACTED]"
+                  },
+                  {
+                    "tag": "BUTTON",
+                    "role": null,
+                    "label": null,
+                    "children": [
+                      "Review changes"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "FOOTER",
+            "role": null,
+            "label": null,
+            "children": [
+              "Cedar Bank sandbox \u00b7 Synthetic demonstration data \u00b7 Scenario: normal"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "status": "failure",
+  "run_id": "ba2391c2-ad2b-4aee-8a28-b90695208132",
+  "code": "The provider rate limit or quota has been reached. Your conversation is saved. Check Model status for retry timing; no automatic retry or provider switch will occur.",
+  "outputs": {},
+  "step": 3,
+  "expected": "click: Search customers",
+  "observed": "The provider rate limit or quota has been reached. Your conversation is saved. Check Model status for retry timing; no automatic retry or provider switch will occur.",
+  "human_assisted": false
+}

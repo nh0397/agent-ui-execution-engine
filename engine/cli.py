@@ -35,15 +35,15 @@ def main():
         return
     if Path(".browsers").exists():
         os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", str(Path(".browsers").resolve()))
-    profile = Profile.model_validate_json(Path(args.profile).read_text())
-    inputs = json.loads(Path(args.inputs).read_text())
+    profile = Profile.model_validate_json(Path(args.profile).read_text(encoding="utf-8"))
+    inputs = json.loads(Path(args.inputs).read_text(encoding="utf-8"))
     options = dict(inputs=inputs, profile=profile, entry=args.entry, directory=args.runs, headed=args.headed, approve_writes=args.approve_writes, operator_port=args.operator_port)
     if args.command == "discover":
         from engine.discovery import discover
-        result = discover(WorkflowSpec.model_validate_json(Path(args.spec).read_text()), model=args.model, goal=args.goal, capability_path=args.capability, **options)
+        result = discover(WorkflowSpec.model_validate_json(Path(args.spec).read_text(encoding="utf-8")), model=args.model, goal=args.goal, capability_path=args.capability, **options)
     else:
         from engine.runtime import replay
-        result = replay(Capability.model_validate_json(Path(args.capability).read_text()), **options)
+        result = replay(Capability.model_validate_json(Path(args.capability).read_text(encoding="utf-8")), **options)
     # Declared sensitive outputs are returned by the Python API, but not echoed to terminal logs.
     print(json.dumps({"status": result.status, "code": result.code, "run_id": result.run_id, "step": result.step}, indent=2))
     raise SystemExit(1 if result.status == "failure" else 0)

@@ -1,0 +1,10 @@
+{
+  "status": "failure",
+  "run_id": "5e82813d-554b-46f7-825c-87ef097e6a36",
+  "code": "TimeoutError",
+  "outputs": {},
+  "step": 1,
+  "expected": "click: Search customers",
+  "observed": "TimeoutError",
+  "human_assisted": false
+}
