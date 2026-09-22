@@ -68,11 +68,11 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
         return
     page.get_by_role('button', name='Use this workflow', exact=True).click()
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json() == []
-    expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
+    expect(page.get_by_role('button',name='Working\u2026',exact=True)).to_have_count(0,timeout=10000)
     for value in ('C-205','92 Chat Lane','Exampleton','23456'):
         page.get_by_label('Message your assistant').fill(value)
         page.get_by_role('button',name='Send message',exact=True).click()
-        expect(page.get_by_role('button',name='WorkingÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¦',exact=True)).to_have_count(0,timeout=10000)
+        expect(page.get_by_role('button',name='Working\u2026',exact=True)).to_have_count(0,timeout=10000)
     expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_visible()
     page.get_by_label('Authorize changes for this synthetic run').check()
     page.get_by_role('button',name='Run workflow',exact=True).click()
@@ -155,6 +155,7 @@ def test_dashboard_records_reviews_publishes_and_replays(dashboard, monkeypatch)
     page.get_by_label('Workflow name').fill('Manual address update')
     page.get_by_role('button',name='Start recording',exact=True).click()
     expect(page.get_by_role('heading',name='You are recording')).to_be_visible(timeout=15000)
+    page.get_by_text('Advanced field entry',exact=True).click()
     base=page.url.rstrip('/')
     def wait_steps(count):
         for _ in range(150):
@@ -171,7 +172,9 @@ def test_dashboard_records_reviews_publishes_and_replays(dashboard, monkeypatch)
     for count,item in enumerate(gestures,1):
         if item[0]=='click':
             point=coords[item[1]]
-            screen=page.locator('.live-screen');box=screen.bounding_box()
+            screen=page.locator('.live-screen')
+            screen.evaluate('(e) => e.decode()')
+            box=screen.bounding_box()
             screen.click(position={'x':point['x']*box['width']/1280,'y':point['y']*box['height']/720})
         else:
             page.get_by_label('Parameter name',exact=True).fill(item[1])
@@ -228,6 +231,7 @@ def test_mouse_wheel_scrolls_managed_browser_not_dashboard(dashboard, monkeypatc
     page.get_by_role('button',name='Start recording',exact=True).click()
     screen = page.get_by_alt_text('Current automation browser')
     expect(screen).to_be_visible(timeout=15000)
+    screen.evaluate('(e) => e.decode()')
     screen.hover()
     outer_y = page.evaluate('window.scrollY')
     page.mouse.wheel(0,600)
@@ -237,3 +241,75 @@ def test_mouse_wheel_scrolls_managed_browser_not_dashboard(dashboard, monkeypatc
     assert observed['y'] > 0
     assert page.evaluate('window.scrollY') == outer_y
     page.get_by_role('button',name='Cancel run',exact=True).click()
+
+
+def test_inline_recording_infers_inputs_and_stops_for_review(dashboard, monkeypatch):
+    import engine.recording as recording
+    from engine.surface import BrowserSurface
+    coords = {}
+    class LocatedSurface(BrowserSurface):
+        def frame(self):
+            nonlocal coords
+            coords = self.page.evaluate("""() => Object.fromEntries([...document.querySelectorAll('input,button,a')].map(e=>{const r=e.getBoundingClientRect();return [e.labels?.[0]?.textContent.trim()||e.innerText?.trim(),{x:r.x+r.width/2,y:r.y+r.height/2}]}))""")
+            return super().frame()
+    monkeypatch.setattr(recording,'BrowserSurface',LocatedSurface)
+    page=dashboard
+    page.get_by_role('button',name='Learn a new workflow',exact=True).click()
+    page.get_by_role('button',name='Record workflow',exact=False).click()
+    page.get_by_label('Workflow name').fill('Natural balance recording')
+    page.get_by_role('button',name='Start recording',exact=True).click()
+    expect(page.get_by_role('heading',name='You are recording')).to_be_visible(timeout=15000)
+    base=page.url.rstrip('/')
+    def click_bank(label):
+        for _ in range(100):
+            if label in coords: break
+            page.wait_for_timeout(100)
+        point=coords[label];screen=page.locator('.live-screen')
+        screen.evaluate('(e) => e.decode()')
+        box=screen.bounding_box()
+        # During an img source refresh Chromium can briefly report zero intrinsic
+        # dimensions while the previous pixels are still visible. Mapping must use
+        # the last loaded frame, including a click that occurs during that interval.
+        if label=='Account ID':
+            screen.evaluate("e => { for(const k of ['naturalWidth','naturalHeight']) Object.defineProperty(e,k,{value:0,configurable:true}); }")
+        screen.click(position={'x':point['x']*box['width']/1280,'y':point['y']*box['height']/720})
+        if label=='Account ID':
+            screen.evaluate("e => { delete e.naturalWidth; delete e.naturalHeight; }")
+    click_bank('Accounts')
+    click_bank('Account ID')
+    editor=page.get_by_role('textbox',name='Type Account ID',exact=True)
+    expect(editor).to_be_visible(timeout=15000)
+    editor.fill('AC-4104')
+    editor.press('Enter')
+    for _ in range(100):
+        draft_job=page.request.get(base+'/api/runs').json()[0]
+        if 'account_id' in draft_job.get('recording',{}).get('parameters',{}):break
+        page.wait_for_timeout(100)
+    editor.fill('AC-4205')
+    # Blur commits the value, then the following click must execute after that fill.
+    click_bank('Search accounts')
+    click_bank('Open account')
+    for _ in range(100):
+        job=page.request.get(base+'/api/runs').json()[0]
+        if 'Account balance verified' in job.get('recording',{}).get('headings',[]):break
+        page.wait_for_timeout(100)
+    page.get_by_role('button',name='Stop recording & review',exact=True).click()
+    expect(page.get_by_role('button',name='Continue recording',exact=True)).to_be_visible(timeout=15000)
+    expect(page.get_by_role('textbox',name='Type Account ID',exact=True)).to_have_count(0)
+    expect(page.get_by_label('Success heading')).to_have_value('Account balance verified')
+    expect(page.get_by_label('Output key for Verified account ID')).to_have_value('account_id')
+    page.get_by_label('Reusable input name for account_id').fill('selected_account')
+    page.get_by_role('button',name='Finish and review recording',exact=True).click()
+    publish=page.get_by_role('button',name='Publish reviewed workflow',exact=True)
+    expect(publish).to_be_visible(timeout=15000)
+    job=page.request.get(base+'/api/runs').json()[0]
+    assert set(job['draft']['inputs']) == {'selected_account'}
+    assert job['draft']['outputs']['account_id']['equals_input']=='selected_account'
+    import json
+    assert 'AC-4205' not in json.dumps(job)
+    assert [a['input_key'] for a in job['draft']['steps'] if a['kind']=='fill']==['selected_account']
+    publish.click()
+    page.get_by_role('button',name='Replay this new capability',exact=True).click()
+    page.get_by_label('Input selected_account').fill('AC-4306')
+    page.get_by_role('button',name='Start replay',exact=True).click()
+    expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)

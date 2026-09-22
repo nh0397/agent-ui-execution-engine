@@ -20,6 +20,8 @@ export type Run = {
   id: string;
   draft?: Capability;
   recording?: {
+    reviewing?: boolean;
+    focused?: import("./BankFieldEditor").FocusedField | null;
     error?: string;
     headings?: string[];
     outputs?: string[];

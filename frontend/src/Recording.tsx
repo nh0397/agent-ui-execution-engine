@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { request, type Run } from "./api";
 
 export function RecordingTools({
@@ -8,139 +8,176 @@ export function RecordingTools({
   run: Run;
   command: (v: Record<string, unknown>) => Promise<void>;
 }) {
+  const [advanced, setAdvanced] = useState(false);
   const [key, setKey] = useState("customer_id");
   const [value, setValue] = useState("");
   const [heading, setHeading] = useState("");
+  const [inputNames, setInputNames] = useState<Record<string, string>>({});
   const [outputs, setOutputs] = useState<Record<string, string>>({});
   const data = run.recording;
+  useEffect(() => {
+    if (!data?.reviewing) return;
+    setInputNames(
+      Object.fromEntries(
+        Object.keys(data.parameters || {}).map((key) => [key, key]),
+      ),
+    );
+    setHeading(data.headings?.[0] || "");
+    const bindings: Record<string, string> = {};
+    for (const label of data.outputs || []) {
+      const normalized = label
+        .toLowerCase()
+        .replace(/^(verified|saved|request) /, "")
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+      const key = /^[a-z]/.test(normalized)
+        ? normalized
+        : `output_${normalized}`;
+      if (!Object.values(bindings).includes(key))
+        bindings[label] = key.slice(0, 50);
+    }
+    setOutputs(bindings);
+  }, [data?.reviewing]);
   return (
     <div className="operator-tools">
-      <details className="recording-help">
-        <summary>How to record an account balance inquiry</summary>
-        <ol>
-          <li>
-            Click <b>Accounts</b> in Cedar Bank’s left navigation.
-          </li>
-          <li>
-            Click its <b>Account ID</b> field.
-          </li>
-          <li>
-            Set Parameter name to <code>account_id</code>, Example value to{" "}
-            <code>AC-10002</code>, then click <b>Fill parameter</b>.
-          </li>
-          <li>
-            In the bank, click <b>Search accounts</b>, then <b>Open account</b>.
-          </li>
-          <li>
-            Choose <b>Account balance verified</b> below. Name Verified account
-            ID <code>account_id</code> and Account balance <code>balance</code>.
-          </li>
-          <li>Finish the recording, review it, then publish the workflow.</li>
-        </ol>
-      </details>
       <p>
-        Click a field in the live image, give it a parameter name, then enter an
-        example value. Click the application's buttons to continue.
+        Use the bank directly. Editable fields open an inline text box when
+        clicked. Values become reusable inputs automatically.
       </p>
-      <label>
-        Parameter name
-        <input
-          aria-label="Parameter name"
-          value={key}
-          onChange={(e) => setKey(e.target.value)}
-          placeholder="customer_id"
-        />
-      </label>
-      <label>
-        Example value
-        <input
-          aria-label="Example value"
-          type="password"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
-      </label>
-      <button
-        className="button secondary"
-        disabled={!value || !/^[a-z][a-z0-9_]{0,49}$/.test(key)}
-        onClick={() => {
-          void command({ kind: "type", parameter_key: key, text: value });
-          setValue("");
-        }}
-      >
-        Fill parameter
-      </button>
-      <div className="key-buttons">
+      {data?.reviewing && (
+        <div className="callout">
+          <h4>Reusable inputs captured</h4>
+          {Object.keys(data.parameters || {}).map((key) => (
+            <label key={key}>
+              Reusable name for {key}
+              <input
+                aria-label={`Reusable input name for ${key}`}
+                value={inputNames[key] || ""}
+                onChange={(e) =>
+                  setInputNames({ ...inputNames, [key]: e.target.value })
+                }
+              />
+            </label>
+          ))}
+          <p>
+            {Object.keys(data.parameters || {}).join(", ") ||
+              "No text inputs captured."}
+          </p>
+          <p>
+            Review the success heading and returned fields below, then save the
+            draft.
+          </p>
+        </div>
+      )}
+      <details onToggle={(e) => setAdvanced(e.currentTarget.open)}>
+        <summary>Advanced field entry</summary>
+        <p>
+          Click a field in the live image, give it a parameter name, then enter
+          an example value. Click the application's buttons to continue.
+        </p>
+        <label>
+          Parameter name
+          <input
+            aria-label="Parameter name"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            placeholder="customer_id"
+          />
+        </label>
+        <label>
+          Example value
+          <input
+            aria-label="Example value"
+            type="password"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+        </label>
         <button
           className="button secondary"
-          onClick={() => command({ kind: "key", key: "Tab" })}
+          disabled={!value || !/^[a-z][a-z0-9_]{0,49}$/.test(key)}
+          onClick={() => {
+            void command({ kind: "type", parameter_key: key, text: value });
+            setValue("");
+          }}
         >
-          Tab
+          Fill parameter
         </button>
-        <button
-          className="button secondary"
-          onClick={() => command({ kind: "scroll", delta: 500 })}
-        >
-          Scroll down
-        </button>
-        <button
-          className="button secondary"
-          onClick={() => command({ kind: "scroll", delta: -500 })}
-        >
-          Scroll up
-        </button>
-      </div>
+        <div className="key-buttons">
+          <button
+            className="button secondary"
+            onClick={() => command({ kind: "key", key: "Tab" })}
+          >
+            Tab
+          </button>
+          <button
+            className="button secondary"
+            onClick={() => command({ kind: "scroll", delta: 500 })}
+          >
+            Scroll down
+          </button>
+          <button
+            className="button secondary"
+            onClick={() => command({ kind: "scroll", delta: -500 })}
+          >
+            Scroll up
+          </button>
+        </div>
+      </details>
       {data?.error && (
         <p role="alert" className="callout">
           {data.error}
         </p>
       )}
-      <h4>Finish at the verified result</h4>
-      <label>
-        Success heading
-        <select
-          aria-label="Success heading"
-          value={heading}
-          onChange={(e) => setHeading(e.target.value)}
-        >
-          <option value="">Choose the terminal heading</option>
-          {data?.headings?.map((h) => (
-            <option key={h}>{h}</option>
-          ))}
-        </select>
-      </label>
-      <p>
-        Name the output fields to return. Reuse an input parameter name to
-        verify that the saved value matches.
-      </p>
-      {data?.outputs?.map((label) => (
-        <label key={label}>
-          {label}
-          <input
-            aria-label={`Output key for ${label}`}
-            placeholder="Output key (leave blank to skip)"
-            value={outputs[label] || ""}
-            onChange={(e) =>
-              setOutputs({ ...outputs, [label]: e.target.value })
-            }
-          />
+      <div hidden={!data?.reviewing && !advanced}>
+        <h4>Finish at the verified result</h4>
+        <label>
+          Success heading
+          <select
+            aria-label="Success heading"
+            value={heading}
+            onChange={(e) => setHeading(e.target.value)}
+          >
+            <option value="">Choose the terminal heading</option>
+            {data?.headings?.map((h) => (
+              <option key={h}>{h}</option>
+            ))}
+          </select>
         </label>
-      ))}
-      <button
-        className="button primary"
-        disabled={!heading || !Object.values(outputs).some(Boolean)}
-        onClick={() =>
-          command({
-            kind: "finish",
-            success_name: heading,
-            output_bindings: Object.fromEntries(
-              Object.entries(outputs).filter(([, v]) => v),
-            ),
-          })
-        }
-      >
-        Finish and review recording
-      </button>
+        <p>
+          Name the output fields to return. Reuse an input parameter name to
+          verify that the saved value matches.
+        </p>
+        {data?.outputs?.map((label) => (
+          <label key={label}>
+            {label}
+            <input
+              aria-label={`Output key for ${label}`}
+              placeholder="Output key (leave blank to skip)"
+              value={outputs[label] || ""}
+              onChange={(e) =>
+                setOutputs({ ...outputs, [label]: e.target.value })
+              }
+            />
+          </label>
+        ))}
+        <button
+          className="button primary"
+          disabled={!heading || !Object.values(outputs).some(Boolean)}
+          onClick={() =>
+            command({
+              kind: "finish",
+              success_name: heading,
+              input_names: inputNames,
+              output_bindings: Object.fromEntries(
+                Object.entries(outputs).filter(([, v]) => v),
+              ),
+            })
+          }
+        >
+          Finish and review recording
+        </button>
+      </div>
     </div>
   );
 }

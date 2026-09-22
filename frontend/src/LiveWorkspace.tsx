@@ -32,6 +32,7 @@ import {
 import { request, type Run, type CatalogItem } from "./api";
 import { RecordingTools, RecordingDocument } from "./Recording";
 import { Agent } from "./Agent";
+import { BankFieldEditor } from "./BankFieldEditor";
 import archive from "./generated/evidence.json";
 import "./live.css";
 const people = [
@@ -98,6 +99,8 @@ function Dialog({
   );
 }
 function status(run: Run) {
+  if (run.mode === "recording" && run.status === "running")
+    return run.recording?.reviewing ? "Review recording" : "Recording";
   return run.status === "running" && run.live?.owner === "human"
     ? "Needs your review"
     : run.status === "running"
@@ -253,6 +256,8 @@ export default function LiveWorkspace() {
   const [frameTick, setFrameTick] = useState(0);
   const [imageError, setImageError] = useState(false);
   const browserImage = useRef<HTMLImageElement>(null);
+  const frameSize = useRef({ width: 1280, height: 720 });
+  const commandChain = useRef<Promise<unknown>>(Promise.resolve());
   const current = selected
     ? runs.find((r) => r.id === selected)
     : runs.find((r) => r.status === "running") || runs[0];
@@ -265,6 +270,7 @@ export default function LiveWorkspace() {
   const viewer = person.role === "Viewer";
   const canControl =
     current?.status === "running" && current.live?.owner === "human" && !viewer;
+  const canInteract = canControl && !current?.recording?.reviewing;
   const visibleRuns = runs.filter((r) =>
     `${r.id} ${r.mode} ${r.status} ${r.code}`
       .toLowerCase()
@@ -301,7 +307,7 @@ export default function LiveWorkspace() {
     void choose(people[0]);
     const poll = setInterval(() => {
       if (!stopped) void refresh().catch(() => setOnline(false));
-    }, 1200);
+    }, 600);
     const check = () =>
       request<typeof health>("/health")
         .then((h) => {
@@ -320,7 +326,7 @@ export default function LiveWorkspace() {
   }, []);
   useEffect(() => {
     if (!current?.live?.has_frame || current.status !== "running") return;
-    const timer = setInterval(() => setFrameTick((t) => t + 1), 800);
+    const timer = setInterval(() => setFrameTick((t) => t + 1), 250);
     return () => clearInterval(timer);
   }, [current?.id, current?.live?.has_frame, current?.status]);
   useEffect(() => {
@@ -328,7 +334,7 @@ export default function LiveWorkspace() {
   }, [current?.id]);
   useEffect(() => {
     const image = browserImage.current;
-    if (!image || !canControl || !current) return;
+    if (!image || !canInteract || !current) return;
     let pending = 0;
     let sending = false;
     let disposed = false;
@@ -367,14 +373,15 @@ export default function LiveWorkspace() {
       pending = Math.max(-1000, Math.min(1000, pending + event.deltaY * unit));
       if (!timer && !sending) timer = setTimeout(() => void flush(), 120);
     };
-    image.addEventListener("wheel", wheel, { passive: false });
+    const wheelTarget = image.parentElement || image;
+    wheelTarget.addEventListener("wheel", wheel, { passive: false });
     return () => {
       disposed = true;
       if (timer) clearTimeout(timer);
-      image.removeEventListener("wheel", wheel);
+      wheelTarget.removeEventListener("wheel", wheel);
     };
   }, [
-    canControl,
+    canInteract,
     current?.id,
     current?.live?.has_frame,
     csrf,
@@ -424,16 +431,22 @@ export default function LiveWorkspace() {
   }
   async function command(value: Record<string, unknown>) {
     if (!current) return;
-    try {
-      await request(
-        `/runs/${current.id}/control`,
-        { method: "POST", body: JSON.stringify(value) },
-        csrf,
-      );
-      setError("");
-    } catch (e) {
-      setError((e as Error).message);
-    }
+    const runId = current.id;
+    const send = async () => {
+      try {
+        await request(
+          `/runs/${runId}/control`,
+          { method: "POST", body: JSON.stringify(value) },
+          csrf,
+        );
+        setError("");
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    };
+    if (value.kind === "abort") return send();
+    commandChain.current = commandChain.current.then(send, send);
+    await commandChain.current;
   }
   function prepareReplay(id: string) {
     setCapId(id);
@@ -777,26 +790,34 @@ export default function LiveWorkspace() {
                       {canControl && current.mode === "recording" && (
                         <div className="recording-guidance" role="note">
                           <strong>
-                            Recording is active — you control this browser.
+                            {current.recording?.reviewing
+                              ? "Recording stopped — review your workflow"
+                              : "Recording — click, scroll, and type in the bank"}
                           </strong>
                           <p>
-                            Scroll with your mouse wheel or trackpad over the
-                            browser. Click links and buttons inside it. To enter
-                            text, click the bank field first, then use{" "}
-                            <b>Parameter name</b>, <b>Example value</b>, and{" "}
-                            <b>Fill parameter</b> in the recording panel.
-                            Keyboard typing directly into the browser image is
-                            not supported.
+                            Click a field, type its value, then click the next
+                            bank control. Inputs are named automatically. Press
+                            Enter or leave the field to apply your text. Review
+                            reusable inputs after stopping.
                           </p>
                           <span>
                             {current.recording?.steps?.length || 0} gestures
-                            captured ·{" "}
-                            {
-                              Object.keys(current.recording?.parameters || {})
-                                .length
-                            }{" "}
-                            input parameters
+                            captured
                           </span>
+                          <button
+                            className="button primary recording-stop"
+                            onClick={() =>
+                              void command({
+                                kind: current.recording?.reviewing
+                                  ? "continue_recording"
+                                  : "stop_recording",
+                              })
+                            }
+                          >
+                            {current.recording?.reviewing
+                              ? "Continue recording"
+                              : "Stop recording & review"}
+                          </button>
                         </div>
                       )}
                       <div className="live-layout">
@@ -811,29 +832,49 @@ export default function LiveWorkspace() {
                             </div>
                           </div>
                           {current.live?.has_frame && !imageError ? (
-                            <img
-                              ref={browserImage}
-                              className={`live-screen ${canControl ? "controllable" : ""}`}
-                              src={`/api/runs/${current.id}/frame?t=${frameTick}`}
-                              alt="Current automation browser"
-                              onError={() => setImageError(true)}
-                              onClick={(e) => {
-                                if (!canControl) return;
-                                const r =
-                                  e.currentTarget.getBoundingClientRect();
-                                void command({
-                                  kind: "click",
-                                  x:
-                                    ((e.clientX - r.left) *
-                                      e.currentTarget.naturalWidth) /
-                                    r.width,
-                                  y:
-                                    ((e.clientY - r.top) *
-                                      e.currentTarget.naturalHeight) /
-                                    r.height,
-                                });
-                              }}
-                            />
+                            <div className="interactive-bank-view">
+                              <img
+                                ref={browserImage}
+                                className={`live-screen ${canControl ? "controllable" : ""}`}
+                                src={`/api/runs/${current.id}/frame?t=${frameTick}`}
+                                width={1280}
+                                height={720}
+                                alt="Current automation browser"
+                                onLoad={(e) => {
+                                  const image = e.currentTarget;
+                                  if (image.naturalWidth && image.naturalHeight)
+                                    frameSize.current = { width: image.naturalWidth, height: image.naturalHeight };
+                                }}
+                                onError={() => setImageError(true)}
+                                onClick={(e) => {
+                                  if (!canInteract) return;
+                                  const r =
+                                    e.currentTarget.getBoundingClientRect();
+                                  void command({
+                                    kind: "click",
+                                    x:
+                                      ((e.clientX - r.left) *
+                                        frameSize.current.width) /
+                                      r.width,
+                                    y:
+                                      ((e.clientY - r.top) *
+                                        frameSize.current.height) /
+                                      r.height,
+                                  });
+                                }}
+                              />
+                              {canInteract &&
+                                current.mode === "recording" &&
+                                current.recording?.focused && (
+                                  <BankFieldEditor
+                                    key={`${current.id}-${current.recording.focused.document}-${current.recording.focused.name}`}
+                                    field={current.recording.focused}
+                                    commit={(text) => {
+                                      void command({ kind: "type", text });
+                                    }}
+                                  />
+                                )}
+                            </div>
                           ) : (
                             <div className="empty-session">
                               <Monitor size={40} />
@@ -882,7 +923,7 @@ export default function LiveWorkspace() {
                               <p>
                                 {current.status === "running"
                                   ? current.mode === "recording"
-                                    ? "Demonstrate the workflow using the image and parameter controls below."
+                                    ? "Click and type in the bank. Stop recording to review the reusable inputs."
                                     : "The engine owns this browser. Request control to pause at the next safe action boundary."
                                   : "The run has finished. Inspect its outputs and evidence below."}
                               </p>

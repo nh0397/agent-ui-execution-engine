@@ -44,7 +44,7 @@ class Invocation(BaseModel):
 
 class OperatorCommand(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    kind: Literal["click", "type", "key", "scroll", "resume", "abort", "request_control", "finish"]
+    kind: Literal["click", "type", "key", "scroll", "resume", "abort", "request_control", "finish", "stop_recording", "continue_recording"]
     x: float = Field(default=0, ge=0, le=4096, allow_inf_nan=False)
     y: float = Field(default=0, ge=0, le=4096, allow_inf_nan=False)
     text: str = Field(default="", max_length=1000)
@@ -52,6 +52,7 @@ class OperatorCommand(BaseModel):
     parameter_key: str = Field(default="", max_length=50)
     success_name: str = Field(default="", max_length=150)
     output_bindings: dict[str, str] = Field(default_factory=dict)
+    input_names: dict[str, str] = Field(default_factory=dict)
     delta: int = Field(default=0, ge=-1000, le=1000)
 
 
@@ -283,7 +284,7 @@ def create_app(root: Path | None = None):
                 raise HTTPException(409, "Control is already with the human")
             control.takeover.set()
             return {"accepted": True, "message": "Will pause at the next safe action boundary"}
-        if command.kind == "finish" and job["mode"] != "recording":
+        if command.kind in {"finish", "stop_recording", "continue_recording"} and job["mode"] != "recording":
             raise HTTPException(409, "Finish is only available while recording")
         if command.kind == "abort":
             control.cancel.set()
@@ -292,6 +293,8 @@ def create_app(root: Path | None = None):
             return {"accepted": True}
         if control.state["owner"] != "human":
             raise HTTPException(409, "The engine currently owns the session")
+        if job['mode']=='recording' and control.recording.get('reviewing') and command.kind not in {'finish','continue_recording','stop_recording'}:
+            raise HTTPException(409, "Recording is stopped for review")
         try:
             control.commands.put_nowait({**command.model_dump(), "operator_id": operator["id"]})
         except queue.Full:

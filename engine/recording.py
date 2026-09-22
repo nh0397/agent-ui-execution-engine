@@ -58,6 +58,9 @@ def record(name, description, profile, entry, directory, draft_path, control, su
     evidence = Evidence(Path(directory) / run_id, [])
     surface = (surface_factory or BrowserSurface)(Policy(profile), evidence)
     surface.owner = 'human'
+    surface.recording_viewport = True
+    reviewing = False
+    automatic_keys = {}
     actions, inputs, values = [], {}, {}
     journal = CaptureJournal(surface, evidence)
     result = Result(status='failure', code='Recording aborted', run_id=run_id, human_assisted=True)
@@ -67,7 +70,7 @@ def record(name, description, profile, entry, directory, draft_path, control, su
         control.frame = surface.frame()
         control.state = {'owner':'human','session_id':surface.session_id,'step':len(actions)}
         observation = surface.observe()
-        control.recording = {'steps':journal.entries, 'parameters':{k:p.model_dump() for k,p in inputs.items()},
+        control.recording = {'reviewing':reviewing, 'focused':surface.focused_recording_field() if hasattr(surface,'focused_recording_field') and not reviewing else None, 'steps':journal.entries, 'parameters':{k:p.model_dump() for k,p in inputs.items()},
             'headings':[c['name'] for c in observation['controls'] if c['role']=='heading'],
             'outputs':[c['name'] for c in observation['controls'] if c['readonly']], 'error':''}
     try:
@@ -86,7 +89,19 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                 continue
             command = control.commands.get_nowait()
             try:
+                if command['kind'] in {'stop_recording','continue_recording'}:
+                    reviewing = command['kind']=='stop_recording'
+                    evidence.event('recording_review' if reviewing else 'recording_resumed')
+                    publish()
+                    continue
+                if reviewing and command['kind'] != 'finish':
+                    raise PolicyError('Recording stopped for review; continue recording to interact')
                 if command['kind']=='finish':
+                    renamed=command.get('input_names',{})
+                    if set(renamed)-set(inputs):raise PolicyError('Unknown input name')
+                    names={key:renamed.get(key,key) for key in inputs}
+                    if len(set(names.values()))!=len(names) or any(not re.fullmatch(r'[a-z][a-z0-9_]{0,49}',v) for v in names.values()):
+                        raise PolicyError('Input names must be unique lowercase identifiers')
                     success=Target(by='role',role='heading',name=command['success_name'])
                     if not surface.visible(success):
                         raise PolicyError('Select the visible terminal success heading')
@@ -100,7 +115,7 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                         if not surface.visible(target) or not surface.target(target).evaluate('e=>!!e.readOnly'):
                             raise PolicyError('Outputs must be visible readonly result fields')
                         value=surface.target(target).input_value()
-                        outputs[key]=Parameter(sensitive=True, equals_input=key if key in inputs else None)
+                        outputs[key]=Parameter(sensitive=True, equals_input=names[key] if key in inputs else None)
                         if key in values and values[key] != value:
                             raise PolicyError('Saved output does not match its input parameter')
                         extracted[key]=value
@@ -108,8 +123,8 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                     if not outputs or not actions:
                         raise PolicyError('Record actions and select at least one output before finishing')
                     validate_values(outputs,extracted)
-                    cap=Capability(name=name,description=description,inputs=inputs,outputs=outputs,success=success,
-                        version=1,app=profile.app,app_version=profile.version,steps=actions+reads,
+                    cap=Capability(name=name,description=description,inputs={names[k]:v for k,v in inputs.items()},outputs=outputs,success=success,
+                        version=1,app=profile.app,app_version=profile.version,steps=[a.model_copy(update={"input_key":names[a.input_key]}) if a.kind=="fill" else a for a in actions]+reads,
                         discovery_run=run_id,source='human',recording_actor=recording_actor)
                     text=cap.model_dump_json(indent=2)
                     if evidence.clean(text)!=text:
@@ -122,16 +137,28 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                 action=None
                 kind=command['kind']
                 if kind=='type':
-                    key=command.get('parameter_key','')
-                    if not re.fullmatch(r'[a-z][a-z0-9_]{0,49}',key):
-                        raise PolicyError('Choose a parameter name before entering a field')
                     target,descriptor=surface.recording_target(command)
+                    key=command.get('parameter_key','')
+                    automatic=not key
+                    identity=(surface.document_id,target.name)
+                    if automatic:
+                        key=automatic_keys.get(identity)
+                        if not key:
+                            base=re.sub(r'[^a-z0-9]+','_',target.name.lower()).strip('_')[:40] or 'field'
+                            if not base[0].isalpha():base='field_'+base
+                            key=base
+                            suffix=2
+                            while key in inputs:
+                                key=f'{base}_{suffix}';suffix+=1
+                            automatic_keys[identity]=key
+                    if not re.fullmatch(r'[a-z][a-z0-9_]{0,49}',key):
+                        raise PolicyError('Invalid input name')
                     if not descriptor['editable']:
                         raise PolicyError('Select an editable text field first')
                     value=command['text']
                     parameter=Parameter(sensitive=True,pattern=descriptor['pattern'])
                     validate_values({key:parameter},{key:value})
-                    if key in values and values[key]!=value:
+                    if not automatic and key in values and values[key]!=value:
                         raise PolicyError('Use a new parameter name for a different example value')
                     # All human examples are sensitive; learned selectors must never contain them.
                     evidence.secrets.append(value)
@@ -150,7 +177,13 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                     surface.target(target).click()
                     if not descriptor['field']:
                         action=Action(kind='click',target=target,reason='Human activated control')
-                elif kind=='scroll' or (kind=='key' and command.get('key')=='Tab'):
+                elif kind=='scroll':
+                    surface.operator_action(command)
+                    surface.pump_events()
+                    evidence.event('human_scroll', delta=command['delta'])
+                    publish()
+                    continue
+                elif kind=='key' and command.get('key')=='Tab':
                     before=journal.capture('before')
                     surface.operator_action(command)
                 else:
@@ -158,7 +191,10 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                 surface.assert_policy()
                 after=journal.capture('after')
                 journal.append(command,before,after,action)
-                if action:actions.append(action)
+                if action:
+                    if action.kind=='fill' and actions and actions[-1].kind=='fill' and actions[-1].input_key==action.input_key:
+                        actions[-1]=action
+                    else:actions.append(action)
                 publish()
             except (PolicyError,ValueError) as exc:
                 control.recording['error']=evidence.clean(str(exc))

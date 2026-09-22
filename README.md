@@ -308,10 +308,10 @@ When discovery needs arbitrary manual recovery, the run can resume, but it will 
 
 Human demonstration is a second authoring path alongside LLM discovery. Both produce the same replay contract; human recordings are labeled separately.
 
-1. Choose **New workflow > Record workflow**, name it, and start recording.
-2. Click a field inside the live image. Enter its parameter name (for example `customer_id`) and an example value in the side panel, then click **Fill parameter**. This replaces the field value and records a parameter binding, not the example.
-3. Click application buttons and links to continue. Each supported click, field fill, Tab, or scroll produces redacted before/after screenshots. A field fill is one input event; individual keystrokes and other applications are not recorded.
-4. At the result screen, select its success heading and name the readonly output fields. Reuse input names for outputs that must equal the supplied values. Select **Finish and review recording**.
+1. Choose **Learn a new workflow > Record workflow**, name it, and start recording.
+2. Click a bank field and type in its inline editor. Enter or leaving the field applies the text; names are inferred automatically. No parameter setup is required during capture.
+3. Click application buttons and links to continue. Clicks and field fills capture masked viewport screenshots. Scrolling is logged without taking screenshots. A field fill is one input event; individual keystrokes and other applications are not recorded.
+4. At the result screen, select **Stop recording & review**. Review or rename the inferred inputs and verify the suggested success heading and readonly output bindings. Select **Finish and review recording** to save the draft. Continue recording if the result is incomplete.
 5. Inspect the draft actions and screenshots, then **Publish reviewed workflow**. Download the step document and images as a ZIP if needed. Drafts never appear as runnable capabilities before publication.
 6. Choose the workflow in **Saved workflows > Replay with new inputs**. The input form is generated from its schema. The engine validates inputs and replays without model decisions.
 
@@ -330,3 +330,7 @@ The desktop workspace gives the browser the main area and opens chat through the
 ### Cedar Bank service requests
 
 The existing bank includes **Service requests** at `/requests`, with statement-copy, card-replacement, and transaction-dispute cases. Each request references an existing customer and an owned account, card, or transaction. Staff review before submission and track New → In review → Resolved with notes and a status history. Three seeded synthetic examples remain stable across restarts. Customer profiles link to their request history. Submission is idempotent and status updates reject stale revisions. These cases track servicing work; they do not generate statements, issue cards, or refund transactions. Automation uses the same HTML forms; request submission and status changes are protected writes in the application policy.
+
+### Demonstration recording
+
+During human recording, click a bank field and type in the inline editor. Press Enter or leave the field to apply the value before the next browser action. Input names are inferred from field labels; **Stop recording & review** pauses capture and lets you rename these inputs and review the inferred success/output checks before publishing. **Continue recording** returns to the same session; **Cancel run** discards completion but retains evidence. Text values remain in memory and saved images are masked. Scrolling is logged without screenshot capture; click/fill evidence captures the viewport rather than the entire page. This is a controlled text-field editor over a remote browser view, not unrestricted native keyboard forwarding. Passwords and unsupported control types remain excluded.

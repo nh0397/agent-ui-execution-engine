@@ -34,3 +34,10 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 - Full regression: 64 tests passed; request tests passed again after stabilizing status-history ordering.
 - Real Playwright UI check created statement request REQ-00B86C3A64FF for C-1002 / AC-10002, submitted the review, changed status to In review with a staff note, and located it through customer request history. No browser errors. This was a scripted UI verification, not human or LLM discovery evidence.
 - New tests cover all three request types, linked-resource ownership, invalid CSRF, denied writes, duplicate submission, stale status updates, and persistence across restart. Verified locally with SQLite; this change was not exercised on PostgreSQL.
+
+## Demonstration-first recording (2026-09-21)
+
+- Added inline text entry with inferred input names, explicit Stop recording & review / Continue recording, and post-capture input renaming. Legacy explicit bindings remain an advanced option.
+- Full-stack test covers correcting an entered value, stopping capture, renaming the inferred input, preserving its output equality check, publishing, and replaying another account. Persisted run JSON excludes the entered account value. This is scripted test evidence, not a person-operated handoff claim.
+- Reduced recording overhead by capturing masked viewport images and logging scrolling without image capture. Each published state uses a current browser frame; the live screencast continues between steps. No latency guarantee is claimed.
+- Validation: 57 non-dashboard tests passed in the full regression run; after fixing image-refresh coordinate mapping, all 8 dashboard tests passed. TypeScript checks and the production build passed. The inline test also exercises zero intrinsic image dimensions during frame replacement.

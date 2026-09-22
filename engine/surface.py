@@ -63,7 +63,8 @@ class BrowserSurface:
         """Chromium screencast for the authenticated live view; never saved as evidence."""
         channel = self.context.new_cdp_session(self.page)
         def receive(event):
-            on_frame(base64.b64decode(event['data']))
+            self._live_frame = base64.b64decode(event['data'])
+            on_frame(self._live_frame)
             channel.send('Page.screencastFrameAck', {'sessionId': event['sessionId']})
         channel.on('Page.screencastFrame', receive)
         channel.send('Page.startScreencast', {'format':'jpeg', 'quality':70, 'everyNthFrame':1})
@@ -238,6 +239,21 @@ class BrowserSurface:
             raise PolicyError("Recording target is missing or ambiguous")
         return target, descriptor
 
+    def focused_recording_field(self):
+        # Geometry and labels only. Field values stay inside the live browser.
+        field = self.page.evaluate("""() => {
+            const e=document.activeElement;
+            if (!e || !e.matches('input,textarea') || e.readOnly || e.disabled) return null;
+            if(e.tagName==='INPUT' && !['text','search','tel','email','url','number'].includes(e.type)) return null;
+            const name=e.labels?.[0]?.textContent.trim() || e.getAttribute('aria-label');
+            if (!name) return null;
+            const r=e.getBoundingClientRect();
+            return {name,x:r.x,y:r.y,width:r.width,height:r.height,viewportWidth:innerWidth,viewportHeight:innerHeight};
+        }""")
+
+        if field: field["document"] = self.document_id
+        return field
+
     def redacted_frame(self):
         # Mask values and annotated private regions before generating any image bytes.
         # Frames/canvas may contain pixels without inspectable text, so mask them entirely.
@@ -248,7 +264,7 @@ class BrowserSurface:
           }
         }""", self.evidence.secrets)
         try:
-            return self.page.screenshot(type="png", timeout=15000, full_page=True, mask_color="#203047",
+            return self.page.screenshot(type="png", timeout=15000, full_page=not getattr(self, "recording_viewport", False), mask_color="#203047",
                 mask=[self.page.locator('input,textarea,select,[data-sensitive],[data-capture-mask],iframe,canvas,video')])
         finally:
             self.page.evaluate("document.querySelectorAll('[data-capture-mask]').forEach(e=>e.removeAttribute('data-capture-mask'))")
