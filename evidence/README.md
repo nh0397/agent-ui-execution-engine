@@ -19,6 +19,6 @@ Start with **[groq-e2e/manifest.json](groq-e2e/manifest.json)** for the final Gr
 
 The manifest links actual run IDs and the capability hash. Groq runs used the local SQLite bank. Existing **e2e/** and **docker-e2e/** contain genuine earlier Ollama discovery and paired replays; docker-e2e used PostgreSQL. Other scripted recorder/operator evidence is explicitly labeled. It is never a substitute for model discovery or actual human participation.
 
-A person-operated final takeover/resume demonstration remains pending until recorded and verified. The same-session mechanism is exercised by automated tests. See [verification notes](VERIFICATION.md) and [submission status](../SUBMISSION_STATUS.md).
+A person-operated final takeover/resume demonstration remains pending until recorded and verified. The same-session mechanism is exercised by automated tests. See [verification notes](VERIFICATION.md).
 
 Published run evidence redacts configured sensitive values. Only synthetic example inputs are checked into config/. Private API keys, conversation databases, browser session state and raw live images are excluded.

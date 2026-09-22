@@ -1,21 +1,22 @@
 # Agent UI Execution Engine
 
-Teach a task once. Run it again with different details.
+I built this project to turn repeated browser tasks into reusable workflows.
 
-People often repeat the same steps in an app: find a customer, open a form, change a value, and check that it saved. This project lets an AI learn those steps through a real browser. It saves the working steps as a workflow. Next time, the engine follows that workflow without asking an AI what to click.
+A staff member might open the same screens and fill the same form for hundreds of customers. I wanted an AI to learn that process once, then let ordinary code repeat it with different inputs. That avoids asking a model what to click on every run.
 
-You can also teach it by doing the steps yourself. A chat screen helps you find a saved workflow, supply the details, and review the task before it runs.
+My engine gives a model a goal and lets it operate a real Chromium browser. After the result is verified, it saves the steps, required inputs, expected outputs, and success checks. A later run follows those steps without model decisions. I also added manual workflow recording, live browser viewing, and human takeover for actions that need approval.
 
-**Recording a demo for the first time? Follow [the exact screen-recording walkthrough](DEMO.md).** It gives you the clicks, test values, expected results, and a short explanation to say at each step. Start with AI discovery, then replay, human takeover, and error handling. Manual workflow recording is an optional second teaching method.
+I built **Cedar Bank**, a separate application with synthetic customers, accounts, cards, and service requests, to test the engine. No real bank accounts or money are involved.
 
-The project includes **Cedar Bank**, a small banking app with made-up customers. It gives the automation something real to operate. No real bank accounts or money are involved.
+The sections below explain what I built and how to run the same examples yourself.
 
 ![The chat screen, with a message box and buttons for choosing, discovering, and recording workflows](docs/images/chat.png)
 
-These are screenshots of the running app, captured on September 22, 2026. Counts, saved workflows, and model usage will differ on your machine. Screenshots of setup screens do not prove that a workflow has run; the actual run records are in [evidence](evidence/README.md).
+I captured these screenshots from the running app. Your saved workflows and usage counts will differ. The actual discovery and replay logs are in [evidence](evidence/README.md).
 
 ## Find what you need
 
+- [Try the main features](#try-the-main-features)
 - [Install and start the app](#install-and-start-the-app)
 - [Set up the AI provider](#set-up-the-ai-provider)
 - [Try your first task](#try-your-first-task)
@@ -29,7 +30,59 @@ These are screenshots of the running app, captured on September 22, 2026. Counts
 - [Where things are saved](#where-things-are-saved)
 - [How it works](#how-it-works)
 - [Test and troubleshoot](#test-and-troubleshoot)
-- [What is complete and what is limited](#what-is-complete-and-what-is-limited)
+- [What I built and tested](#what-i-built-and-tested)
+
+## Try the main features
+
+Start the app using the installation steps below. These examples use the same address workflow so you can compare learning, replay, and human approval without changing tasks.
+
+### Learn a new workflow
+
+1. Click **Discover a workflow**.
+2. Enter this goal: `Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output.`
+3. Use customer `C-104`, street `41 Example Avenue`, city `Sampletown`, and postal code `12345`.
+4. Choose **Normal operation** and check **Authorize changes for this synthetic run**.
+5. Click **Start discovery**. Watch the model operate the bank through the managed browser.
+6. After success, open **Tools → Saved workflows** to inspect the learned steps and input/output definitions.
+
+This uses the configured model. Discovery can take several minutes and can fail; inspect the result before treating a workflow as learned. The built-in discovery contract is for address changes.
+
+### Repeat it for another customer
+
+1. Return to chat and send: `Update the mailing address for customer C-205 to 52 Example Road, Testville, postal code 23456.`
+2. Select **Use this workflow** on the learned address workflow.
+3. Review all values, authorize the synthetic change, and click **Run workflow**.
+4. Open **Tools → Past runs**. The replay should show zero model decisions.
+
+Chat matching and input extraction can call the model. The subsequent replay does not. To avoid model calls entirely, select the workflow through **Tools → Saved workflows** and enter the values manually.
+
+### Approve a change yourself
+
+1. Open **Tools → Learn a new workflow**, select **Replay capability**, and choose the learned address workflow.
+2. Use `C-306`, `63 Review Lane`, `Exampleton`, and `34567`.
+3. Leave **Authorize changes for this synthetic run** unchecked. Click **Start replay**.
+4. When the engine pauses at the review screen and gives you control, click **Save address inside the managed browser**.
+5. Wait for **Address updated**, then click **Resume automation**. The engine should verify the result and finish.
+
+Use the same managed session, not the separate Cedar Bank tab. The handoff expires after five minutes. **Cancel run** stops an attempt; it does not undo changes already saved.
+
+### Try an expected outcome and a runtime error
+
+- **Missing customer:** replay with `C-999`, `74 Example Street`, `Sampletown`, and `45678`, using Normal operation. Expect a `business_outcome` for Customer not found, without an address save.
+- **Recoverable search failure:** replay with `C-205`, `85 Example Avenue`, `Testville`, and `56789`. Choose the transient-search-failure scenario and authorize the save. Expect one known recovery action followed by normal execution.
+- **Permission denied:** use the same valid inputs with the permission-denied scenario. Expect a failure with evidence, not an attempt to bypass access controls.
+
+These faults are deliberately injected by the demo bank. They show how I separated expected results, known recovery paths, and hard failures.
+
+### Teach a balance inquiry by hand
+
+1. Choose **Record a workflow**, name it `Look up an account balance`, and start recording.
+2. In the managed browser, open **Accounts**, fill Account ID with `AC-10002`, apply the field value, click **Search accounts**, then **Open account**.
+3. At **Account balance verified**, choose **Stop recording & review**.
+4. Check the inferred input, success heading, and returned fields. Choose **Finish and review recording**, then **Publish reviewed workflow**.
+5. Replay it with `AC-10003`.
+
+This is a human-authored workflow, not model discovery. It is an alternative way to teach the engine; it is not required before running discovery.
 
 ## Install and start the app
 
@@ -625,9 +678,6 @@ start.ps1             Docker startup
 start-local.ps1       Windows local startup
 compose.yaml          Docker services and volumes
 REPORT.md             Design decisions and tradeoffs
-STORYLINE.md          Suggested demonstration walkthrough
-FINAL_AUDIT.md        Requirement and evidence checklist
-AGENTS.md             Development decisions and working instructions
 ```
 
 For a different web application, add its task specification and safety profile, then test the browser adapter against its pages. Desktop control and tenant deployment are extension designs, not implemented products. The surface adapter is separate from workflow and replay logic so another adapter can be added later.
@@ -723,13 +773,13 @@ docker compose up -d --force-recreate app
 | 403 from the API | Use an allowed Origin, the session cookie, and the returned CSRF token. |
 | New code is not visible | Rebuild frontend assets; restart the backend for Python changes. Rebuild Docker images for container code changes. |
 
-## What is complete and what is limited
+## What I built and tested
 
-The project includes real model discovery, saved workflows, model-free replay, manual recording, chat history, model usage accounting, live browser viewing, same-session takeover controls, runtime error handling, and evidence exports.
+I implemented model-driven discovery, saved workflows, model-free replay, manual recording, chat history, model usage accounting, live browser viewing, same-session takeover controls, runtime error handling, and evidence exports.
 
-The checked-in evidence includes a genuine 15-action Groq discovery and six replays covering normal and failure scenarios with model transport blocked. Earlier local-model and Docker evidence is also preserved. Failed discovery attempts are kept and explained rather than hidden. See [the evidence index](evidence/README.md) and [verification notes](evidence/VERIFICATION.md).
+I verified a genuine 15-action Groq discovery and six replays covering normal and failure scenarios with model transport blocked. I kept the earlier local-model and Docker evidence, along with failed discovery attempts and their outcomes. See [the evidence index](evidence/README.md) and [verification notes](evidence/VERIFICATION.md).
 
-The remaining demonstration gap is a successful **person-operated** takeover recording. Automated tests verify the mechanism, but they are not proof that a person completed it. A prepared live handoff expired without human actions and is labeled that way.
+I tested takeover and resume with scripted browser tests. I have not yet included a successful person-operated takeover run. The saved live handoff attempt expired without human actions; I do not count it as successful human evidence.
 
 Other limits to understand:
 
@@ -742,4 +792,4 @@ Other limits to understand:
 - Arbitrary manual recovery during discovery cannot quietly become missing replay steps. Resolve the obstruction and rediscover when needed; manual completion of the selected protected save is supported.
 - Saved workflows assume a fairly stable UI. Version and revalidate them when the target app changes.
 
-For the reasoning behind these choices, read [REPORT.md](REPORT.md). For a presentation sequence, read [STORYLINE.md](STORYLINE.md).
+I explain the design choices and tradeoffs in [REPORT.md](REPORT.md).

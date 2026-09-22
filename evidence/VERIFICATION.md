@@ -84,7 +84,7 @@ Final regression: 42 tests passed, with two dependency deprecation warnings. Typ
 
 ## Final PDF audit and Groq vertical slice
 
-- Rechecked all ten original PDF pages and saved FINAL_AUDIT.md. New evidence/groq-e2e contains a genuine successful 15-decision Groq discovery, six real new-capability replays with model transport blocked, and six failed discovery attempts encountered while fixing integration issues.
+- Rechecked all ten original PDF pages. New evidence/groq-e2e contains a genuine successful 15-decision Groq discovery, six real new-capability replays with model transport blocked, and six failed discovery attempts encountered while fixing integration issues.
 - Replays verified all requested output values locally. Published sensitive outputs remain redacted. Not-found is a business outcome; permission denial is a failure with structural snapshot; transient and uncertain-save cases each have one explicit recovery action; slow loading succeeds.
 - Genuine live catalog chat selected groq-address-v1 and extracted all four supplied fields exactly in two model requests, without executing a bank task.
 - Fixed normalized rendered link names, explicit current-document input-binding state, pre-request capacity waiting, and Windows UTF-8 artifact decoding. A submitted provider rejection still stops; pacing cannot retry a UI action. Browser action timeout is bounded at ten seconds.
