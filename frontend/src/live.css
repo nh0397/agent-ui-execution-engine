@@ -769,9 +769,9 @@
 
 /* Explicit chat boundary and visible action hierarchy. */
 .chat-product { background:#f3f6f4; }
-.chat-product .task-desktop { max-width:1000px; }
+.chat-product .task-desktop { width:100%; max-width:none; }
 .chat-main .agent-panel {
-  box-sizing:border-box; max-width:900px; margin:16px auto;
+  box-sizing:border-box; width:100%; max-width:none; margin:16px 0;
   height:calc(100dvh - 112px); min-height:640px; padding:18px;
   border:2px solid #a8bdb0; border-radius:18px; background:#fff;
   box-shadow:0 8px 28px #183d2a0c;
@@ -811,3 +811,14 @@
  .chat-main .chat-thread { max-height:55vh; }
  .chat-main .agent-panel.has-messages .chat-thread { min-height:240px; }
 }
+
+/* Use the available workspace and keep the confirmation readable. */
+.chat-main .agent-match dl { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin:16px 0 22px; }
+.chat-main .agent-match dl > div { padding:12px; border:1px solid #d4e1d8; border-radius:8px; background:white; min-width:0; }
+.chat-main .agent-match dt { color:#50675a; font-size:12px; margin-bottom:6px; }
+.chat-main .agent-match dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
+.chat-main .agent-match > label { display:flex; align-items:center; gap:8px; margin:14px 0 8px; }
+.chat-main .agent-match > p { line-height:1.5; margin:8px 0 16px; }
+.chat-main .agent-match > .button { margin-top:4px; }
+.chat-main .workflow-mode { font-size:12px; font-weight:650; color:#325a43; }
+@media(max-width:600px) { .chat-main .agent-match dl { grid-template-columns:1fr; gap:8px; } }

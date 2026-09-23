@@ -107,3 +107,7 @@ Final live checks: CLI replay against Docker/PostgreSQL succeeded (15 actions). 
 - Chat prepares supported address discovery after no saved match, extracts supplied values, collects missing fields in the conversation, and requires explicit confirmation. Manual setup remains available. No saved capability is invented during preparation.
 - Twelve catalog/API tests passed. Thirteen dashboard tests passed, including full/partial requests, no execution before confirmation, draft restoration without write approval, and discovery dispatch with the reviewed values. Model and run dispatch doubles in these tests are not genuine discovery evidence.
 - TypeScript and production build passed. A live Groq preparation check used two model requests, correctly extracted all four values from an address-change message, and started no browser run. No banking writes were performed by that check.
+
+## Full-width chat
+- Removed the desktop chat width cap and laid out reviewed input values as readable cards. Confirmation identifies new discovery separately from saved-workflow replay. An empty catalog is stated on the landing screen.
+- TypeScript and production build passed. Live presentation checks measured 1872px chat width on a 1920px viewport and no horizontal overflow at 390px. Twelve dashboard tests passed on the first run; one browser crashed during fixture setup and passed when rerun alone. No model calls or banking changes were needed for these checks.

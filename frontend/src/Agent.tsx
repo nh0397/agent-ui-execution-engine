@@ -227,7 +227,7 @@ export function Agent({
           <h2>{messages.length ? "Let’s get this done." : "What would you like to do?"}</h2></div>
         {messages.length > 0 && <button className="button secondary" disabled={busy || !history.ready} onClick={newRequest} title="Start a separate saved conversation. Does not stop an active run.">New request</button>}
       </div>
-      {!messages.length && <p className="chat-intro">Tell me the activity and any customer, account, or card details you know. I’ll help you review everything before it runs.</p>}
+      {!messages.length && <p className="chat-intro">{catalog.length ? "Tell me the activity and any customer, account, or card details you know. I’ll help you review everything before it runs." : "No saved workflows yet. Describe an address change and I’ll help you teach the agent. You can also record a workflow yourself."}</p>}
       <div className="agent-conversation" role="log" aria-label="Conversation" aria-live="polite">
         {messages.map((message, index) => (
           <article
@@ -286,11 +286,12 @@ export function Agent({
       </div>}
       {selected && !missing && (
         <div className="agent-match">
+          <p className="workflow-mode">{selected.id === discoveryId ? "New workflow · AI will learn the steps" : "Saved workflow · Replay recorded steps"}</p>
           <h3>{selected.id === discoveryId ? "Ready to learn this address change" : "Ready when you are"}</h3>
           {!manual && <dl>
             {fields.map((field) => (
               <div key={field}>
-                <dt>{field}</dt>
+                <dt>{field.replaceAll("_", " ")}</dt>
                 <dd>{values[field]}</dd>
               </div>
             ))}
