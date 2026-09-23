@@ -34,13 +34,29 @@ def test_model_selection_must_reference_catalog(monkeypatch, ids, valid):
     async def response(self, url, **kwargs):
         sent = kwargs['json']
         assert 'steps' not in json.loads(sent['messages'][1]['content'])['catalog'][0]
-        return httpx.Response(200, request=httpx.Request('POST', 'http://local/api/chat'), json={'message': {'content': json.dumps({'choice': ids[0] if ids else 'NO_MATCH'})}})
+        return httpx.Response(200, request=httpx.Request('POST', 'http://local/api/chat'), json={'message': {'content': json.dumps({'choice': ids[0] if ids else 'NO_MATCH', 'intent': 'use_workflow'})}})
     monkeypatch.setattr(httpx.AsyncClient, 'post', response)
     call = match_capabilities('change a mailing address', {'saved': fixture_capability()}, 'mistral:latest')
     if valid:
         assert asyncio.run(call)['matches'] == ids
     else:
         with pytest.raises(ValueError): asyncio.run(call)
+
+
+@pytest.mark.parametrize('intent', ['discover', 'use_workflow', 'invented'])
+def test_discovery_intent_is_typed_and_separate_from_saved_match(monkeypatch, intent):
+    import engine.catalog_agent as agent
+    async def response(payload):
+        assert 'intent' in payload['format']['required']
+        return {'message': {'content': json.dumps({'choice': 'saved', 'intent': intent})}}
+    monkeypatch.setattr(agent, 'chat', response)
+    call = match_capabilities('Learn an address change from scratch', {'saved': fixture_capability()}, 'test')
+    if intent == 'invented':
+        with pytest.raises(ValueError): asyncio.run(call)
+    else:
+        result = asyncio.run(call)
+        assert result['matches'] == ['saved']
+        assert result['intent'] == intent
 
 
 def test_extraction_rejects_invented_unknown_and_invalid_values(monkeypatch):

@@ -5,6 +5,9 @@ const discoveryId = "address-discovery";
 type DiscoverySpec = Pick<CatalogItem["capability"], "name" | "description" | "inputs" | "outputs">;
 const discoveryItem = (spec: DiscoverySpec): CatalogItem => ({id: discoveryId, capability: {...spec, version: 1, app: "customer-service", steps: [], discovery_run: ""}});
 type Message = { role: "you" | "agent"; text: string; matches?: string[] | null; run_id?: string };
+type MatchReply = { matches: string[]; catalog_count: number; intent?: "use_workflow" | "discover" };
+// Only triggers a model intent check for a draft follow-up; never chooses an execution mode.
+const mayRequestLearning = /\b(?:learn|discover|rediscover|discovery|from scratch|new workflow)\b/i;
 export function Agent({
   catalog,
   csrf,
@@ -82,10 +85,24 @@ export function Agent({
     item: CatalogItem,
     message: string,
     previous: Record<string, string>,
+    checkIntent = true,
   ) {
     setBusy(true);
     setRetryMessage(null);
     try {
+      if (checkIntent && item.id !== discoveryId && mayRequestLearning.test(message)) {
+        const routing = await request<MatchReply>("/agent/match", {
+          method: "POST", body: JSON.stringify({message}),
+        }, csrf);
+        if (routing.intent === "discover") {
+          const context = JSON.stringify({earlier_task: initialRequest, supplied_details: previous});
+          if (!await prepareDiscovery(message, context)) {
+            setSelected(null); setValues({}); setApproved(false); setNoMatch(false);
+            say("I can currently learn address changes. I can’t discover this task yet. You can record its steps instead; nothing has been run.");
+          }
+          return;
+        }
+      }
       const reply = await request<{ values: Record<string, string> }>(
         "/agent/inputs",
         {
@@ -124,7 +141,7 @@ export function Agent({
     say(
       `I'll use ${item.capability.name}. Let me pick up the details from your request.`,
     );
-    await readValues(item, initialRequest, {});
+    await readValues(item, initialRequest, {}, false);
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -149,6 +166,20 @@ export function Agent({
     }
     await findWorkflow(input);
   }
+  async function prepareDiscovery(input: string, context?: string) {
+    const prepared = await request<{supported: boolean; spec?: DiscoverySpec; values?: Record<string,string>}>(
+      "/agent/discovery", {method:"POST", body:JSON.stringify({message:input, context})}, csrf);
+    if (!prepared.supported || !prepared.spec) return false;
+    const item = discoveryItem(prepared.spec);
+    const extracted = prepared.values || {};
+    setDiscoveryDraft(item); setSelectedId(discoveryId); setValues(extracted);
+    setManual(false); setApproved(false); setNoMatch(false); setShowWorkflows(false);
+    const missingFields = Object.keys(item.capability.inputs).filter(key => !extracted[key]);
+    say(missingFields.length
+      ? `I can learn this address change. I still need ${missingFields.map(key=>key.replaceAll("_", " ")).join(", ")}. Reply here with those details.`
+      : "I’ll learn this from scratch in the browser. I have the address details—review them below and confirm when you’re ready.");
+    return true;
+  }
   async function findWorkflow(input: string) {
     setInitialRequest(input);
     setNoMatch(false);
@@ -156,20 +187,16 @@ export function Agent({
     setShowWorkflows(false);
     setBusy(true);
     try {
-      const reply = await request<{ matches: string[]; catalog_count: number }>(
+      const reply = await request<MatchReply>(
         "/agent/match",
         { method: "POST", body: JSON.stringify({ message: input }) },
         csrf,
       );
-      if (!reply.matches.length) {
-        const prepared = await request<{supported: boolean; spec?: DiscoverySpec; values?: Record<string,string>}>(
-          "/agent/discovery", {method:"POST", body:JSON.stringify({message:input})}, csrf);
-        if (prepared.supported && prepared.spec) {
-          const item = discoveryItem(prepared.spec);
-          const extracted = prepared.values || {};
-          setDiscoveryDraft(item); setSelectedId(discoveryId); setValues(extracted); setManual(false); setApproved(false);
-          const missingFields = Object.keys(item.capability.inputs).filter(key => !extracted[key]);
-          say(missingFields.length ? `I can learn this address change. I still need ${missingFields.map(key=>key.replaceAll("_", " ")).join(", ")}. Reply here with those details.` : "I can learn this address change. Check the details below and confirm to start the browser.");
+      if (!reply.matches.length || reply.intent === "discover") {
+        if (await prepareDiscovery(input)) return;
+        if (reply.intent === "discover") {
+          setNoMatch(false);
+          say("I can currently learn address changes. I can’t discover this task yet. You can record its steps instead; nothing has been run.");
           return;
         }
       }
@@ -273,7 +300,7 @@ export function Agent({
       </div>
       {noMatch && !selected && <div className="chat-next-step"><button className="button primary" disabled={busy || viewer} onClick={() => discover(initialRequest)}>Learn with the agent</button><button className="button secondary" disabled={busy || viewer} onClick={record}>Show the steps</button><p>You’ll review the setup before discovery or recording begins.</p></div>}
       {execution?.status === "running" && <p role="status" className="chat-execution">{execution.live?.owner === "human" ? "I need your help in the browser. Review the message there to continue." : "Working in the browser. You can watch each step alongside this conversation."}</p>}
-      {busy && <p role="status">{selected ? "Reading the details in your message…" : "Checking your saved workflows…"} The model may take a moment.</p>}
+      {busy && <p role="status">{selected ? "Reading the details in your message…" : "Understanding your request…"} The model may take a moment.</p>}
       {retryMessage !== null && !busy && (
         <button className="button secondary" onClick={() => selected ? void readValues(selected, retryMessage, values) : void findWorkflow(retryMessage)}>Retry last message</button>
       )}

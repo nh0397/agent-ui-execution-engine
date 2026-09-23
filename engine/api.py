@@ -91,6 +91,10 @@ class InputMessage(AgentMessage):
     capability_id: str
 
 
+class DiscoveryMessage(AgentMessage):
+    context: str = Field(default="", max_length=5000)
+
+
 def create_app(root: Path | None = None):
     root = Path(root or ROOT)
     if (root / ".browsers").exists():
@@ -273,14 +277,15 @@ def create_app(root: Path | None = None):
         return {**result, "catalog_count": len(saved)}
 
     @app.post("/api/agent/discovery")
-    async def prepare_discovery(body: AgentMessage, request: Request):
+    async def prepare_discovery(body: DiscoveryMessage, request: Request):
         session(request)
         from engine.catalog_agent import match_capabilities, extract_inputs
+        message = f"Earlier task context: {body.context}\nLatest user message: {body.message}" if body.context else body.message
         try:
-            selection = await match_capabilities(body.message, {"address-discovery": spec}, body.model)
+            selection = await match_capabilities(message, {"address-discovery": spec}, body.model)
             if not selection["matches"]:
                 return {"supported": False}
-            values = await extract_inputs(body.message, spec, body.model)
+            values = await extract_inputs(message, spec, body.model)
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):

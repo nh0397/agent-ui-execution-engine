@@ -397,18 +397,19 @@ def test_conversation_reload_restores_details_without_write_approval(dashboard,m
 
 
 @pytest.mark.parametrize("missing_postal", [False, True])
-def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatch, missing_postal):
+@pytest.mark.parametrize("explicit_discovery", [False, True])
+def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatch, missing_postal, explicit_discovery):
     # Model and dispatch doubles verify UI behavior, not genuine discovery evidence.
     import engine.catalog_agent as agent
     async def match(message, catalog, model):
-        return {"matches": ["address-discovery"] if "address-discovery" in catalog else [], "model_used":True}
+        return {"matches": ["address-discovery"] if "address-discovery" in catalog else (["example"] if explicit_discovery else []), "model_used":True, "intent":"discover" if explicit_discovery else "use_workflow"}
     async def extract(message, spec, model):
         if message == "94538": return {"postal":"94538"}
         return {"customer_id":"C-104", "street":"28 Maple Street", "city":"Fremont", **({} if missing_postal else {"postal":"94538"})}
     monkeypatch.setattr(agent, "match_capabilities", match)
     monkeypatch.setattr(agent, "extract_inputs", extract)
     page=dashboard
-    page.get_by_label("Message your assistant").fill("Update C-104 to 28 Maple Street, Fremont" + ("" if missing_postal else ", 94538"))
+    page.get_by_label("Message your assistant").fill(("Learn a new workflow from scratch: " if explicit_discovery else "") + "Update C-104 to 28 Maple Street, Fremont" + ("" if missing_postal else ", 94538"))
     page.get_by_role("button",name="Send message",exact=True).click()
     if missing_postal:
         expect(page.get_by_role("log",name="Conversation")).to_contain_text("I still need postal",timeout=10000)
@@ -417,6 +418,7 @@ def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatc
         page.get_by_role("button",name="Send message",exact=True).click()
     confirm=page.get_by_role("button",name="Confirm and start discovery",exact=True)
     expect(confirm).to_be_visible(timeout=10000)
+    expect(page.get_by_role("button",name="Use this workflow",exact=True)).to_have_count(0)
     expect(page.get_by_label("Workflow input customer_id")).to_have_count(0)
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]
     for _ in range(50):
@@ -440,6 +442,41 @@ def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatc
     assert submitted[0]["mode"]=="discovery"
     assert submitted[0]["inputs"]=={"customer_id":"C-104","street":"28 Maple Street","city":"Fremont","postal":"94538"}
     assert submitted[0]["approve_writes"] is True
+
+
+@pytest.mark.parametrize('supported', [True, False])
+def test_chat_can_switch_replay_draft_to_discovery_in_english(dashboard, monkeypatch, supported):
+    import engine.catalog_agent as agent
+    values = {'customer_id':'C-104','street':'75 Pine Street','city':'Fremont','postal':'94538'}
+    seen = []
+    async def match(message, catalog, model):
+        if 'address-discovery' in catalog:
+            seen.append(message)
+            return {'matches':['address-discovery'] if supported else [],'model_used':True}
+        return {'matches':['example'],'model_used':True,'intent':'discover' if 'from scratch' in message else 'use_workflow'}
+    async def extract(*args): return values
+    monkeypatch.setattr(agent,'match_capabilities',match)
+    monkeypatch.setattr(agent,'extract_inputs',extract)
+    page=dashboard
+    page.get_by_label('Message your assistant').fill('Update C-104 to 75 Pine Street, Fremont, postal 94538')
+    page.get_by_role('button',name='Send message',exact=True).click()
+    page.get_by_role('button',name='Use this workflow',exact=True).click()
+    expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_visible()
+    page.get_by_label('Authorize changes for this synthetic run').check()
+    page.get_by_label('Message your assistant').fill('Learn it from scratch instead')
+    page.get_by_role('button',name='Send message',exact=True).click()
+    if supported:
+        expect(page.get_by_role('button',name='Confirm and start discovery',exact=True)).to_be_visible()
+        expect(page.get_by_label('Authorize changes for this synthetic run')).not_to_be_checked()
+        for value in values.values():
+            expect(page.locator('.agent-match dd').get_by_text(value,exact=True)).to_be_visible()
+    else:
+        expect(page.get_by_role('log',name='Conversation')).to_contain_text('I can’t discover this task yet')
+        expect(page.get_by_role('button',name='Confirm and start discovery',exact=True)).to_have_count(0)
+    assert '75 Pine Street' in seen[0] and 'Latest user message: Learn it from scratch instead' in seen[0]
+    expect(page.get_by_role('button',name='Run workflow',exact=True)).to_have_count(0)
+    expect(page.get_by_label('Workflow input street',exact=True)).to_have_count(0)
+    assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]
 
 
 def test_balance_answer_uses_real_replay_and_stays_out_of_evidence(dashboard, monkeypatch):

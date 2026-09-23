@@ -38,13 +38,13 @@ Start the app using the installation steps below. These examples use the same ad
 
 ### Learn a new workflow
 
-1. Send this in chat: `Update the mailing address for customer C-104 to 28 Maple Street, Fremont, postal code 94538.`
-2. If no saved workflow matches, the assistant checks whether it can learn the task and extracts the values. It asks in chat for anything missing; you do not need to repeat the details in a setup form.
+1. Send this in chat: `Learn a new workflow from scratch: update the mailing address for customer C-104 to 28 Maple Street, Fremont, postal code 94538.`
+2. The assistant reads the details and prepares discovery, even if an address workflow is already saved. It asks in chat for anything missing; you do not need to repeat the details in a setup form.
 3. Review the short summary. Check **Authorize changes for this synthetic run** if you want it to perform the save without a handoff.
 4. Click **Confirm and start discovery**. Watch the model operate the bank through the managed browser.
 5. After success, open **Tools → Saved workflows** to inspect the learned steps and input/output definitions.
 
-If a matching workflow is already saved, chat offers replay instead. The separate **Discover a workflow** setup remains available when you explicitly want to learn another version or choose a runtime scenario.
+For an ordinary request such as “Update the mailing address…”, chat offers a saved workflow if one matches. Say “learn a new workflow from scratch” to ask for discovery instead. If you have already selected a saved workflow but have not started it, reply “Learn it from scratch instead”; the assistant keeps your supplied details and asks you to review again. The separate setup form is optional, for choices such as a runtime error scenario.
 
 This uses the configured model. Discovery can take several minutes and can fail; inspect the result before treating a workflow as learned. The built-in discovery contract is for address changes.
 
@@ -536,9 +536,9 @@ Open `/api/docs` for request fields, types, and schemas, or `/api/openapi.json` 
 | `GET /api/model/status` | Read usage and last observed limits without a model call. |
 | `GET /api/workflow-spec` | Read the built-in discovery input/output contract. |
 | `GET /api/capabilities` | List published workflows and their full contracts. |
-| `POST /api/agent/match` | Send `message`; suggest a saved capability. Does not execute it. |
+| `POST /api/agent/match` | Send `message`; suggest a saved capability and identify an explicit discovery request. Does not execute it. |
 | `POST /api/agent/inputs` | Send `message` and `capability_id`; extract supplied values. Use `address-discovery` for follow-up discovery inputs. Does not execute. |
-| `POST /api/agent/discovery` | Send `message`; check whether the address task is supported and return its specification and extracted values. Does not start a run. |
+| `POST /api/agent/discovery` | Send `message` and optional prior task `context`; check whether the address task is supported and return its specification and extracted values. Does not start a run. |
 | `POST /api/runs` | Start discovery, replay, or recording. |
 | `GET /api/runs` | List jobs, newest first. |
 | `GET /api/runs/{id}` | Read status, redacted result, events, and live control state. |
