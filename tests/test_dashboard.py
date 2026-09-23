@@ -64,12 +64,19 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
     page.get_by_label('Message your assistant').fill('Update the mailing address')
     page.get_by_role('button', name='Send message', exact=True).click()
     if not matched:
-        expect(page.get_by_text("I don't have a matching published workflow yet.", exact=False)).to_be_visible(timeout=10000)
-        page.get_by_role('button', name='Learn with the agent', exact=True).click()
-        expect(page.get_by_label('Goal', exact=True)).to_have_value('Update the mailing address')
-        page.locator('.chat-tools > summary').click()
-        page.get_by_role('button', name='Back to chat', exact=True).click()
-        page.get_by_role('button', name='Record a workflow', exact=True).click()
+        expect(page.get_by_text("I don’t have a saved workflow for that yet.", exact=False)).to_be_visible(timeout=10000)
+        assert page.request.get(page.url.rstrip('/')+'/api/runs').json() == []
+        for _ in range(50):
+            chats=page.request.get(page.url.rstrip('/')+'/api/conversations').json()
+            if chats and page.request.get(page.url.rstrip('/')+'/api/conversations/'+chats[0]['id']).json().get('teaching_mode')=='choose': break
+            page.wait_for_timeout(100)
+        else: raise AssertionError('Method question was not saved')
+        page.reload()
+        page.get_by_role('button', name='Learn it for me', exact=True).click()
+        expect(page.get_by_text('I can currently learn address changes on my own.',exact=False)).to_be_visible()
+        page.get_by_role('button', name='I’ll record the steps', exact=True).click()
+        expect(page.get_by_role('button',name='Start recording',exact=True)).to_have_count(0)
+        page.get_by_role('button',name='Return result details',exact=True).click()
         expect(page.get_by_role('button',name='Start recording',exact=True)).to_be_visible()
         return
     page.get_by_role('button', name='Use this workflow', exact=True).click()
@@ -256,6 +263,9 @@ def test_mouse_wheel_scrolls_managed_browser_not_dashboard(dashboard, monkeypatc
 
 def test_inline_recording_infers_inputs_and_stops_for_review(dashboard, monkeypatch):
     import engine.recording as recording
+    import engine.catalog_agent as agent
+    async def match(*args): return {'matches':[], 'model_used':False}
+    monkeypatch.setattr(agent,'match_capabilities',match)
     from engine.surface import BrowserSurface
     coords = {}
     class LocatedSurface(BrowserSurface):
@@ -265,10 +275,10 @@ def test_inline_recording_infers_inputs_and_stops_for_review(dashboard, monkeypa
             return super().frame()
     monkeypatch.setattr(recording,'BrowserSurface',LocatedSurface)
     page=dashboard
-    page.locator('.chat-tools > summary').click()
-    page.get_by_role('button',name='Learn a new workflow',exact=True).click()
-    page.get_by_role('button',name='Record workflow',exact=False).click()
-    page.get_by_label('Workflow name').fill('Natural balance recording')
+    page.get_by_label('Message your assistant').fill('Check an account balance')
+    page.get_by_role('button',name='Send message',exact=True).click()
+    page.get_by_role('button',name='I’ll record the steps',exact=True).click()
+    page.get_by_role('button',name='Just confirm it’s done',exact=True).click()
     page.get_by_role('button',name='Start recording',exact=True).click()
     expect(page.get_by_role('heading',name='You are recording')).to_be_visible(timeout=15000)
     base=page.url.rstrip('/')
@@ -317,6 +327,8 @@ def test_inline_recording_infers_inputs_and_stops_for_review(dashboard, monkeypa
     job=page.request.get(base+'/api/runs').json()[0]
     assert set(job['draft']['inputs']) == {'selected_account'}
     assert job['draft']['outputs']['account_id']['equals_input']=='selected_account'
+    assert job['draft']['return_details'] is False
+    assert job['draft']['name'] == 'Account balance verified'
     import json
     assert 'AC-4205' not in json.dumps(job)
     assert [a['input_key'] for a in job['draft']['steps'] if a['kind']=='fill']==['selected_account']
@@ -325,6 +337,10 @@ def test_inline_recording_infers_inputs_and_stops_for_review(dashboard, monkeypa
     page.get_by_label('Input selected_account').fill('AC-4306')
     page.get_by_role('button',name='Start replay',exact=True).click()
     expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
+    replay_job=page.request.get(base+'/api/runs').json()[0]
+    reply=page.request.get(base+'/api/runs/'+replay_job['id']+'/answer').json()['message']
+    assert reply=='Done — I completed and verified the task.'
+    assert replay_job['model_decisions']==0
 
 
 def test_chat_model_failure_allows_manual_recovery_without_execution(dashboard, monkeypatch):
@@ -363,7 +379,7 @@ def test_chat_keyboard_and_new_request_keep_execution_explicit(dashboard, monkey
     editor.press('a')
     assert seen==[]
     editor.press('Enter')
-    expect(page.get_by_text("I don't have a matching published workflow yet.",exact=False)).to_be_visible()
+    expect(page.get_by_text("I don’t have a saved workflow for that yet.",exact=False)).to_be_visible()
     assert seen==['Check an account\na']
     page.get_by_role('button',name='New request',exact=True).click()
     expect(editor).to_be_empty()
@@ -391,7 +407,7 @@ def test_conversation_reload_restores_details_without_write_approval(dashboard,m
     else:raise AssertionError('Conversation was not saved')
     page.reload()
     expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_enabled(timeout=10000)
-    expect(page.get_by_label('Workflow input street',exact=True)).to_have_value('92 Persistent Lane')
+    expect(page.locator('.agent-match dd').get_by_text('92 Persistent Lane',exact=True)).to_be_visible()
     expect(page.get_by_label('Authorize changes for this synthetic run')).not_to_be_checked()
     assert page.request.get(base+'/api/runs').json()==[]
 
@@ -408,22 +424,37 @@ def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatc
         return {"customer_id":"C-104", "street":"28 Maple Street", "city":"Fremont", **({} if missing_postal else {"postal":"94538"})}
     monkeypatch.setattr(agent, "match_capabilities", match)
     monkeypatch.setattr(agent, "extract_inputs", extract)
+    async def setup(message, stage, model):
+        return 'learn' if stage=='method' else 'details'
+    monkeypatch.setattr(agent, 'interpret_setup_reply', setup)
     page=dashboard
     page.get_by_label("Message your assistant").fill(("Learn a new workflow from scratch: " if explicit_discovery else "") + "Update C-104 to 28 Maple Street, Fremont" + ("" if missing_postal else ", 94538"))
     page.get_by_role("button",name="Send message",exact=True).click()
+    if not explicit_discovery:
+        expect(page.get_by_role('button',name='Learn it for me',exact=True)).to_be_visible()
+        expect(page.get_by_role('button',name='Confirm and start discovery',exact=True)).to_have_count(0)
+        # A free-text choice follows the same path as the buttons.
+        page.get_by_label('Message your assistant').fill('You figure out the steps for me')
+        page.get_by_role('button',name='Send message',exact=True).click()
     if missing_postal:
         expect(page.get_by_role("log",name="Conversation")).to_contain_text("I still need postal",timeout=10000)
         expect(page.get_by_role("button",name="Confirm and start discovery")).to_have_count(0)
         page.get_by_label("Message your assistant").fill("94538")
         page.get_by_role("button",name="Send message",exact=True).click()
     confirm=page.get_by_role("button",name="Confirm and start discovery",exact=True)
+    expect(page.get_by_role('button',name='Return result details',exact=True)).to_be_visible()
+    expect(confirm).to_have_count(0)
+    page.get_by_label('Message your assistant').fill('Yes, show me the result details')
+    page.get_by_role('button',name='Send message',exact=True).click()
     expect(confirm).to_be_visible(timeout=10000)
     expect(page.get_by_role("button",name="Use this workflow",exact=True)).to_have_count(0)
     expect(page.get_by_label("Workflow input customer_id")).to_have_count(0)
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json()==[]
     for _ in range(50):
         chats=page.request.get(page.url.rstrip('/')+'/api/conversations').json()
-        if chats and page.request.get(page.url.rstrip('/')+'/api/conversations/'+chats[0]['id']).json()['values'].get('postal')=='94538': break
+        if chats:
+            saved=page.request.get(page.url.rstrip('/')+'/api/conversations/'+chats[0]['id']).json()
+            if saved['values'].get('postal')=='94538' and saved.get('return_details') is True: break
         page.wait_for_timeout(100)
     else: raise AssertionError('Discovery draft not saved')
     page.reload()
@@ -442,6 +473,7 @@ def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatc
     assert submitted[0]["mode"]=="discovery"
     assert submitted[0]["inputs"]=={"customer_id":"C-104","street":"28 Maple Street","city":"Fremont","postal":"94538"}
     assert submitted[0]["approve_writes"] is True
+    assert submitted[0]['return_details'] is True
 
 
 @pytest.mark.parametrize('supported', [True, False])
@@ -466,6 +498,7 @@ def test_chat_can_switch_replay_draft_to_discovery_in_english(dashboard, monkeyp
     page.get_by_label('Message your assistant').fill('Learn it from scratch instead')
     page.get_by_role('button',name='Send message',exact=True).click()
     if supported:
+        page.get_by_role('button',name='Just confirm it’s done',exact=True).click()
         expect(page.get_by_role('button',name='Confirm and start discovery',exact=True)).to_be_visible()
         expect(page.get_by_label('Authorize changes for this synthetic run')).not_to_be_checked()
         for value in values.values():

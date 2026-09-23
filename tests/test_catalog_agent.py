@@ -116,3 +116,28 @@ def test_discovery_chat_prepares_without_execution(tmp_path, monkeypatch, suppor
             followup = client.post("/api/agent/inputs", json={"capability_id":"address-discovery", "message":"C-104"})
             assert followup.json()["values"] == {"customer_id":"C-104"}
         assert client.get("/api/runs").json() == []
+
+
+@pytest.mark.parametrize('stage,choice,valid', [('method','learn',True),('method','record',True),('result','confirmation',True),('result','details',True),('result','unclear',True),('method','details',False)])
+def test_setup_choice_is_valid_for_its_question(monkeypatch,stage,choice,valid):
+    import engine.catalog_agent as agent
+    async def response(payload):
+        return {'message':{'content':json.dumps({'choice':choice})}}
+    monkeypatch.setattr(agent,'chat',response)
+    call=agent.interpret_setup_reply('An answer',stage,'test')
+    if valid: assert asyncio.run(call)==choice
+    else:
+        with pytest.raises(ValueError): asyncio.run(call)
+
+
+def test_setup_answer_never_starts_a_run(tmp_path,monkeypatch):
+    import engine.catalog_agent as agent
+    async def choose(*args): return 'learn'
+    monkeypatch.setattr(agent,'interpret_setup_reply',choose)
+    monkeypatch.setenv('DASHBOARD_STORAGE',str(tmp_path))
+    with TestClient(create_app()) as client:
+        client.headers['Origin']='http://127.0.0.1:5174'
+        client.headers['X-CSRF-Token']=client.post('/api/session',json={'profile_id':'mira'}).json()['csrf']
+        assert client.post('/api/agent/setup',json={'message':'You figure it out','stage':'method'}).json()=={'choice':'learn'}
+        assert client.post('/api/agent/setup',json={'message':'yes','stage':'execute'}).status_code==422
+        assert client.get('/api/runs').json()==[]

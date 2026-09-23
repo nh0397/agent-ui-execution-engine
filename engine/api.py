@@ -52,6 +52,7 @@ class Invocation(BaseModel):
     name: str = Field(default="Recorded workflow", min_length=1, max_length=80)
     capability_id: str = "example"
     approve_writes: bool = False
+    return_details: bool | None = None
     scenario: Literal["normal", "slow", "transient", "session-expired", "permission-denied", "uncertain-save"] = "normal"
     model: Literal["mistral:latest", "llama3.1:latest"] = "mistral:latest"
 
@@ -93,6 +94,10 @@ class InputMessage(AgentMessage):
 
 class DiscoveryMessage(AgentMessage):
     context: str = Field(default="", max_length=5000)
+
+
+class SetupMessage(AgentMessage):
+    stage: Literal["method", "result"]
 
 
 def create_app(root: Path | None = None):
@@ -292,6 +297,17 @@ def create_app(root: Path | None = None):
             raise HTTPException(502, "I could not safely prepare this task. Please try again.")
         return {"supported": True, "spec": spec.model_dump(), "values": values}
 
+    @app.post("/api/agent/setup")
+    async def setup_reply(body: SetupMessage, request: Request):
+        session(request)
+        from engine.catalog_agent import interpret_setup_reply
+        try:
+            return {"choice": await interpret_setup_reply(body.message, body.stage, body.model)}
+        except (httpx.HTTPError, ModelError) as exc:
+            raise chat_error(exc) from None
+        except (ValueError, KeyError, TypeError):
+            raise HTTPException(502, "I couldn't understand that choice. Please try again or use one of the buttons.") from None
+
     @app.get("/api/runs/{job_id}")
     def run_detail(job_id: str, request: Request):
         session(request)
@@ -368,6 +384,8 @@ def create_app(root: Path | None = None):
         if invocation.mode == "replay" and cap_path is None:
             raise HTTPException(400, "Unknown capability")
         contract = Capability.model_validate_json(cap_path.read_text(encoding="utf-8")) if invocation.mode == "replay" else spec
+        if invocation.return_details is not None:
+            contract = contract.model_copy(update={"return_details": invocation.return_details})
         try:
             if invocation.mode != "recording":
                 validate_values(contract.inputs, invocation.inputs)
@@ -382,6 +400,7 @@ def create_app(root: Path | None = None):
         job_id = str(uuid.uuid4())
         job = {"id": job_id, "created": time.time(), "mode": invocation.mode, "status": "running", "code": "starting", "profile": person["name"], "owner_id": person["id"], "capability_id": invocation.capability_id, "scenario": invocation.scenario, "approve_writes": invocation.approve_writes, "name": invocation.name if invocation.mode == "recording" else contract.name}
         control = LiveControl()
+        job["return_details"] = contract.return_details
         with lock:
             jobs[job_id] = job
             controls[job_id] = control
@@ -394,7 +413,7 @@ def create_app(root: Path | None = None):
                 if invocation.mode == "recording":
                     from engine.recording import record
                     result = record(name=invocation.name, description=invocation.goal or invocation.name,
-                        draft_path=drafts / f"{job_id}.json", **options)
+                        draft_path=drafts / f"{job_id}.json", return_details=invocation.return_details, **options)
                 elif invocation.mode == "discovery":
                     from engine.discovery import discover
                     result = discover(contract, model=invocation.model, goal=invocation.goal, capability_path=artifacts / f"{job_id}.json", **options)

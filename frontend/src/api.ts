@@ -1,4 +1,5 @@
 export type Capability = {
+  return_details?: boolean | null;
   name: string;
   source?: "human" | "llm";
   recording_actor?: "human" | "automated_demo";
@@ -16,6 +17,7 @@ export type Capability = {
   discovery_run: string;
 };
 export type Run = {
+  return_details?: boolean | null;
   has_video?: boolean;
   id: string;
   draft?: Capability;

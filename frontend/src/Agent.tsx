@@ -8,33 +8,38 @@ type Message = { role: "you" | "agent"; text: string; matches?: string[] | null;
 type MatchReply = { matches: string[]; catalog_count: number; intent?: "use_workflow" | "discover" };
 // Only triggers a model intent check for a draft follow-up; never chooses an execution mode.
 const mayRequestLearning = /\b(?:learn|discover|rediscover|discovery|from scratch|new workflow)\b/i;
+const resultQuestion = "Would you like the verified result details back, or just a message confirming it’s done?";
 export function Agent({
   catalog,
   csrf,
   viewer,
   onRun,
-  record,
-  discover,
   runs,
 }: {
   catalog: CatalogItem[];
   csrf: string;
   viewer: boolean;
   onRun: (id: string) => void;
-  record: () => void;
-  discover: (goal: string) => void;
   runs: Run[];
 }) {
   const conversation = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
   const [chatRun, setChatRun] = useState<string | null>(null);
   const reported = useRef(new Set<string>());
-  const [noMatch, setNoMatch] = useState(false);
+  const [teachingMode, setTeachingMode] = useState<ChatSnapshot["teaching_mode"]>(null);
+  const [returnDetails, setReturnDetails] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   useEffect(() => {
     const pane = conversation.current;
     if (pane) pane.scrollTop = pane.scrollHeight;
   }, [messages]);
+  useEffect(() => {
+    const pane = conversation.current;
+    if (!pane) return;
+    const resize = new ResizeObserver(() => { pane.scrollTop = pane.scrollHeight; });
+    resize.observe(pane);
+    return () => resize.disconnect();
+  }, []);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [retryMessage, setRetryMessage] = useState<string | null>(null);
@@ -53,14 +58,17 @@ export function Agent({
   const setSelected = (item:CatalogItem|null) => setSelectedId(item?.id || null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [approved, setApproved] = useState(false);
-  const history = useConversationHistory({messages,selected_id:selectedId,values,initial_request:initialRequest,run_id:chatRun}, (saved:ChatSnapshot) => {
+  const history = useConversationHistory({messages,selected_id:selectedId,values,initial_request:initialRequest,run_id:chatRun,teaching_mode:teachingMode,return_details:returnDetails}, (saved:ChatSnapshot) => {
     setMessages(saved.messages);setSelectedId(saved.selected_id);setValues(saved.values);
     setInitialRequest(saved.initial_request);setChatRun(saved.run_id);setApproved(false);
-    setManual(!!saved.selected_id && saved.selected_id !== discoveryId);setNoMatch(false);setRetryMessage(null);setText("");setShowWorkflows(false);
+    setManual(false);setRetryMessage(null);setText("");setShowWorkflows(false);
+    setTeachingMode(saved.teaching_mode ?? (saved.selected_id === discoveryId ? "discovery" : null));
+    setReturnDetails(saved.return_details);
   }, csrf);
   const fields = Object.keys(selected?.capability.inputs || {});
   const awaitingChoice = !selected && !busy && !!messages.at(-1)?.matches?.length;
   const missing = fields.find((field) => !values[field]);
+  const needsResultChoice = returnDetails === null && (teachingMode === "recording" || (teachingMode === "discovery" && selected && !missing));
   const say = (message: string, matches?: string[]) =>
     setMessages((old) => [...old, { role: "agent", text: message, matches }]);
   const execution = runs.find((run) => run.id === chatRun);
@@ -97,7 +105,7 @@ export function Agent({
         if (routing.intent === "discover") {
           const context = JSON.stringify({earlier_task: initialRequest, supplied_details: previous});
           if (!await prepareDiscovery(message, context)) {
-            setSelected(null); setValues({}); setApproved(false); setNoMatch(false);
+            setSelected(null); setValues({}); setApproved(false); setTeachingMode("choose");
             say("I can currently learn address changes. I can’t discover this task yet. You can record its steps instead; nothing has been run.");
           }
           return;
@@ -121,7 +129,7 @@ export function Agent({
       say(
         remaining.length
           ? `What ${remaining.map((field) => field.replaceAll("_", " ")).join(", ")} should I use?`
-          : "I have the details. Please review them below before I run this workflow.",
+          : teachingMode === "discovery" && returnDetails === null ? resultQuestion : "I have the details. Please review them below before I run this workflow.",
       );
     } catch (error) {
       setRetryMessage(message);
@@ -133,7 +141,7 @@ export function Agent({
   }
   async function choose(item: CatalogItem) {
     setSelected(item);
-    setNoMatch(false);
+    setTeachingMode(null); setReturnDetails(null);
     setShowWorkflows(false);
     setManual(false);
     setValues({});
@@ -142,6 +150,41 @@ export function Agent({
       `I'll use ${item.capability.name}. Let me pick up the details from your request.`,
     );
     await readValues(item, initialRequest, {}, false);
+  }
+  async function chooseMethod(mode: "discovery" | "recording", echo = true) {
+    if (echo) setMessages(old => [...old, {role:"you", text: mode === "discovery" ? "Learn it for me." : "I’ll record the steps."}]);
+    setReturnDetails(null); setApproved(false); setRetryMessage(null); setShowWorkflows(false);
+    if (mode === "recording") {
+      setTeachingMode("recording"); setSelected(null); setValues({}); setManual(false);
+      say("You’ll show me the steps in the browser. " + resultQuestion);
+      return;
+    }
+    setBusy(true);
+    try {
+      if (!await prepareDiscovery(initialRequest)) {
+        setTeachingMode("choose");
+        say("I can currently learn address changes on my own. For this task, you can record the steps instead. Nothing has started.");
+      }
+    } catch (error) {
+      say((error as Error).message + " Choose an option below to try again; nothing has started.");
+    } finally { setBusy(false); }
+  }
+  function chooseResult(details: boolean, echo = true) {
+    if (echo) setMessages(old => [...old, {role:"you", text:details ? "Return the result details." : "Just confirm it’s done."}]);
+    setReturnDetails(details); setApproved(false);
+    say(details ? "This workflow will return its verified result details. Review below before starting." : "This workflow will confirm completion without showing result values. Review below before starting.");
+  }
+  async function answerSetup(input: string, stage: "method" | "result") {
+    setBusy(true);
+    try {
+      const reply = await request<{choice: "learn" | "record" | "details" | "confirmation" | "unclear"}>("/agent/setup", {
+        method:"POST", body:JSON.stringify({message:input,stage}),
+      }, csrf);
+      if (stage === "method" && (reply.choice === "learn" || reply.choice === "record")) await chooseMethod(reply.choice === "learn" ? "discovery" : "recording", false);
+      else if (stage === "result" && (reply.choice === "details" || reply.choice === "confirmation")) chooseResult(reply.choice === "details", false);
+      else say(stage === "method" ? "Should I learn the task, or would you like to record the steps? Choose below or tell me in your own words." : resultQuestion);
+    } catch (error) { say((error as Error).message + " You can also choose one of the buttons below."); }
+    finally { setBusy(false); }
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -155,9 +198,14 @@ export function Agent({
       setManual(false);
       setShowWorkflows(false);
       setValues({});
+      setTeachingMode(null); setReturnDetails(null); setApproved(false);
       say(
         "Cleared the draft request. This does not stop a running execution; use its Cancel run control. What would you like to do next?",
       );
+      return;
+    }
+    if (teachingMode === "choose" || needsResultChoice) {
+      await answerSetup(input, teachingMode === "choose" ? "method" : "result");
       return;
     }
     if (selected) {
@@ -173,16 +221,16 @@ export function Agent({
     const item = discoveryItem(prepared.spec);
     const extracted = prepared.values || {};
     setDiscoveryDraft(item); setSelectedId(discoveryId); setValues(extracted);
-    setManual(false); setApproved(false); setNoMatch(false); setShowWorkflows(false);
+    setManual(false); setApproved(false); setTeachingMode("discovery"); setReturnDetails(null); setShowWorkflows(false);
     const missingFields = Object.keys(item.capability.inputs).filter(key => !extracted[key]);
     say(missingFields.length
       ? `I can learn this address change. I still need ${missingFields.map(key=>key.replaceAll("_", " ")).join(", ")}. Reply here with those details.`
-      : "I’ll learn this from scratch in the browser. I have the address details—review them below and confirm when you’re ready.");
+      : "I have the address details and can learn the steps in the browser. " + resultQuestion);
     return true;
   }
   async function findWorkflow(input: string) {
     setInitialRequest(input);
-    setNoMatch(false);
+    setTeachingMode(null); setReturnDetails(null);
     setRetryMessage(null);
     setShowWorkflows(false);
     setBusy(true);
@@ -192,19 +240,17 @@ export function Agent({
         { method: "POST", body: JSON.stringify({ message: input }) },
         csrf,
       );
-      if (!reply.matches.length || reply.intent === "discover") {
+      if (reply.intent === "discover") {
         if (await prepareDiscovery(input)) return;
-        if (reply.intent === "discover") {
-          setNoMatch(false);
-          say("I can currently learn address changes. I can’t discover this task yet. You can record its steps instead; nothing has been run.");
-          return;
-        }
+        setTeachingMode("choose");
+        say("I can currently learn address changes. I can’t discover this task yet. You can record its steps instead; nothing has been run.");
+        return;
       }
-      setNoMatch(reply.matches.length === 0);
+      if (!reply.matches.length) setTeachingMode("choose");
       say(
         reply.matches.length
           ? "This saved workflow can help. Choose it to review the details from your message."
-          : "I don't have a matching published workflow yet. I can help you set up an agent discovery, or you can show me the steps by recording a demonstration.",
+          : "I don’t have a saved workflow for that yet. Would you like me to learn it on my own, or would you like to record the steps?",
         reply.matches,
       );
     } catch (error) {
@@ -216,7 +262,8 @@ export function Agent({
     }
   }
   async function run() {
-    if (!selected || missing || busy) return;
+    const recording = teachingMode === "recording";
+    if (busy || viewer || (teachingMode && returnDetails === null) || (!recording && (!selected || missing))) return;
     setBusy(true);
     try {
       const result = await request<{ id: string }>(
@@ -224,21 +271,23 @@ export function Agent({
         {
           method: "POST",
           body: JSON.stringify({
-            mode: selected.id === discoveryId ? "discovery" : "replay",
-            goal: selected.id === discoveryId ? "Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output." : "",
-            capability_id: selected.id,
-            inputs: values,
+            mode: recording ? "recording" : selected?.id === discoveryId ? "discovery" : "replay",
+            goal: recording ? "A workflow demonstrated in the browser." : selected?.id === discoveryId ? "Update the customer identified by customer_id with the supplied street, city and postal inputs. Verify the saved customer ID and all saved address fields. Return every declared output." : "",
+            capability_id: selected?.id,
+            inputs: recording ? {} : values,
             approve_writes: approved,
+            return_details: returnDetails,
           }),
         },
         csrf,
       );
       say(
-        selected.id === discoveryId ? "I’m learning how to do that now. You can watch the browser as I work." : "I’m on it. I’ll let you know what I find when the task finishes.",
+        recording ? "The browser is ready for you. Show me the steps, then choose Stop recording & review when you reach the result." : selected?.id === discoveryId ? "I’m learning how to do that now. You can watch the browser as I work." : "I’m on it. I’ll let you know what I find when the task finishes.",
       );
       setSelected(null);
       setValues({});
       setApproved(false);
+      setTeachingMode(null); setReturnDetails(null);
       setChatRun(result.id);
       onRun(result.id);
     } catch (error) {
@@ -298,7 +347,9 @@ export function Agent({
           </article>
         ))}
       </div>
-      {noMatch && !selected && <div className="chat-next-step"><button className="button primary" disabled={busy || viewer} onClick={() => discover(initialRequest)}>Learn with the agent</button><button className="button secondary" disabled={busy || viewer} onClick={record}>Show the steps</button><p>You’ll review the setup before discovery or recording begins.</p></div>}
+      {teachingMode === "choose" && <div className="chat-next-step" aria-label="How to create the workflow"><button className="button primary" disabled={busy || viewer} onClick={() => void chooseMethod("discovery")}>Learn it for me</button><button className="button secondary" disabled={busy || viewer} onClick={() => void chooseMethod("recording")}>I’ll record the steps</button><p>You can also reply in your own words. Choosing a method does not start the browser.</p></div>}
+      {needsResultChoice && <div className="chat-next-step" aria-label="What to return"><button className="button primary" disabled={busy || viewer} onClick={() => chooseResult(true)}>Return result details</button><button className="button secondary" disabled={busy || viewer} onClick={() => chooseResult(false)}>Just confirm it’s done</button><p>The task is checked for success either way. Result details come from the verified workflow outputs.</p></div>}
+      {teachingMode === "recording" && returnDetails !== null && <div className="agent-match"><h3>Ready to record</h3><p>You’ll control the browser and show the steps. Stop at the result, review the capture, and publish the workflow.</p><p>{returnDetails ? "Future runs will return the verified result details you select during review." : "Future runs will confirm completion without showing result values."}</p><button className="button primary" disabled={busy || viewer} onClick={() => void run()}>Start recording</button><button className="button secondary" disabled={busy} onClick={() => {setReturnDetails(null); say(resultQuestion);}}>Change what to return</button></div>}
       {execution?.status === "running" && <p role="status" className="chat-execution">{execution.live?.owner === "human" ? "I need your help in the browser. Review the message there to continue." : "Working in the browser. You can watch each step alongside this conversation."}</p>}
       {busy && <p role="status">{selected ? "Reading the details in your message…" : "Understanding your request…"} The model may take a moment.</p>}
       {retryMessage !== null && !busy && (
@@ -318,10 +369,11 @@ export function Agent({
           <p>Review these values before running. Missing details are never guessed.</p>
         </fieldset>}
       </div>}
-      {selected && !missing && (
+      {selected && !missing && (!teachingMode || returnDetails !== null) && (
         <div className="agent-match">
           <p className="workflow-mode">{selected.id === discoveryId ? "New workflow · AI will learn the steps" : "Saved workflow · Replay recorded steps"}</p>
           <h3>{selected.id === discoveryId ? "Ready to learn this address change" : "Ready when you are"}</h3>
+          {teachingMode === "discovery" && <p>{returnDetails ? "I’ll return the verified result details." : "I’ll just confirm when the task is done."} <button className="text-button" disabled={busy} onClick={() => {setReturnDetails(null); setApproved(false); say(resultQuestion);}}>Change what to return</button></p>}
           {!manual && <dl>
             {fields.map((field) => (
               <div key={field}>
@@ -403,11 +455,10 @@ export function Agent({
       {!selected && catalog.length > 0 && !busy && (
         <button className="button secondary" aria-expanded={showWorkflows} onClick={() => setShowWorkflows(!showWorkflows)}>Choose a saved workflow</button>
       )}
-      <button className="button secondary" disabled={viewer || busy} onClick={() => discover(text.trim() || initialRequest)}>Discover a workflow</button>
       <button
         className="button secondary"
         disabled={viewer || busy}
-        onClick={record}
+        onClick={() => void chooseMethod("recording")}
       >
         Record a workflow
       </button>

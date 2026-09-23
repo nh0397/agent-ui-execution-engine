@@ -24,6 +24,8 @@ class Snapshot(BaseModel):
     values: dict[str,str]=Field(default_factory=dict)
     initial_request: str=Field(default="",max_length=2000)
     run_id: str | None=Field(default=None,max_length=100)
+    teaching_mode: Literal["choose", "discovery", "recording"] | None = None
+    return_details: bool | None = None
 
 def install(app, session, storage):
     path=storage/'conversations.sqlite3'

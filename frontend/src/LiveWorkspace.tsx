@@ -571,18 +571,12 @@ export default function LiveWorkspace() {
                 catalog={catalog}
                 csrf={csrf}
                 runs={runs}
-                discover={(goal) => { setGoal(goal); setMode("discovery"); setPage("New workflow"); }}
                 viewer={viewer}
                 onRun={(id) => {
                   setChatOpen(false);
                   setSelected(id);
                   void refresh();
                   setPage("Live session");
-                }}
-                record={() => {
-                  setChatOpen(false);
-                  setMode("recording");
-                  setPage("New workflow");
                 }}
               />
             </div>

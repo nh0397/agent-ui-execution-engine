@@ -38,13 +38,24 @@ Start the app using the installation steps below. These examples use the same ad
 
 ### Learn a new workflow
 
-1. Send this in chat: `Learn a new workflow from scratch: update the mailing address for customer C-104 to 28 Maple Street, Fremont, postal code 94538.`
-2. The assistant reads the details and prepares discovery, even if an address workflow is already saved. It asks in chat for anything missing; you do not need to repeat the details in a setup form.
-3. Review the short summary. Check **Authorize changes for this synthetic run** if you want it to perform the save without a handoff.
-4. Click **Confirm and start discovery**. Watch the model operate the bank through the managed browser.
-5. After success, open **Tools → Saved workflows** to inspect the learned steps and input/output definitions.
+1. Send this in chat: `Update the mailing address for customer C-104 to 28 Maple Street, Fremont, postal code 94538.`
+2. If a saved workflow matches, the assistant offers it. If none matches, it asks whether to learn the task or let you record the steps. Choose **Learn it for me**, or reply “You figure out the steps for me.”
+3. It picks up the details from your first message and asks for anything missing. You do not need to repeat them in a setup form.
+4. It asks whether to return result details or just confirm completion. Choose a button or answer in your own words. This preference is saved with the new workflow.
+5. Review the summary. Check **Authorize changes for this synthetic run** if you want it to perform the save without a handoff, then click **Confirm and start discovery**.
+6. Watch the model operate the bank. After success, open **Tools → Saved workflows** to inspect the learned steps and input/output definitions.
 
-For an ordinary request such as “Update the mailing address…”, chat offers a saved workflow if one matches. Say “learn a new workflow from scratch” to ask for discovery instead. If you have already selected a saved workflow but have not started it, reply “Learn it from scratch instead”; the assistant keeps your supplied details and asks you to review again. The separate setup form is optional, for choices such as a runtime error scenario.
+You only need to describe the task. If you deliberately want to relearn a task that is already saved, “Learn it from scratch instead” is still available. The separate setup form is optional, for choices such as a runtime error scenario.
+
+Choose **I’ll record the steps** if you want to demonstrate the task instead. The assistant asks the same result question and opens the browser after you click **Start recording**. There is no parameter form before recording; the recorder picks up inputs as you type in the bank.
+
+I keep success checks separate from the chat response. Even when you choose **Just confirm it’s done**, the engine still reads and checks the declared outputs. It simply leaves their values out of the completion message. Existing workflows without this preference keep their original replies.
+
+![When no workflow matches, chat asks whether to learn the task or record the steps](docs/images/workflow-choice.png)
+
+![Chat asks whether to return verified result details or just confirm completion](docs/images/result-choice.png)
+
+These two screenshots use a separate empty workspace. Choosing a method or a result preference does not run the banking task.
 
 This uses the configured model. Discovery can take several minutes and can fail; inspect the result before treating a workflow as learned. The built-in discovery contract is for address changes.
 
@@ -240,6 +251,7 @@ The Docker worker uses `http://host.docker.internal:11434` to reach Ollama on th
 | --- | --- |
 | Match a chat request to a non-empty workflow catalog | Yes |
 | Extract input values from a chat message | Yes |
+| Interpret an English reply to the learning or result question | Yes; choosing its button needs no model call |
 | Discover which UI action to take next | Yes, repeatedly |
 | Choose a workflow manually and fill its form | No |
 | Replay a saved workflow | No |
@@ -282,7 +294,7 @@ Once a model is configured, try the same task through chat:
 
 The assistant suggests a saved workflow. Select it, review the extracted values, add anything missing, and confirm. A chat message alone does not authorize a write.
 
-If no workflow matches, the assistant can prepare address-change discovery directly in chat. It extracts the values, asks for missing details, and waits for your confirmation. Unsupported tasks still need a suitable contract or manual recording. The example chat prompts are suggestions, not a guarantee that every corresponding workflow is already saved.
+If no workflow matches, the assistant asks you to choose between learning and recording. It then asks whether you want result details or a completion message. Address-change discovery collects missing inputs in chat; recording captures them during your demonstration. Unsupported discovery tasks still need a suitable contract or manual recording. The example chat prompts are suggestions, not a guarantee that every corresponding workflow is already saved.
 
 ## Let the AI learn a workflow
 
@@ -539,6 +551,7 @@ Open `/api/docs` for request fields, types, and schemas, or `/api/openapi.json` 
 | `POST /api/agent/match` | Send `message`; suggest a saved capability and identify an explicit discovery request. Does not execute it. |
 | `POST /api/agent/inputs` | Send `message` and `capability_id`; extract supplied values. Use `address-discovery` for follow-up discovery inputs. Does not execute. |
 | `POST /api/agent/discovery` | Send `message` and optional prior task `context`; check whether the address task is supported and return its specification and extracted values. Does not start a run. |
+| `POST /api/agent/setup` | Send `message` and `stage` (`method` or `result`); interpret the answer to a setup question. Does not start or authorize a run. |
 | `POST /api/runs` | Start discovery, replay, or recording. |
 | `GET /api/runs` | List jobs, newest first. |
 | `GET /api/runs/{id}` | Read status, redacted result, events, and live control state. |
@@ -667,7 +680,7 @@ Saved steps point to labels, roles, or text rather than recorded screen coordina
 | pytest | Verify the engine, API, providers, recording, and browser flows. |
 | Pillow and bundled FFmpeg | Build masked step playback. |
 
-A capability includes `schema_version`, workflow `version`, app identity/version, description, input/output definitions, ordered `steps`, a success target, source, and discovery run ID. Parameters are currently strings with optional patterns, sensitivity flags, and output-to-input equality checks. Step kinds are `click`, `fill`, `read`, and `check`.
+A capability includes `schema_version`, workflow `version`, app identity/version, description, input/output definitions, ordered `steps`, a success target, source, and discovery run ID. Optional `return_details` controls the chat answer: `false` means completion only, `true` means verified details, and `null` preserves the earlier reply behavior. It never disables verification. The run API accepts the same field; discovery and recording save it for later replays. Parameters are currently strings with optional patterns, sensitivity flags, and output-to-input equality checks. Step kinds are `click`, `fill`, `read`, and `check`.
 
 The application policy lives in `config/customer-service.json`. It defines permitted origins, routes, actions, protected writes, and known runtime conditions. Tenant-specific origins and credentials belong in configuration, not in a reusable step list.
 

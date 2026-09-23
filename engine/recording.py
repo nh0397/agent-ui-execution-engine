@@ -53,7 +53,7 @@ class CaptureJournal:
         self.evidence.event("human_step", **entry)
 
 
-def record(name, description, profile, entry, directory, draft_path, control, surface_factory=None, recording_actor="human", **unused):
+def record(name, description, profile, entry, directory, draft_path, control, surface_factory=None, recording_actor="human", return_details=None, **unused):
     run_id = str(uuid.uuid4())
     evidence = Evidence(Path(directory) / run_id, [])
     surface = (surface_factory or BrowserSurface)(Policy(profile), evidence)
@@ -123,9 +123,9 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                     if not outputs or not actions:
                         raise PolicyError('Record actions and select at least one output before finishing')
                     validate_values(outputs,extracted)
-                    cap=Capability(name=name,description=description,inputs={names[k]:v for k,v in inputs.items()},outputs=outputs,success=success,
+                    cap=Capability(name=success.name if name == "Recorded workflow" else name,description=description,inputs={names[k]:v for k,v in inputs.items()},outputs=outputs,success=success,
                         version=1,app=profile.app,app_version=profile.version,steps=[a.model_copy(update={"input_key":names[a.input_key]}) if a.kind=="fill" else a for a in actions]+reads,
-                        discovery_run=run_id,source='human',recording_actor=recording_actor)
+                        discovery_run=run_id,source='human',recording_actor=recording_actor,return_details=return_details)
                     text=cap.model_dump_json(indent=2)
                     if evidence.clean(text)!=text:
                         raise PolicyError('A target contains example data; use a stable label')

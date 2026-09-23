@@ -145,9 +145,10 @@ export function RecordingTools({
           </select>
         </label>
         <p>
-          Name the output fields to return. Reuse an input parameter name to
-          verify that the saved value matches.
+          These fields verify the result. Reuse an input parameter name to
+          check that the saved value matches.
         </p>
+        {run.return_details === false && <p>You chose a completion message only. These values will still be checked, but won’t appear in the chat answer.</p>}
         {data?.outputs?.map((label) => (
           <label key={label}>
             {label}

@@ -46,6 +46,7 @@ class WorkflowSpec(Contract):
     inputs: dict[str, Parameter]
     outputs: dict[str, Parameter]
     success: Target
+    return_details: bool | None = None
 
 
 class Capability(WorkflowSpec):

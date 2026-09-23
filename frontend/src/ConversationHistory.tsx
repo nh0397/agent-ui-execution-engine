@@ -3,8 +3,9 @@ import { request } from "./api";
 export type ChatSnapshot = {
   messages: {role:"you"|"agent";text:string;matches?:string[]|null;run_id?:string}[];
   selected_id:string|null; values:Record<string,string>; initial_request:string; run_id:string|null;
+  teaching_mode: "choose" | "discovery" | "recording" | null; return_details: boolean | null;
 };
-export const emptyChat = (): ChatSnapshot => ({messages:[],selected_id:null,values:{},initial_request:"",run_id:null});
+export const emptyChat = (): ChatSnapshot => ({messages:[],selected_id:null,values:{},initial_request:"",run_id:null,teaching_mode:null,return_details:null});
 export function useConversationHistory(snapshot:ChatSnapshot, restore:(s:ChatSnapshot)=>void, csrf:string) {
   const [id,setId]=useState("");
   const [ready,setReady]=useState(false);
@@ -21,7 +22,7 @@ export function useConversationHistory(snapshot:ChatSnapshot, restore:(s:ChatSna
     try {
       await chain.current;
       const value=next ? await request<ChatSnapshot & {revision:number}>(`/conversations/${next}`) : {...emptyChat(),revision:0};
-      const data:ChatSnapshot={messages:value.messages,selected_id:value.selected_id,values:value.values,initial_request:value.initial_request,run_id:value.run_id};
+      const data:ChatSnapshot={messages:value.messages,selected_id:value.selected_id,values:value.values,initial_request:value.initial_request,run_id:value.run_id,teaching_mode:value.teaching_mode ?? null,return_details:value.return_details ?? null};
       const nextId=next || crypto.randomUUID();revision.current[nextId]=value.revision;
       last.current=JSON.stringify(data);blocked.current=false;setError("");
       restoreRef.current(data);setId(nextId);setReady(true);

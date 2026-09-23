@@ -19,6 +19,8 @@ def result_reply(result, contract, mode="replay"):
         return "I couldn't verify that the task finished. Check the run details before trying again; a change may already have been saved."
     if mode == "recording":
         return "Done — I captured the steps. Review and publish the workflow before using it again."
+    if contract.return_details is False:
+        return "Done — I completed and verified the task." + (" I've also saved the workflow so you can use it again." if mode == "discovery" else "")
 
     # Recorded workflows may rename output keys. Prefer their declared field labels.
     def output(label, *keys):
@@ -43,6 +45,13 @@ def result_reply(result, contract, mode="replay"):
     if heading == "Address updated":
         customer = output("Saved customer ID", "customer_id")
         message = f"Done — I updated the mailing address for customer {customer}." if customer else "Done — I updated the mailing address."
+        if contract.return_details is True:
+            reference = output("Confirmation reference", "confirmation_reference")
+            if reference:
+                message += f" Confirmation reference: {reference}."
+            address = [output("Saved street address", "street"), output("Saved city", "city"), output("Saved postal code", "postal")]
+            if all(address):
+                message += " Saved address: " + ", ".join(address) + "."
     elif heading in {"Card frozen", "Card unfrozen"}:
         card = output("Saved card ID", "card_id")
         action = "frozen" if heading == "Card frozen" else "unfrozen"
