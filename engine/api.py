@@ -113,6 +113,7 @@ def create_app(root: Path | None = None):
     sessions = {}
     jobs = {}
     controls = {}
+    answers = {}  # Private live replies; never added to public jobs or evidence.
     lock = threading.Lock()
     persistence_lock = threading.Lock()
     active = threading.Lock()
@@ -291,6 +292,16 @@ def create_app(root: Path | None = None):
         session(request)
         return public_job(get_job(job_id))
 
+    @app.get("/api/runs/{job_id}/answer")
+    def run_answer(job_id: str, request: Request):
+        person = session(request)["profile"]
+        job = get_job(job_id)
+        if job.get("owner_id") != person["id"]:
+            raise HTTPException(404, "Run answer not found")
+        if job["status"] == "running":
+            raise HTTPException(409, "The task has not finished yet")
+        return {"message": answers.get(job_id), "status": job["status"]}
+
     @app.post("/api/agent/inputs")
     async def agent_inputs(body: InputMessage, request: Request):
         session(request)
@@ -364,7 +375,7 @@ def create_app(root: Path | None = None):
         if not active.acquire(blocking=False):
             raise HTTPException(409, "Another run is active. Finish or cancel it first.")
         job_id = str(uuid.uuid4())
-        job = {"id": job_id, "created": time.time(), "mode": invocation.mode, "status": "running", "code": "starting", "profile": person["name"], "capability_id": invocation.capability_id, "scenario": invocation.scenario, "approve_writes": invocation.approve_writes, "name": invocation.name if invocation.mode == "recording" else contract.name}
+        job = {"id": job_id, "created": time.time(), "mode": invocation.mode, "status": "running", "code": "starting", "profile": person["name"], "owner_id": person["id"], "capability_id": invocation.capability_id, "scenario": invocation.scenario, "approve_writes": invocation.approve_writes, "name": invocation.name if invocation.mode == "recording" else contract.name}
         control = LiveControl()
         with lock:
             jobs[job_id] = job
@@ -386,6 +397,8 @@ def create_app(root: Path | None = None):
                         job["capability_id"] = job_id
                 else:
                     result = replay(contract, **options)
+                from engine.replies import result_reply
+                answers[job_id] = result_reply(result, contract, invocation.mode)
                 job.update(status=result.status, code=result.code, run_id=result.run_id)
             except Exception as exc:
                 job.update(status="failure", code=type(exc).__name__)

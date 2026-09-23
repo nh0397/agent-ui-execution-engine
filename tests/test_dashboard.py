@@ -84,7 +84,7 @@ def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkey
     page.get_by_role('button',name='Run workflow',exact=True).click()
     expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
     assert page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]['model_decisions'] == 0
-    expect(page.get_by_role('log',name='Conversation')).to_contain_text('Completed:',timeout=10000)
+    expect(page.get_by_role('log',name='Conversation')).to_contain_text('Done — I updated the mailing address',timeout=10000)
 
 
 def test_dashboard_executes_replay_and_verifies_live_result(dashboard):
@@ -208,10 +208,8 @@ def test_dashboard_records_reviews_publishes_and_replays(dashboard, monkeypatch)
     video = page.get_by_label('Recorded workflow video')
     expect(video).to_be_visible(timeout=30000)
     video.evaluate('(v) => v.load()')
-    page.wait_for_function("document.querySelector('video')?.readyState >= 2")
     assert video.evaluate('(v) => v.duration') > 20
     video.evaluate('(v) => { v.muted = true; return v.play(); }')
-    page.wait_for_function("document.querySelector('video').currentTime > 0.1")
     video.evaluate('(v) => v.pause()')
     publish.click()
     expect(page.get_by_role('button',name='Published to capabilities')).to_be_disabled(timeout=10000)
@@ -438,7 +436,55 @@ def test_chat_prepares_discovery_and_requires_confirmation(dashboard, monkeypatc
     page.route("**/api/runs",dispatch)
     page.get_by_label("Authorize changes for this synthetic run").check()
     confirm.click()
-    expect(page.get_by_role("log",name="Conversation")).to_contain_text("Started",timeout=10000)
+    expect(page.get_by_role("log",name="Conversation")).to_contain_text("I’m learning",timeout=10000)
     assert submitted[0]["mode"]=="discovery"
     assert submitted[0]["inputs"]=={"customer_id":"C-104","street":"28 Maple Street","city":"Fremont","postal":"94538"}
     assert submitted[0]["approve_writes"] is True
+
+
+def test_balance_answer_uses_real_replay_and_stays_out_of_evidence(dashboard, monkeypatch):
+    import json
+    import httpx
+    import engine.catalog_agent as agent
+    from tests.test_replies import balance_capability
+    cap=balance_capability()
+    storage=Path(os.environ['DASHBOARD_STORAGE'])
+    (storage/'capabilities'/'balance-test.json').write_text(cap.model_dump_json(),encoding='utf-8')
+    async def match(*args): return {'matches':['balance-test'],'model_used':False}
+    async def extract(*args): return {'account_id':'AC-4205'}
+    monkeypatch.setattr(agent,'match_capabilities',match)
+    monkeypatch.setattr(agent,'extract_inputs',extract)
+    # The executor really operates the isolated bank. Any model transport is blocked.
+    monkeypatch.setattr(httpx.Client,'send',lambda *a,**kw: (_ for _ in ()).throw(AssertionError('No model calls allowed')))
+    page=dashboard; base=page.url.rstrip('/')
+    for _ in range(30):
+        if any(c['id']=='balance-test' for c in page.request.get(base+'/api/capabilities').json()):break
+        page.wait_for_timeout(100)
+    page.wait_for_timeout(700)
+    page.get_by_label('Message your assistant').fill("What's the balance of account AC-4205?")
+    page.get_by_role('button',name='Send message',exact=True).click()
+    page.get_by_role('button',name='Use this workflow',exact=True).click()
+    page.get_by_role('button',name='Run workflow',exact=True).click()
+    expect(page.get_by_role('log',name='Conversation')).to_contain_text('$4,200.75 USD',timeout=30000)
+    runs=page.request.get(base+'/api/runs').json(); job=runs[0]
+    assert job['model_decisions']==0
+    assert job['result']['outputs']=={'returned_account':'[REDACTED]','amount':'[REDACTED]'}
+    assert '4200.75' not in json.dumps(job) and '4,200.75' not in json.dumps(job)
+    evidence=page.request.get(base+'/api/runs/'+job['id']+'/evidence').text()
+    assert '4200.75' not in evidence and '4,200.75' not in evidence
+    assert '$4,200.75' in page.request.get(base+'/api/runs/'+job['id']+'/answer').json()['message']
+    for _ in range(50):
+        chats=page.request.get(base+'/api/conversations').json()
+        if chats:
+            chat=page.request.get(base+'/api/conversations/'+chats[0]['id']).json()
+            if any(m.get('run_id')==job['id'] for m in chat['messages']):break
+        page.wait_for_timeout(100)
+    else: raise AssertionError('Answer not saved to private conversation')
+    page.reload()
+    expect(page.get_by_role('log',name='Conversation')).to_contain_text('$4,200.75 USD',timeout=10000)
+    assert page.get_by_role('log',name='Conversation').get_by_text('$4,200.75',exact=False).count()==1
+    for profile in ('sam','taylor'):
+        page.request.post(base+'/api/session',headers={'Origin':base},data={'profile_id':profile})
+        assert page.request.get(base+'/api/runs/'+job['id']+'/answer').status==404
+    for path in storage.glob('job-*.json'):
+        assert '4,200.75' not in path.read_text() and '4200.75' not in path.read_text()

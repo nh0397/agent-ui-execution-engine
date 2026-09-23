@@ -14,6 +14,7 @@ class Message(BaseModel):
     role: Literal["you","agent"]
     text: str=Field(max_length=12000)
     matches: list[str] | None=None
+    run_id: str | None=Field(default=None,max_length=100)
 
 class Snapshot(BaseModel):
     model_config=ConfigDict(extra="forbid")

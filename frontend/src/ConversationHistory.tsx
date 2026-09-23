@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { request } from "./api";
 export type ChatSnapshot = {
-  messages: {role:"you"|"agent";text:string;matches?:string[]|null}[];
+  messages: {role:"you"|"agent";text:string;matches?:string[]|null;run_id?:string}[];
   selected_id:string|null; values:Record<string,string>; initial_request:string; run_id:string|null;
 };
 export const emptyChat = (): ChatSnapshot => ({messages:[],selected_id:null,values:{},initial_request:"",run_id:null});

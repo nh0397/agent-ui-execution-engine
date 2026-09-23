@@ -4,7 +4,7 @@ import { request, type Run, type CatalogItem } from "./api";
 const discoveryId = "address-discovery";
 type DiscoverySpec = Pick<CatalogItem["capability"], "name" | "description" | "inputs" | "outputs">;
 const discoveryItem = (spec: DiscoverySpec): CatalogItem => ({id: discoveryId, capability: {...spec, version: 1, app: "customer-service", steps: [], discovery_run: ""}});
-type Message = { role: "you" | "agent"; text: string; matches?: string[] | null };
+type Message = { role: "you" | "agent"; text: string; matches?: string[] | null; run_id?: string };
 export function Agent({
   catalog,
   csrf,
@@ -62,12 +62,19 @@ export function Agent({
     setMessages((old) => [...old, { role: "agent", text: message, matches }]);
   const execution = runs.find((run) => run.id === chatRun);
   useEffect(() => {
-    if (!execution || execution.status === "running" || reported.current.has(execution.id)) return;
-    reported.current.add(execution.id);
-    const outcome = execution.status === "success" ? "Completed" : execution.status === "business_outcome" ? "The bank returned an expected outcome" : "I couldn’t complete the task";
-    const text = `${outcome}: ${execution.code}. You can inspect the result and recorded steps in the browser panel.`;
-    setMessages((old) => old.some(message => message.role === "agent" && message.text === text) ? old : [...old, {role:"agent",text}]);
-  }, [execution?.id, execution?.status, execution?.code]);
+    if (!history.ready || !execution || execution.status === "running" || reported.current.has(execution.id) || messages.some(m => m.run_id === execution.id)) return;
+    let disposed = false;
+    const fallback = execution.status === "success"
+      ? "This run completed, but its detailed answer is no longer available. Run a fresh inquiry to get the current result."
+      : "I couldn't complete the task. Open the run details to see what happened before trying again.";
+    const publish = (text: string) => {
+      if (disposed) return;
+      reported.current.add(execution.id);
+      setMessages(old => old.some(m => m.run_id === execution.id) ? old : [...old, {role:"agent", text, run_id:execution.id}]);
+    };
+    void request<{message: string | null}>(`/runs/${execution.id}/answer`).then(reply => publish(reply.message || fallback)).catch(() => publish(fallback));
+    return () => {disposed = true;};
+  }, [execution?.id, execution?.status, history.ready, history.id, csrf, messages]);
   function newRequest() {
     void history.load("").then(() => composer.current?.focus());
   }
@@ -96,7 +103,7 @@ export function Agent({
       );
       say(
         remaining.length
-          ? `I still need ${remaining.map((field) => field.replaceAll("_", " ")).join(", ")}. You can give me those together in one message.`
+          ? `What ${remaining.map((field) => field.replaceAll("_", " ")).join(", ")} should I use?`
           : "I have the details. Please review them below before I run this workflow.",
       );
     } catch (error) {
@@ -200,7 +207,7 @@ export function Agent({
         csrf,
       );
       say(
-        `Started ${selected.capability.name}. The live browser is opening so you can follow its progress.`,
+        selected.id === discoveryId ? "I’m learning how to do that now. You can watch the browser as I work." : "I’m on it. I’ll let you know what I find when the task finishes.",
       );
       setSelected(null);
       setValues({});

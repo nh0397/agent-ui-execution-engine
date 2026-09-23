@@ -245,6 +245,7 @@ The Docker worker uses `http://host.docker.internal:11434` to reach Ollama on th
 | Replay a saved workflow | No |
 | Record steps yourself | No |
 | Read model status, history, or evidence | No |
+| Turn a verified result into a chat answer | No |
 
 Open **Model status** in chat to see request counts, reported token usage, and the last provider limits the app received. The defaults allow 100 attempts per UTC day and 10 per rolling minute for this workspace. They are application guards, not a promise that your provider quota cannot be exhausted. Other programs may use the same account, and the provider may not report every limit.
 
@@ -271,7 +272,7 @@ Start with the bundled address workflow. A fresh workspace normally lists it as 
 5. Keep **Normal operation** as the scenario.
 6. Review the details. To let the engine save the synthetic change, check the write-authorization box. If you leave it unchecked, you must perform the save during human takeover.
 7. Start replay. Watch it search, open the customer, fill the address, review, and save.
-8. Check the final result and **Tools → Past runs**.
+8. Read the answer in chat if you started the run there. An address change confirms completion; a balance inquiry reports the verified amount and account. **Tools → Past runs** has the detailed evidence.
 
 This path works without a model. The engine checks the confirmation and saved fields rather than assuming that a click means success.
 
@@ -359,6 +360,10 @@ The control lock only affects this managed session. It does not lock your comput
 | Tools → Open Cedar Bank | Explore the target app manually in a separate tab. This tab is not being recorded. |
 | Live browser | Watch the actual Chromium session. Interact only when control belongs to you. |
 | Profile selector | Choose Mira or Sam as an operator, or Taylor as a viewer. These are demo identities, not secure user accounts. |
+
+Chat answers use verified run outputs. A balance inquiry reports the account and ledger balance in USD; a completed address or card change gets a short confirmation. Missing records and failures get an explanation, not a success message. No extra model call is used to write these answers.
+
+The detailed answer is available only to the demo profile that started the run. It stays in server memory until delivered, and the chat saves it in that profile's private conversation history. Shared run history and evidence exports remain redacted. If the server restarts before an answer is saved, run a fresh inquiry; the app will not invent a missing balance. Demo profiles are still not production authentication.
 
 Conversations are saved locally. Refreshing can restore messages and entered values, but never restores write approval or starts a task automatically. If saving fails, the screen reports it. A revision conflict means another window changed the same conversation; reload before continuing.
 
@@ -536,7 +541,8 @@ Open `/api/docs` for request fields, types, and schemas, or `/api/openapi.json` 
 | `POST /api/agent/discovery` | Send `message`; check whether the address task is supported and return its specification and extracted values. Does not start a run. |
 | `POST /api/runs` | Start discovery, replay, or recording. |
 | `GET /api/runs` | List jobs, newest first. |
-| `GET /api/runs/{id}` | Read status, result, events, and live control state. |
+| `GET /api/runs/{id}` | Read status, redacted result, events, and live control state. |
+| `GET /api/runs/{id}/answer` | Get the completed run's natural-language answer as the profile that started it. Sensitive values can appear here; do not publish this response as evidence. |
 | `GET /api/runs/{id}/frame` | Read the latest in-memory JPEG. Returns 204 if no frame exists. |
 | `POST /api/runs/{id}/control` | Send supported operator commands. |
 | `POST /api/runs/{id}/publish` | Publish a successfully verified recording draft. |
@@ -625,7 +631,7 @@ Workflows are **JSON files**, not rows in the banking database.
 
 `DASHBOARD_STORAGE` changes the workspace root. For example, the custom development workspace uses `work/agent-workspace`. Docker uses the `execution-data` volume for workspace data and `demo-data` for PostgreSQL bank data.
 
-Chat history can contain the values you type. It is private local storage, separate from redacted run evidence. Use synthetic data. Live browser frames remain in memory; they are not the same as the masked images saved during recording.
+Chat history can contain the values you type and verified answers such as balances. It is private local storage, separate from redacted run evidence. Use synthetic data. Live browser frames remain in memory; they are not the same as the masked images saved during recording.
 
 The `.gitignore` excludes local databases, `.env`, browser profiles, generated runs, and working folders. Review any evidence before deliberately adding it to Git.
 

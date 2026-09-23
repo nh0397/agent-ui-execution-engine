@@ -111,3 +111,8 @@ Final live checks: CLI replay against Docker/PostgreSQL succeeded (15 actions). 
 ## Full-width chat
 - Removed the desktop chat width cap and laid out reviewed input values as readable cards. Confirmation identifies new discovery separately from saved-workflow replay. An empty catalog is stated on the landing screen.
 - TypeScript and production build passed. Live presentation checks measured 1872px chat width on a 1920px viewport and no horizontal overflow at 390px. Twelve dashboard tests passed on the first run; one browser crashed during fixture setup and passed when rerun alone. No model calls or banking changes were needed for these checks.
+
+## Natural answers from verified results
+- Added result-based replies for address changes, account balances, card states, expected business outcomes, and failures. No model calls are used for result wording. Output labels support renamed keys in human recordings.
+- Thirty-eight reply, API, history, and dashboard tests passed together. The additional real-browser balance test initially failed on an incorrect test selector; after correcting it, it passed. The test checks the real isolated-bank balance, zero model decisions, redacted history/evidence, owner-only access, private conversation persistence, and no duplicate answer after refresh.
+- TypeScript and production build passed. Existing user workflows were preserved. These tests use explicitly scripted workflow fixtures and are not additional LLM discovery or human-handoff evidence.
