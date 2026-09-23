@@ -363,7 +363,7 @@ The control lock only affects this managed session. It does not lock your comput
 
 Chat answers use verified run outputs. A balance inquiry reports the account and ledger balance in USD; a completed address or card change gets a short confirmation. Missing records and failures get an explanation, not a success message. No extra model call is used to write these answers.
 
-The detailed answer is available only to the demo profile that started the run. It stays in server memory until delivered, and the chat saves it in that profile's private conversation history. Shared run history and evidence exports remain redacted. If the server restarts before an answer is saved, run a fresh inquiry; the app will not invent a missing balance. Demo profiles are still not production authentication.
+The detailed answer is available only to the demo profile that started the run. The server keeps the reply in memory while it is running, and the chat saves it in that profile's private conversation history. Shared run history and evidence exports remain redacted. If the server restarts before an answer is saved, run a fresh inquiry; the app will not invent a missing balance. Demo profiles are still not production authentication.
 
 Conversations are saved locally. Refreshing can restore messages and entered values, but never restores write approval or starts a task automatically. If saving fails, the screen reports it. A revision conflict means another window changed the same conversation; reload before continuing.
 
