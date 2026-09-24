@@ -1,6 +1,40 @@
 """API boundaries without mocked discovery or fake success evidence."""
 from fastapi.testclient import TestClient
 from engine.api import create_app
+import pytest
+
+
+@pytest.mark.parametrize('path,payload,function,result', [
+    ('/api/agent/match', {'message':'Update an address'}, 'match_capabilities', {'matches':['example'],'model_used':True}),
+    ('/api/agent/inputs', {'message':'C-205','capability_id':'example'}, 'extract_inputs', {'customer_id':'C-205'}),
+    ('/api/agent/discovery', {'message':'Update an address'}, 'match_capabilities', {'matches':[],'model_used':True}),
+    ('/api/agent/setup', {'message':'Learn it','stage':'method'}, 'interpret_setup_reply', 'learn'),
+])
+def test_optional_conversation_header_preserves_trace_link_without_task_changes(tmp_path, monkeypatch, trace_capture, path, payload, function, result):
+    import uuid
+    from engine import telemetry
+    import engine.catalog_agent as agent
+    calls=[]
+    @telemetry.traced('test.chat')
+    async def model_double(*args):
+        calls.append(args)
+        return result
+    monkeypatch.setattr(agent,function,model_double)
+    monkeypatch.setenv('DASHBOARD_STORAGE',str(tmp_path))
+    identifier=str(uuid.uuid4())
+    with TestClient(create_app()) as client:
+        client.headers['Origin']='http://127.0.0.1:5174'
+        session=client.post('/api/session',json={'profile_id':'mira'})
+        client.headers['X-CSRF-Token']=session.json()['csrf']
+        for headers,body in [({'X-Conversation-ID':identifier},payload), ({},{**payload,'conversation_id':identifier})]:
+            assert client.post(path,headers=headers,json=body).status_code==200
+            assert trace_capture[-1].record['extra']['metadata']['conversation_id']==identifier
+        assert len(calls)==2
+        assert client.post(path,headers={'X-Conversation-ID':'not-a-uuid'},json=payload).status_code==422
+        assert client.post(path,headers={'X-Conversation-ID':identifier},json={**payload,'conversation_id':str(uuid.uuid4())}).status_code==422
+        assert client.post(path,headers={'X-Conversation-ID':identifier},json={**payload,'unexpected_business_field':True}).status_code==422
+        assert len(calls)==2  # Invalid requests never reached a model handler.
+        assert client.get('/api/runs').json()==[]
 
 
 def test_reset_workspace_hides_example_across_restarts(tmp_path, monkeypatch):

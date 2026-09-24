@@ -49,6 +49,43 @@ def setup_replay(page):
     expect(page.get_by_role('button',name='Start replay',exact=True)).to_be_enabled(timeout=15000)
 
 
+def test_chat_trace_header_works_with_legacy_body_validation(dashboard, monkeypatch, trace_capture):
+    """A legacy server rejects extra body fields before reaching any model call."""
+    import uuid
+    import engine.catalog_agent as agent
+    async def match(*args): return {'matches':['example'],'model_used':True}
+    async def inputs(*args): return {'customer_id':'C-205','street':'73 Maple Street','city':'Fremont','postal':'94538'}
+    monkeypatch.setattr(agent,'match_capabilities',match)
+    monkeypatch.setattr(agent,'extract_inputs',inputs)
+    page=dashboard
+    captured=[]
+    def legacy_validation(route):
+        req=route.request
+        if req.method=='POST':
+            body=req.post_data_json
+            captured.append((req.url,body,req.headers.get('x-conversation-id')))
+            if 'conversation_id' in body:
+                route.fulfill(status=422,json={'detail':[{'loc':['body','conversation_id'],'type':'extra_forbidden'}]})
+                return
+        route.continue_()
+    page.route('**/api/agent/*',legacy_validation)
+    page.route('**/api/runs',legacy_validation)
+    page.get_by_label('Message your assistant').fill('Update the mailing address for customer C-205 to 73 Maple Street, Fremont, postal code 94538.')
+    page.get_by_role('button',name='Send message',exact=True).click()
+    page.get_by_role('button',name='Use this workflow',exact=True).click()
+    expect(page.get_by_role('button',name='Run workflow',exact=True)).to_be_visible()
+    page.get_by_label('Authorize changes for this synthetic run').check()
+    page.get_by_role('button',name='Run workflow',exact=True).click()
+    expect(page.locator('.result-banner.success')).to_be_visible(timeout=30000)
+    assert len(captured)==3  # Match, extract, execute. No automatic resubmission.
+    identifiers={str(uuid.UUID(identifier)) for _,_,identifier in captured}
+    assert len(identifiers)==1
+    assert all('conversation_id' not in body for _,body,_ in captured)
+    root=next(s for s in trace_capture if s.operation=='workflow.replay')
+    assert root.record['extra']['metadata']['conversation_id']==identifiers.pop()
+    assert root.record['outputs']['model_calls']==0
+
+
 @pytest.mark.parametrize('matched', [False, True])
 def test_agent_search_offers_recording_or_parameterized_replay(dashboard, monkeypatch, matched):
     import engine.catalog_agent as agent

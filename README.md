@@ -753,6 +753,8 @@ Recording starts a browser for you to operate. It does not automatically perform
 
 Open `/api/docs` for request fields, types, and schemas, or `/api/openapi.json` for the machine-readable description. Browser Swagger requests still need a session and valid write headers; use the session example above for scripted calls.
 
+For chat and run requests, the frontend sends an optional `X-Conversation-ID` header containing the conversation UUID. It links traces without changing the task body. Older backends can ignore it and still process the task. Current backends also accept the earlier `conversation_id` body field; if both are supplied, they must match. This ID does not grant access or replace the session and CSRF token.
+
 | Method and path | Purpose |
 | --- | --- |
 | `GET /api/health` | Check API readiness, bank reachability, and model configuration. No session required. |
@@ -927,6 +929,7 @@ docker compose up -d --force-recreate app
 | Cannot scroll while recording | Keep the pointer over the live browser, confirm human ownership, or use scroll buttons. |
 | Changes disappeared | Check whether you opened a different local/Docker workspace and database. |
 | 403 from the API | Use an allowed Origin, the session cookie, and the returned CSRF token. |
+| Chat returns 422 for a complete request | Refresh after a frontend update. Older frontend builds sent tracing metadata in the task body, which an older backend rejected. The current frontend uses an optional header. Other 422 responses can still indicate invalid request fields. |
 | New code is not visible | Rebuild frontend assets; restart the backend for Python changes. Rebuild Docker images for container code changes. |
 
 ## Current limits

@@ -103,6 +103,24 @@ class SetupMessage(AgentMessage):
     stage: Literal["method", "result"]
 
 
+def conversation_id(body, request):
+    """Optional trace correlation travels separately from the task payload.
+
+    Keep the earlier body field for API clients. Older servers can ignore the
+    header without rejecting a valid task from a newer frontend.
+    """
+    supplied = request.headers.get("x-conversation-id")
+    if supplied is None:
+        return body.conversation_id
+    try:
+        value = uuid.UUID(supplied)
+    except ValueError:
+        raise HTTPException(422, "Invalid conversation ID. Start a new request.") from None
+    if body.conversation_id is not None and body.conversation_id != value:
+        raise HTTPException(422, "Conversation IDs do not match. Reload the conversation.")
+    return value
+
+
 def create_app(root: Path | None = None):
     root = Path(root or ROOT)
     if (root / ".browsers").exists():
@@ -280,7 +298,7 @@ def create_app(root: Path | None = None):
         from engine.catalog_agent import match_capabilities
         saved = {key: Capability.model_validate_json(path.read_text(encoding="utf-8")) for key, path in catalog().items()}
         try:
-            with telemetry.bind_context(conversation_id=body.conversation_id):
+            with telemetry.bind_context(conversation_id=conversation_id(body, request)):
                 result = await match_capabilities(body.message.strip(), saved, body.model)
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
@@ -294,7 +312,7 @@ def create_app(root: Path | None = None):
         from engine.catalog_agent import match_capabilities, extract_inputs
         message = f"Earlier task context: {body.context}\nLatest user message: {body.message}" if body.context else body.message
         try:
-            with telemetry.bind_context(conversation_id=body.conversation_id), telemetry.operation("chat.prepare_discovery") as trace:
+            with telemetry.bind_context(conversation_id=conversation_id(body, request)), telemetry.operation("chat.prepare_discovery") as trace:
                 selection = await match_capabilities(message, {"address-discovery": spec}, body.model)
                 if not selection["matches"]:
                     if trace:
@@ -314,7 +332,7 @@ def create_app(root: Path | None = None):
         session(request)
         from engine.catalog_agent import interpret_setup_reply
         try:
-            with telemetry.bind_context(conversation_id=body.conversation_id):
+            with telemetry.bind_context(conversation_id=conversation_id(body, request)):
                 return {"choice": await interpret_setup_reply(body.message, body.stage, body.model)}
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
@@ -345,7 +363,7 @@ def create_app(root: Path | None = None):
         contract = spec if body.capability_id == "address-discovery" else Capability.model_validate_json(path.read_text(encoding="utf-8"))
         from engine.catalog_agent import extract_inputs
         try:
-            with telemetry.bind_context(conversation_id=body.conversation_id):
+            with telemetry.bind_context(conversation_id=conversation_id(body, request)):
                 values = await extract_inputs(body.message, contract, body.model)
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
@@ -394,6 +412,7 @@ def create_app(root: Path | None = None):
     @app.post("/api/runs", status_code=202)
     def start_run(invocation: Invocation, request: Request):
         person = session(request, operator=True)["profile"]
+        conversation = conversation_id(invocation, request)
         cap_path = catalog().get(invocation.capability_id)
         if invocation.mode == "replay" and cap_path is None:
             raise HTTPException(400, "Unknown capability")
@@ -450,7 +469,7 @@ def create_app(root: Path | None = None):
                     active.release()
 
         def execute():
-            with telemetry.bind_context(job_id=job_id, conversation_id=invocation.conversation_id,
+            with telemetry.bind_context(job_id=job_id, conversation_id=conversation,
                                         on_start=lambda trace_id: job.update(trace_id=trace_id)):
                 execute_workflow()
 
