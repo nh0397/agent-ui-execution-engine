@@ -135,6 +135,22 @@ def test_langsmith_status_and_run_link(trace_capture, dashboard, monkeypatch):
     assert trace_capture[0].record['outputs']['model_calls'] == 0
     assert 'test-private-key' not in str(run)
 
+
+def test_run_explanation_is_readable_without_langsmith(dashboard):
+    page = dashboard
+    setup_replay(page)
+    page.get_by_label('Runtime scenario').select_option('permission-denied')
+    page.get_by_role('button', name='Start replay', exact=True).click()
+    expect(page.locator('.result-banner.failure')).to_be_visible(timeout=45000)
+    story = page.get_by_role('region', name='Run explanation')
+    expect(story).to_contain_text('The application denied access')
+    expect(story).to_contain_text('Click Edit mailing address')
+    expect(story).to_contain_text('4 / 4 attempted')
+    expect(story).to_contain_text('0 during replay')
+    expect(story).to_contain_text('No protected write was attempted.')
+    page.set_viewport_size({'width':390,'height':844})
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+
 def test_scripted_operator_uses_same_live_session_and_resumes(dashboard):
     page=dashboard;setup_replay(page)
     page.get_by_role('button',name='Start replay',exact=True).click()

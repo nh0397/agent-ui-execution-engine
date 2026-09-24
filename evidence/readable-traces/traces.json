@@ -1,0 +1,4180 @@
+[
+  {
+    "id": "67232d4d-c91a-45a6-a6ab-615be25e08d9",
+    "name": "Verify the final result",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:28.985601+00:00",
+    "end_time": "2026-09-24 05:47:28.991903+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 0.0,
+      "human_assisted": false,
+      "operation": "result.verify",
+      "outputs_count": 5,
+      "purpose": "Check the success page and every required output against the contract.",
+      "run_id": "6e7905b5-c151-4bbe-abdf-6cfb1bb66f32",
+      "state": "completed",
+      "status": "success",
+      "step": 14,
+      "title": "Verify the final result"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "result.verify"
+      }
+    }
+  },
+  {
+    "id": "14f79d63-1f40-4cd9-86a2-5319e11d63b0",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:28.953285+00:00",
+    "end_time": "2026-09-24 05:47:28.975617+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "834ae3c0-4278-4bc2-a97e-af9a1a0a2b11",
+    "name": "Read Saved postal code",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:28.928220+00:00",
+    "end_time": "2026-09-24 05:47:28.952288+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 14,
+      "duration_ms": 32.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved postal code for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved postal code"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved postal code for comparison with the request.",
+          "step": 13,
+          "title": "Read Saved postal code"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:47:28.930207+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "356b38ba-9d47-43ef-b284-a0cf139e823e",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:28.475899+00:00",
+    "end_time": "2026-09-24 05:47:28.927169+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 113,
+      "prompt_eval_count": 1199,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Read Saved postal code",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1199,
+        "output_tokens": 113,
+        "total_tokens": 1312
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "776f1b02-2c0c-4cf6-aee2-88995b7cdedc",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:28.418526+00:00",
+    "end_time": "2026-09-24 05:47:28.447888+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 32.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "4d3327b4-eab9-4873-a86b-b80f69d1e114",
+    "name": "Read Saved city",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:28.393408+00:00",
+    "end_time": "2026-09-24 05:47:28.417525+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 13,
+      "duration_ms": 31.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved city for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved city"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved city for comparison with the request.",
+          "step": 12,
+          "title": "Read Saved city"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:47:28.394417+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "425a5bac-f6d6-45e2-827e-b066a26729b0",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:27.845696+00:00",
+    "end_time": "2026-09-24 05:47:28.392404+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 170,
+      "prompt_eval_count": 1222,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Read Saved city",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1222,
+        "output_tokens": 170,
+        "total_tokens": 1392
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "1a69dd60-26b8-46fe-8e10-379eb41671af",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:27.799448+00:00",
+    "end_time": "2026-09-24 05:47:27.822149+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 32.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "4b8c321e-d00b-4ae7-8200-af220611233f",
+    "name": "Read Saved street address",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:27.779920+00:00",
+    "end_time": "2026-09-24 05:47:27.798492+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 12,
+      "duration_ms": 15.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved street address for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved street address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved street address for comparison with the request.",
+          "step": 11,
+          "title": "Read Saved street address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:47:27.779920+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "2dfc3b2f-c68a-4b43-b68b-a1032352fcc2",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:27.340018+00:00",
+    "end_time": "2026-09-24 05:47:27.778921+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 228,
+      "prompt_eval_count": 1245,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Read Saved street address",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1245,
+        "output_tokens": 228,
+        "total_tokens": 1473
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "9abd7dab-22f7-4df0-bab0-67ca650d12c8",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:27.289815+00:00",
+    "end_time": "2026-09-24 05:47:27.312965+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "fb0b6047-0f8d-4dc4-94a1-4b480c348499",
+    "name": "Read Confirmation reference",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:47:27.270461+00:00",
+    "end_time": "2026-09-24 05:47:27.288774+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 11,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Read the application's confirmation reference.",
+      "state": "completed",
+      "title": "Read Confirmation reference"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the application's confirmation reference.",
+          "step": 10,
+          "title": "Read Confirmation reference"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:47:27.270461+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "e347509d-b7c5-4f21-aaa4-1762ba85a559",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:43.315020+00:00",
+    "end_time": "2026-09-24 05:47:27.269109+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 237,
+      "prompt_eval_count": 1270,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Read Confirmation reference",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1270,
+        "output_tokens": 237,
+        "total_tokens": 1507
+      }
+    },
+    "events": [
+      {
+        "kwargs": {},
+        "name": "model_capacity_wait",
+        "time": "2026-09-24T05:46:43.318104+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "b5e1e587-a00d-48b7-914e-0495680791c1",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:43.285177+00:00",
+    "end_time": "2026-09-24 05:46:43.299174+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "084e622b-9aa3-4ef5-b141-10c8e9228a2c",
+    "name": "Read Saved customer ID",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:43.258327+00:00",
+    "end_time": "2026-09-24 05:46:43.285177+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 10,
+      "duration_ms": 31.0,
+      "operation": "browser.action",
+      "purpose": "Read the customer ID from the saved result for verification.",
+      "state": "completed",
+      "title": "Read Saved customer ID"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the customer ID from the saved result for verification.",
+          "step": 9,
+          "title": "Read Saved customer ID"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:46:43.258327+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "ef0279c2-941a-4e52-8617-ef6d9f4061d7",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:42.547405+00:00",
+    "end_time": "2026-09-24 05:46:43.257310+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 301,
+      "prompt_eval_count": 1294,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Read Saved customer ID",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1294,
+        "output_tokens": 301,
+        "total_tokens": 1595
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "7413406b-d48e-477b-b194-eb9802318158",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:42.480181+00:00",
+    "end_time": "2026-09-24 05:46:42.520921+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "32a017dd-f3ae-4eda-8c9e-3224e4b0ea77",
+    "name": "Click Save address",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:42.403228+00:00",
+    "end_time": "2026-09-24 05:46:42.479182+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 9,
+      "duration_ms": 78.0,
+      "operation": "browser.action",
+      "purpose": "Submit the address change. This is a protected write.",
+      "state": "completed",
+      "title": "Click Save address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Submit the address change. This is a protected write.",
+          "step": 8,
+          "title": "Click Save address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:46:42.403228+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "4edc5562-d20d-4c77-9e06-cbbd3f1e2251",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:41.885491+00:00",
+    "end_time": "2026-09-24 05:46:42.401222+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 143,
+      "prompt_eval_count": 1140,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Click Save address",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1140,
+        "output_tokens": 143,
+        "total_tokens": 1283
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "7b559895-8f75-418d-b80a-e51fbd4c1238",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:41.840074+00:00",
+    "end_time": "2026-09-24 05:46:41.874490+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 32.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "449c5a5f-4cf1-4c50-90f4-722dd7914831",
+    "name": "Click Review changes",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:41.779030+00:00",
+    "end_time": "2026-09-24 05:46:41.838981+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 8,
+      "duration_ms": 62.0,
+      "operation": "browser.action",
+      "purpose": "Open the review screen before saving.",
+      "state": "completed",
+      "title": "Click Review changes"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the review screen before saving.",
+          "step": 7,
+          "title": "Click Review changes"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:46:41.779030+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "fdc3dd5f-565c-4817-b5c9-cb5d3102a7b7",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:41.478493+00:00",
+    "end_time": "2026-09-24 05:46:41.778072+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 98,
+      "prompt_eval_count": 1238,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Click Review changes",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1238,
+        "output_tokens": 98,
+        "total_tokens": 1336
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "d40eceab-3c6d-4cf6-92fe-1ae8406c5aaf",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:41.454961+00:00",
+    "end_time": "2026-09-24 05:46:41.472488+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "86149097-e6e4-435d-bbd2-dad1bc701356",
+    "name": "Fill Postal code",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:41.437010+00:00",
+    "end_time": "2026-09-24 05:46:41.453031+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 7,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested postal code. The value stays private.",
+      "state": "completed",
+      "title": "Fill Postal code"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested postal code. The value stays private.",
+          "step": 6,
+          "title": "Fill Postal code"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:46:41.438016+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "438f8eab-1ab4-481e-8e27-cf5599fac459",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:01.403968+00:00",
+    "end_time": "2026-09-24 05:46:41.435990+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 117,
+      "prompt_eval_count": 1241,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Fill Postal code",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1241,
+        "output_tokens": 117,
+        "total_tokens": 1358
+      }
+    },
+    "events": [
+      {
+        "kwargs": {},
+        "name": "model_capacity_wait",
+        "time": "2026-09-24T05:46:01.406931+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "a028ad0a-c7b5-456b-ba38-dce2512115a2",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:01.381091+00:00",
+    "end_time": "2026-09-24 05:46:01.396954+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "ad468025-170f-4e1c-8073-5136136bda96",
+    "name": "Fill City",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:01.367593+00:00",
+    "end_time": "2026-09-24 05:46:01.380092+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 6,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested city. The value stays private.",
+      "state": "completed",
+      "title": "Fill City"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested city. The value stays private.",
+          "step": 5,
+          "title": "Fill City"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:46:01.367593+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "0cb911ed-c8b1-4a6d-b571-5179ca5d4d5b",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:00.437528+00:00",
+    "end_time": "2026-09-24 05:46:01.366581+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 162,
+      "prompt_eval_count": 1247,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Fill City",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1247,
+        "output_tokens": 162,
+        "total_tokens": 1409
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "397c91c7-6a93-4a69-a3ab-cc5a3ac89aeb",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:00.412522+00:00",
+    "end_time": "2026-09-24 05:46:00.431532+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "42e0a794-d059-4eb0-bcd1-9c5dc2da3a15",
+    "name": "Fill Street address",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:46:00.384381+00:00",
+    "end_time": "2026-09-24 05:46:00.411520+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 5,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested street address. The value stays private.",
+      "state": "completed",
+      "title": "Fill Street address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested street address. The value stays private.",
+          "step": 4,
+          "title": "Fill Street address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:46:00.385380+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "32555381-bf1b-4690-b804-394dbd26382e",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:59.849995+00:00",
+    "end_time": "2026-09-24 05:46:00.383364+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 294,
+      "prompt_eval_count": 1255,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Fill Street address",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1255,
+        "output_tokens": 294,
+        "total_tokens": 1549
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "3d9b68d3-70be-4c33-90a3-bf3b72011ad7",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:59.789467+00:00",
+    "end_time": "2026-09-24 05:45:59.836472+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 47.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "fd40c0d1-d8ab-4b70-b9ea-73f9ff05aeee",
+    "name": "Click Edit mailing address",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:59.708601+00:00",
+    "end_time": "2026-09-24 05:45:59.787462+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 4,
+      "duration_ms": 78.0,
+      "operation": "browser.action",
+      "purpose": "Open the mailing address form.",
+      "state": "completed",
+      "title": "Click Edit mailing address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the mailing address form.",
+          "step": 3,
+          "title": "Click Edit mailing address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:45:59.709603+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "7450b664-5210-4343-9960-198f659d6b2b",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:59.223221+00:00",
+    "end_time": "2026-09-24 05:45:59.708601+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 145,
+      "prompt_eval_count": 1151,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Click Edit mailing address",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1151,
+        "output_tokens": 145,
+        "total_tokens": 1296
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "0fd3b354-35d5-4a2e-a4f5-cfd61deb3d2e",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:59.168723+00:00",
+    "end_time": "2026-09-24 05:45:59.209939+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 32.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "8bab72e1-4096-44ab-b01f-95cf8d6f2017",
+    "name": "Click Open customer",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:59.084062+00:00",
+    "end_time": "2026-09-24 05:45:59.167725+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 3,
+      "duration_ms": 93.0,
+      "operation": "browser.action",
+      "purpose": "Open the matching customer record.",
+      "state": "completed",
+      "title": "Click Open customer"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the matching customer record.",
+          "step": 2,
+          "title": "Click Open customer"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:45:59.084062+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "0d22eee6-669a-404f-8c8d-15d7dbc6bae5",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:20.332478+00:00",
+    "end_time": "2026-09-24 05:45:59.083062+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 140,
+      "prompt_eval_count": 1076,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Click Open customer",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1076,
+        "output_tokens": 140,
+        "total_tokens": 1216
+      }
+    },
+    "events": [
+      {
+        "kwargs": {},
+        "name": "model_capacity_wait",
+        "time": "2026-09-24T05:45:20.336520+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "76cf29f6-0cfa-488a-8837-78d4f012f5be",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:20.277696+00:00",
+    "end_time": "2026-09-24 05:45:20.321479+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 47.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "d892426b-ec7f-4975-8a37-3e95f52a4e1c",
+    "name": "Click Search customers",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:20.221430+00:00",
+    "end_time": "2026-09-24 05:45:20.275696+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 2,
+      "duration_ms": 63.0,
+      "operation": "browser.action",
+      "purpose": "Search the customer directory.",
+      "state": "completed",
+      "title": "Click Search customers"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Search the customer directory.",
+          "step": 1,
+          "title": "Click Search customers"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:45:20.222441+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "db0865bb-04fc-4d93-8c15-9e7a4fc9a27d",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:19.645060+00:00",
+    "end_time": "2026-09-24 05:45:20.220428+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 210,
+      "prompt_eval_count": 1933,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Click Search customers",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1933,
+        "output_tokens": 210,
+        "total_tokens": 2143
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "091bf57b-7522-47f5-8d2f-1a9aa594c7bd",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:19.610285+00:00",
+    "end_time": "2026-09-24 05:45:19.635046+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "82caded7-c256-4834-952d-5170835fb381",
+    "name": "Fill Customer ID",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:19.565863+00:00",
+    "end_time": "2026-09-24 05:45:19.608686+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 1,
+      "duration_ms": 47.0,
+      "operation": "browser.action",
+      "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+      "state": "completed",
+      "title": "Fill Customer ID"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+          "step": 0,
+          "title": "Fill Customer ID"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:45:19.567347+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "a52ec164-1933-457e-8d06-7a64361bfcf4",
+    "name": "Choose the next UI action",
+    "run_type": "llm",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:18.722143+00:00",
+    "end_time": "2026-09-24 05:45:19.565863+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 505,
+      "prompt_eval_count": 1930,
+      "purpose": "Choose the next UI action",
+      "selected_action": "Fill Customer ID",
+      "timing_note": "Duration includes any pre-request pacing wait.",
+      "usage_metadata": {
+        "input_tokens": 1930,
+        "output_tokens": 505,
+        "total_tokens": 2435
+      }
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_model_name": "openai/gpt-oss-20b",
+        "ls_provider": "groq",
+        "ls_run_depth": 1
+      }
+    }
+  },
+  {
+    "id": "01d46b0a-6573-4ef0-8429-c5be01b034c1",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:18.665467+00:00",
+    "end_time": "2026-09-24 05:45:18.713194+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 47.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "name": "Discover: Update mailing address",
+    "run_type": "chain",
+    "parent_run_id": null,
+    "trace_id": "27942a84-ccae-43c6-b0ff-063beaa4b28b",
+    "start_time": "2026-09-24 05:45:17.917020+00:00",
+    "end_time": "2026-09-24 05:47:29.092398+00:00",
+    "inputs": {},
+    "outputs": {
+      "attempted_actions": 14,
+      "completed_actions": 14,
+      "elapsed_ms": 130493.34,
+      "error_code": null,
+      "human_assisted": false,
+      "input_tokens": 18441,
+      "last_completed_action": "Read Saved postal code",
+      "limitations": "Customer values, raw model messages, and unreviewed labels are withheld. Token totals include reported successful responses. Durations of nested operations overlap.",
+      "mode": "discovery",
+      "model_calls": 14,
+      "model_calls_basis": "transport attempts",
+      "next_step": "You can reuse this workflow with new inputs.",
+      "omitted_spans": 0,
+      "output_tokens": 2863,
+      "outputs_count": 5,
+      "protected_write_attempts": 1,
+      "run_id": "6e7905b5-c151-4bbe-abdf-6cfb1bb66f32",
+      "status": "success",
+      "step": 14,
+      "stopped_at": null,
+      "summary": "The workflow completed and the result passed its checks.",
+      "task": "Update mailing address",
+      "verification_passed": true,
+      "write_note": "A protected write was attempted. Check the saved state before retrying."
+    },
+    "events": [
+      {
+        "kwargs": {
+          "run_id": "6e7905b5-c151-4bbe-abdf-6cfb1bb66f32",
+          "session_id": "f6636e4a-d724-4b75-9c5f-0fec30d1b1fe",
+          "write_approval": true
+        },
+        "name": "run_started",
+        "time": "2026-09-24T05:45:18.503567+00:00"
+      },
+      {
+        "kwargs": {
+          "mode": "discovery"
+        },
+        "name": "mode",
+        "time": "2026-09-24T05:45:18.625950+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 13,
+          "step": 0
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:45:18.717408+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Fill Customer ID"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:45:19.565863+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 13,
+          "step": 1
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:45:19.641064+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Click Search customers"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:45:20.221430+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 8,
+          "step": 2
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:45:20.327470+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Click Open customer"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:45:59.084062+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 9,
+          "step": 3
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:45:59.218939+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Click Edit mailing address"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:45:59.708601+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 4
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:45:59.842995+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Fill Street address"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:46:00.384381+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 5
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:46:00.435527+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Fill City"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:46:01.366581+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 6
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:46:01.402970+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Fill Postal code"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:46:41.437010+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 7
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:46:41.476489+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Click Review changes"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:46:41.778072+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 8,
+          "step": 8
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:46:41.880490+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Click Save address"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:46:42.401222+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 9
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:46:42.527907+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Read Saved customer ID"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:46:43.257310+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 10
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:46:43.302436+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Read Confirmation reference"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:47:27.270461+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 11
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:47:27.318968+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Read Saved street address"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:47:27.779920+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 12
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:47:27.828101+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Read Saved city"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:47:28.393408+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 13
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:47:28.454787+00:00"
+      },
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "The model selected this allowed action from the current UI.",
+          "title": "Read Saved postal code"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:47:28.928220+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 14
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:47:28.980567+00:00"
+      },
+      {
+        "kwargs": {},
+        "name": "run_finished",
+        "time": "2026-09-24T05:47:28.995907+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 0,
+        "operation": "workflow.discovery"
+      }
+    }
+  },
+  {
+    "id": "99c8f48c-01d6-4a3d-9be9-6706c00fd195",
+    "name": "Verify the final result",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.340563+00:00",
+    "end_time": "2026-09-24 05:51:31.345794+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 0.0,
+      "human_assisted": false,
+      "operation": "result.verify",
+      "outputs_count": 5,
+      "purpose": "Check the success page and every required output against the contract.",
+      "run_id": "6c1363ac-51d9-44fa-a782-14fbed6ac094",
+      "state": "completed",
+      "status": "success",
+      "step": 14,
+      "title": "Verify the final result"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "result.verify"
+      }
+    }
+  },
+  {
+    "id": "91b8cd04-8b69-44ab-b839-5887508abe7a",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.319840+00:00",
+    "end_time": "2026-09-24 05:51:31.340563+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "90ef4528-4006-4d84-9438-b2f85355c89b",
+    "name": "Read Saved postal code",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.304712+00:00",
+    "end_time": "2026-09-24 05:51:31.319840+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 14,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved postal code for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved postal code"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved postal code for comparison with the request.",
+          "step": 13,
+          "title": "Read Saved postal code"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:31.309770+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "52ae543c-eaf7-458c-8b3e-f435b8e294b1",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.283970+00:00",
+    "end_time": "2026-09-24 05:51:31.304712+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "acb5d0cd-2412-4124-b1de-cdecdc961e6a",
+    "name": "Read Saved city",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.267646+00:00",
+    "end_time": "2026-09-24 05:51:31.283970+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 13,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved city for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved city"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved city for comparison with the request.",
+          "step": 12,
+          "title": "Read Saved city"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:31.267646+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "2192657b-6c0b-48e4-a8cb-dcb52cd3e5d4",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.252051+00:00",
+    "end_time": "2026-09-24 05:51:31.267646+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "65b24f91-5920-414a-9b1d-a8fb8a7b5105",
+    "name": "Read Saved street address",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.239299+00:00",
+    "end_time": "2026-09-24 05:51:31.252051+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 12,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved street address for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved street address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved street address for comparison with the request.",
+          "step": 11,
+          "title": "Read Saved street address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:31.240479+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "85f57e7a-af60-419e-997c-c040b308c536",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.220586+00:00",
+    "end_time": "2026-09-24 05:51:31.239299+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 16.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "f071f8aa-1ada-4746-a1a8-7cb0ffc7f379",
+    "name": "Read Confirmation reference",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.205273+00:00",
+    "end_time": "2026-09-24 05:51:31.220586+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 11,
+      "duration_ms": 15.0,
+      "operation": "browser.action",
+      "purpose": "Read the application's confirmation reference.",
+      "state": "completed",
+      "title": "Read Confirmation reference"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the application's confirmation reference.",
+          "step": 10,
+          "title": "Read Confirmation reference"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:31.206274+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "763c0f69-6c5a-47bb-bafb-9b64854aa146",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.190267+00:00",
+    "end_time": "2026-09-24 05:51:31.205273+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 16.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "30f474fa-72f4-458f-a30d-bf065ee35540",
+    "name": "Read Saved customer ID",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.165270+00:00",
+    "end_time": "2026-09-24 05:51:31.189270+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 10,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Read the customer ID from the saved result for verification.",
+      "state": "completed",
+      "title": "Read Saved customer ID"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the customer ID from the saved result for verification.",
+          "step": 9,
+          "title": "Read Saved customer ID"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:31.166270+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "f916e31d-30f0-41aa-82d1-2ae69705b9f8",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.132265+00:00",
+    "end_time": "2026-09-24 05:51:31.164267+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "2d915438-20a6-43ac-92f8-307453884e31",
+    "name": "Click Save address",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.039695+00:00",
+    "end_time": "2026-09-24 05:51:31.131265+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 9,
+      "duration_ms": 94.0,
+      "operation": "browser.action",
+      "purpose": "Submit the address change. This is a protected write.",
+      "state": "completed",
+      "title": "Click Save address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Submit the address change. This is a protected write.",
+          "step": 8,
+          "title": "Click Save address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:31.041664+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "27a31ba5-e8f6-4857-9c8b-f516279cf0ce",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:31.008074+00:00",
+    "end_time": "2026-09-24 05:51:31.038661+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "cbf3233b-d263-45e3-a737-13c9056013a2",
+    "name": "Click Review changes",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.947943+00:00",
+    "end_time": "2026-09-24 05:51:31.007068+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 8,
+      "duration_ms": 47.0,
+      "operation": "browser.action",
+      "purpose": "Open the review screen before saving.",
+      "state": "completed",
+      "title": "Click Review changes"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the review screen before saving.",
+          "step": 7,
+          "title": "Click Review changes"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.948943+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "c6748b46-e380-41ff-9d7b-f99e20957dc6",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.931945+00:00",
+    "end_time": "2026-09-24 05:51:30.946944+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 16.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "7809ab57-a3a7-4ebc-a1f9-e699e6580558",
+    "name": "Fill Postal code",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.919995+00:00",
+    "end_time": "2026-09-24 05:51:30.931945+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 7,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested postal code. The value stays private.",
+      "state": "completed",
+      "title": "Fill Postal code"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested postal code. The value stays private.",
+          "step": 6,
+          "title": "Fill Postal code"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.920947+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "70c4b6c6-f843-42b0-ac2b-e43dc0f4cfab",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.904036+00:00",
+    "end_time": "2026-09-24 05:51:30.918949+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "e455e2b0-24f0-4f70-8a06-f1877b482f78",
+    "name": "Fill City",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.891056+00:00",
+    "end_time": "2026-09-24 05:51:30.903036+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 6,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested city. The value stays private.",
+      "state": "completed",
+      "title": "Fill City"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested city. The value stays private.",
+          "step": 5,
+          "title": "Fill City"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.892030+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "2120be25-cedf-4082-9762-aeea9ca43892",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.869029+00:00",
+    "end_time": "2026-09-24 05:51:30.890028+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "6e513e4b-79ee-4e1c-a8d2-238a03805838",
+    "name": "Fill Street address",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.844032+00:00",
+    "end_time": "2026-09-24 05:51:30.868028+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 5,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested street address. The value stays private.",
+      "state": "completed",
+      "title": "Fill Street address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested street address. The value stays private.",
+          "step": 4,
+          "title": "Fill Street address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.845030+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "180c9e33-0860-40d7-9502-bc44eef58b32",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.810663+00:00",
+    "end_time": "2026-09-24 05:51:30.843031+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "05e8393c-b019-476e-a0e2-379b6862002d",
+    "name": "Click Edit mailing address",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.750656+00:00",
+    "end_time": "2026-09-24 05:51:30.809663+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 4,
+      "duration_ms": 62.0,
+      "operation": "browser.action",
+      "purpose": "Open the mailing address form.",
+      "state": "completed",
+      "title": "Click Edit mailing address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the mailing address form.",
+          "step": 3,
+          "title": "Click Edit mailing address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.751660+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "c77f4516-110d-4675-a497-794422e6cfb6",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.718663+00:00",
+    "end_time": "2026-09-24 05:51:30.749659+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 32.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "da0658ef-c004-4d86-b1e0-ff9a3a5b910e",
+    "name": "Click Open customer",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.639688+00:00",
+    "end_time": "2026-09-24 05:51:30.717656+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 3,
+      "duration_ms": 78.0,
+      "operation": "browser.action",
+      "purpose": "Open the matching customer record.",
+      "state": "completed",
+      "title": "Click Open customer"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the matching customer record.",
+          "step": 2,
+          "title": "Click Open customer"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.640686+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "a3b8300a-b15f-447e-bbe7-7b78c1789380",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.607645+00:00",
+    "end_time": "2026-09-24 05:51:30.639688+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "51166388-e65c-497f-8977-c13089095e2c",
+    "name": "Click Search customers",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.532482+00:00",
+    "end_time": "2026-09-24 05:51:30.606646+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 2,
+      "duration_ms": 78.0,
+      "operation": "browser.action",
+      "purpose": "Search the customer directory.",
+      "state": "completed",
+      "title": "Click Search customers"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Search the customer directory.",
+          "step": 1,
+          "title": "Click Search customers"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.533483+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "12c00842-12e6-4477-9dfe-1822992f8d62",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.483967+00:00",
+    "end_time": "2026-09-24 05:51:30.531482+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 47.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "0f7ed7f5-2fd0-49e7-b57e-7fdfb748bc99",
+    "name": "Fill Customer ID",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.439571+00:00",
+    "end_time": "2026-09-24 05:51:30.482969+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 1,
+      "duration_ms": 47.0,
+      "operation": "browser.action",
+      "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+      "state": "completed",
+      "title": "Fill Customer ID"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+          "step": 0,
+          "title": "Fill Customer ID"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:30.440571+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "7dacd3ca-d6bb-4066-b4d9-6093b6acbb68",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:30.370093+00:00",
+    "end_time": "2026-09-24 05:51:30.438572+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 62.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "name": "Replay: Update mailing address",
+    "run_type": "chain",
+    "parent_run_id": null,
+    "trace_id": "990c7eeb-415e-4bc7-818b-807088c5644e",
+    "start_time": "2026-09-24 05:51:29.461140+00:00",
+    "end_time": "2026-09-24 05:51:31.417338+00:00",
+    "inputs": {},
+    "outputs": {
+      "attempted_actions": 14,
+      "completed_actions": 14,
+      "elapsed_ms": 1116.0,
+      "error_code": null,
+      "human_assisted": false,
+      "input_tokens": 0,
+      "last_completed_action": "Read Saved postal code",
+      "limitations": "Customer values, raw model messages, and unreviewed labels are withheld. Token totals include reported successful responses. Durations of nested operations overlap.",
+      "mode": "replay",
+      "model_calls": 0,
+      "model_calls_basis": "transport attempts",
+      "next_step": "You can reuse this workflow with new inputs.",
+      "omitted_spans": 0,
+      "output_tokens": 0,
+      "outputs_count": 5,
+      "protected_write_attempts": 1,
+      "run_id": "6c1363ac-51d9-44fa-a782-14fbed6ac094",
+      "status": "success",
+      "step": 14,
+      "stopped_at": null,
+      "summary": "The workflow completed and the result passed its checks.",
+      "task": "Update mailing address",
+      "verification_passed": true,
+      "write_note": "A protected write was attempted. Check the saved state before retrying."
+    },
+    "events": [
+      {
+        "kwargs": {
+          "run_id": "6c1363ac-51d9-44fa-a782-14fbed6ac094",
+          "session_id": "5a3ddfde-945e-49a6-9207-f4df2f1c16b2",
+          "write_approval": true
+        },
+        "name": "run_started",
+        "time": "2026-09-24T05:51:30.230776+00:00"
+      },
+      {
+        "kwargs": {
+          "capability_version": 1,
+          "mode": "replay"
+        },
+        "name": "mode",
+        "time": "2026-09-24T05:51:30.370093+00:00"
+      },
+      {
+        "kwargs": {},
+        "name": "run_finished",
+        "time": "2026-09-24T05:51:31.345794+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 0,
+        "operation": "workflow.replay"
+      }
+    }
+  },
+  {
+    "id": "0d0fa125-b1df-445a-87cf-60c4e0649109",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.992803+00:00",
+    "end_time": "2026-09-24 05:51:37.018317+00:00",
+    "inputs": {},
+    "outputs": {
+      "code": "permission_denied",
+      "duration_ms": 31.0,
+      "explanation": "The application denied access to the requested operation.",
+      "next_step": "Check the operator's permissions. Do not retry with the same access.",
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "failure",
+      "title": "Check page for errors"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "attempt": 0,
+          "category": "failure",
+          "code": "permission_denied",
+          "explanation": "The application denied access to the requested operation.",
+          "next_step": "Check the operator's permissions. Do not retry with the same access."
+        },
+        "name": "condition",
+        "time": "2026-09-24T05:51:37.018317+00:00"
+      }
+    ],
+    "error": "The application denied access to the requested operation.",
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "bcbfc897-4833-4cd2-b8f9-5a4384368ef2",
+    "name": "Click Edit mailing address",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.923491+00:00",
+    "end_time": "2026-09-24 05:51:36.991762+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 4,
+      "duration_ms": 63.0,
+      "operation": "browser.action",
+      "purpose": "Open the mailing address form.",
+      "state": "completed",
+      "title": "Click Edit mailing address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the mailing address form.",
+          "step": 3,
+          "title": "Click Edit mailing address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:36.924363+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "37ac92dd-f7ea-465f-9168-39501e919102",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.890971+00:00",
+    "end_time": "2026-09-24 05:51:36.922363+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "f129b19e-1428-4db4-9585-13ef7b779dad",
+    "name": "Click Open customer",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.854975+00:00",
+    "end_time": "2026-09-24 05:51:36.890971+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 3,
+      "duration_ms": 31.0,
+      "operation": "browser.action",
+      "purpose": "Open the matching customer record.",
+      "state": "completed",
+      "title": "Click Open customer"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the matching customer record.",
+          "step": 2,
+          "title": "Click Open customer"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:36.856039+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "624182a3-87ef-46f3-98cc-f4a456cd677a",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.821675+00:00",
+    "end_time": "2026-09-24 05:51:36.854038+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "af77dad2-af72-48cc-ade5-95184acdee6f",
+    "name": "Click Search customers",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.771033+00:00",
+    "end_time": "2026-09-24 05:51:36.820672+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 2,
+      "duration_ms": 47.0,
+      "operation": "browser.action",
+      "purpose": "Search the customer directory.",
+      "state": "completed",
+      "title": "Click Search customers"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Search the customer directory.",
+          "step": 1,
+          "title": "Click Search customers"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:36.773007+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "263867c5-2faf-4703-8029-7412bed78a7e",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.742331+00:00",
+    "end_time": "2026-09-24 05:51:36.769731+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "eec447d5-b0da-43bf-bbdc-5aa8474a39ac",
+    "name": "Fill Customer ID",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.714548+00:00",
+    "end_time": "2026-09-24 05:51:36.741405+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 1,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+      "state": "completed",
+      "title": "Fill Customer ID"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+          "step": 0,
+          "title": "Fill Customer ID"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:36.714548+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "ce207491-85a3-410b-a5f6-498f42e20d9a",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.671880+00:00",
+    "end_time": "2026-09-24 05:51:36.713505+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 47.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "name": "Replay: Update mailing address",
+    "run_type": "chain",
+    "parent_run_id": null,
+    "trace_id": "e86aec6f-aa1e-475e-8f99-e732dee3cb57",
+    "start_time": "2026-09-24 05:51:36.206155+00:00",
+    "end_time": "2026-09-24 05:51:37.100682+00:00",
+    "inputs": {},
+    "outputs": {
+      "attempted_actions": 4,
+      "completed_actions": 4,
+      "elapsed_ms": 418.91,
+      "error_code": "permission_denied",
+      "human_assisted": false,
+      "input_tokens": 0,
+      "last_completed_action": "Click Edit mailing address",
+      "limitations": "Customer values, raw model messages, and unreviewed labels are withheld. Token totals include reported successful responses. Durations of nested operations overlap.",
+      "mode": "replay",
+      "model_calls": 0,
+      "model_calls_basis": "transport attempts",
+      "next_step": "Check the operator's permissions. Do not retry with the same access.",
+      "omitted_spans": 0,
+      "output_tokens": 0,
+      "outputs_count": 0,
+      "protected_write_attempts": 0,
+      "run_id": "1a201a6d-f1e8-4ff1-87db-1fbc2ff16c39",
+      "status": "failure",
+      "step": 4,
+      "stopped_at": "Check page for errors",
+      "summary": "The application denied access to the requested operation.",
+      "task": "Update mailing address",
+      "verification_passed": false,
+      "write_note": "No protected write was attempted."
+    },
+    "events": [
+      {
+        "kwargs": {
+          "run_id": "1a201a6d-f1e8-4ff1-87db-1fbc2ff16c39",
+          "session_id": "0ecb4d63-8e9b-45cd-ab74-99c1d5e05aef",
+          "write_approval": true
+        },
+        "name": "run_started",
+        "time": "2026-09-24T05:51:36.611382+00:00"
+      },
+      {
+        "kwargs": {
+          "capability_version": 1,
+          "mode": "replay"
+        },
+        "name": "mode",
+        "time": "2026-09-24T05:51:36.670879+00:00"
+      },
+      {
+        "kwargs": {},
+        "name": "run_finished",
+        "time": "2026-09-24T05:51:37.030323+00:00"
+      }
+    ],
+    "error": "The application denied access to the requested operation.",
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 0,
+        "operation": "workflow.replay"
+      }
+    }
+  },
+  {
+    "id": "1146d3c7-33b1-45c2-a17a-bdf687034838",
+    "name": "Verify the final result",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.897704+00:00",
+    "end_time": "2026-09-24 05:51:45.902832+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 16.0,
+      "human_assisted": false,
+      "operation": "result.verify",
+      "outputs_count": 5,
+      "purpose": "Check the success page and every required output against the contract.",
+      "run_id": "c4c52efd-280b-4b6c-9dcc-c7d8af09056a",
+      "state": "completed",
+      "status": "success",
+      "step": 14,
+      "title": "Verify the final result"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "result.verify"
+      }
+    }
+  },
+  {
+    "id": "ed8964ca-af76-45a0-97ec-65a02fd48764",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.882691+00:00",
+    "end_time": "2026-09-24 05:51:45.897704+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "07a4f66d-56ed-48d5-8d3f-7d62e066dfff",
+    "name": "Read Saved postal code",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.869630+00:00",
+    "end_time": "2026-09-24 05:51:45.882691+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 14,
+      "duration_ms": 0.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved postal code for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved postal code"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved postal code for comparison with the request.",
+          "step": 13,
+          "title": "Read Saved postal code"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.870628+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "9c49645d-b036-44dd-ad20-0779bd2fc881",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.854487+00:00",
+    "end_time": "2026-09-24 05:51:45.869630+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 16.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "d39de52b-4b04-44ac-bda2-ba5369306b9a",
+    "name": "Read Saved city",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.842153+00:00",
+    "end_time": "2026-09-24 05:51:45.854487+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 13,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved city for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved city"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved city for comparison with the request.",
+          "step": 12,
+          "title": "Read Saved city"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.843559+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "aa19c81f-5223-4860-a98c-984e817808c4",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.830730+00:00",
+    "end_time": "2026-09-24 05:51:45.842153+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "6d27a217-94ad-4bec-8c51-47cec4c83d0a",
+    "name": "Read Saved street address",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.818592+00:00",
+    "end_time": "2026-09-24 05:51:45.829734+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 12,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Read the saved street address for comparison with the request.",
+      "state": "completed",
+      "title": "Read Saved street address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the saved street address for comparison with the request.",
+          "step": 11,
+          "title": "Read Saved street address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.819590+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "ce65317a-2c6b-4806-ae21-70c11c4a9a74",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.803589+00:00",
+    "end_time": "2026-09-24 05:51:45.818592+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 16.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "f23a848e-6f1d-4c18-9c91-0d8ed7343791",
+    "name": "Read Confirmation reference",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.789467+00:00",
+    "end_time": "2026-09-24 05:51:45.802580+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 11,
+      "duration_ms": 15.0,
+      "operation": "browser.action",
+      "purpose": "Read the application's confirmation reference.",
+      "state": "completed",
+      "title": "Read Confirmation reference"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the application's confirmation reference.",
+          "step": 10,
+          "title": "Read Confirmation reference"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.790467+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "96e2f47f-273c-49c2-a487-b748e1b84982",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.773477+00:00",
+    "end_time": "2026-09-24 05:51:45.789467+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 16.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "13f198c0-b016-471e-b61a-a892ea9251f2",
+    "name": "Read Saved customer ID",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.749350+00:00",
+    "end_time": "2026-09-24 05:51:45.772408+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "read",
+      "action_number": 10,
+      "duration_ms": 15.0,
+      "operation": "browser.action",
+      "purpose": "Read the customer ID from the saved result for verification.",
+      "state": "completed",
+      "title": "Read Saved customer ID"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "read",
+          "kind": "read",
+          "purpose": "Read the customer ID from the saved result for verification.",
+          "step": 9,
+          "title": "Read Saved customer ID"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.750366+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "325f7713-ca28-4ba3-8d6f-f56d21fa08b8",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.713518+00:00",
+    "end_time": "2026-09-24 05:51:45.749350+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 32.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "d9bd99b1-f46b-4489-9b2c-f23cca8260fd",
+    "name": "Click Save address",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.619861+00:00",
+    "end_time": "2026-09-24 05:51:45.712515+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 9,
+      "duration_ms": 93.0,
+      "operation": "browser.action",
+      "purpose": "Submit the address change. This is a protected write.",
+      "state": "completed",
+      "title": "Click Save address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Submit the address change. This is a protected write.",
+          "step": 8,
+          "title": "Click Save address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.621859+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "f0c4297c-cc03-44e9-8029-c7d18f8260d5",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.587086+00:00",
+    "end_time": "2026-09-24 05:51:45.618859+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 32.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "46087233-21e9-401e-b552-89ace75fb818",
+    "name": "Click Review changes",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.531584+00:00",
+    "end_time": "2026-09-24 05:51:45.586086+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 8,
+      "duration_ms": 47.0,
+      "operation": "browser.action",
+      "purpose": "Open the review screen before saving.",
+      "state": "completed",
+      "title": "Click Review changes"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the review screen before saving.",
+          "step": 7,
+          "title": "Click Review changes"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.531584+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "fdfb6d53-c575-4a00-8070-fa10bcc3e357",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.479742+00:00",
+    "end_time": "2026-09-24 05:51:45.530575+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 47.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "bc9f59a0-0076-439a-888b-5fadf03602cd",
+    "name": "Fill Postal code",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.466370+00:00",
+    "end_time": "2026-09-24 05:51:45.478731+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 7,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested postal code. The value stays private.",
+      "state": "completed",
+      "title": "Fill Postal code"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested postal code. The value stays private.",
+          "step": 6,
+          "title": "Fill Postal code"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.467392+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "e84343f0-3deb-421c-a0d6-3bb3714d8fff",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.447216+00:00",
+    "end_time": "2026-09-24 05:51:45.465235+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 15.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "9a342226-916a-475b-98f4-f78d5879e0b5",
+    "name": "Fill City",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.434113+00:00",
+    "end_time": "2026-09-24 05:51:45.446133+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 6,
+      "duration_ms": 0.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested city. The value stays private.",
+      "state": "completed",
+      "title": "Fill City"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested city. The value stays private.",
+          "step": 5,
+          "title": "Fill City"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.436112+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "073f3739-8ccb-420c-9f23-303739220b47",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.413116+00:00",
+    "end_time": "2026-09-24 05:51:45.434113+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "18ae8a91-ef48-44e4-9469-746a4dc89ed9",
+    "name": "Fill Street address",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.389118+00:00",
+    "end_time": "2026-09-24 05:51:45.412113+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 5,
+      "duration_ms": 16.0,
+      "operation": "browser.action",
+      "purpose": "Enter the requested street address. The value stays private.",
+      "state": "completed",
+      "title": "Fill Street address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Enter the requested street address. The value stays private.",
+          "step": 4,
+          "title": "Fill Street address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.391114+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "525d1aff-967f-4aea-ad2f-2fefdac54fa7",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.357567+00:00",
+    "end_time": "2026-09-24 05:51:45.388199+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "60a617f8-6dda-4c4f-88bf-6bf1d9d4755f",
+    "name": "Click Edit mailing address",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.291543+00:00",
+    "end_time": "2026-09-24 05:51:45.357567+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 4,
+      "duration_ms": 63.0,
+      "operation": "browser.action",
+      "purpose": "Open the mailing address form.",
+      "state": "completed",
+      "title": "Click Edit mailing address"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the mailing address form.",
+          "step": 3,
+          "title": "Click Edit mailing address"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.292566+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "258767ca-b7e6-402b-9654-225d11a28abb",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.258980+00:00",
+    "end_time": "2026-09-24 05:51:45.290575+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "8cfd880b-abc7-44ae-aff6-6c1452ec203e",
+    "name": "Click Open customer",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.194329+00:00",
+    "end_time": "2026-09-24 05:51:45.257947+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 3,
+      "duration_ms": 63.0,
+      "operation": "browser.action",
+      "purpose": "Open the matching customer record.",
+      "state": "completed",
+      "title": "Click Open customer"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Open the matching customer record.",
+          "step": 2,
+          "title": "Click Open customer"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.195209+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "cc17ccb5-94ee-4478-af90-19fc5d5326e6",
+    "name": "Recover: Click Retry search",
+    "run_type": "tool",
+    "parent_run_id": "602c9168-2f0b-4f97-b0ac-a77dcf823599",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.116945+00:00",
+    "end_time": "2026-09-24 05:51:45.159031+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "duration_ms": 47.0,
+      "operation": "browser.recovery",
+      "purpose": "Retry a failed read operation without repeating a write.",
+      "state": "completed",
+      "title": "Recover: Click Retry search"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "attempt": 0,
+          "kind": "click",
+          "purpose": "Retry a failed read operation without repeating a write.",
+          "title": "Click Retry search"
+        },
+        "name": "recovery_action",
+        "time": "2026-09-24T05:51:45.118905+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 2,
+        "operation": "browser.recovery"
+      }
+    }
+  },
+  {
+    "id": "602c9168-2f0b-4f97-b0ac-a77dcf823599",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.087838+00:00",
+    "end_time": "2026-09-24 05:51:45.193354+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 94.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "attempt": 0,
+          "category": "recover",
+          "code": "temporary_load_failure",
+          "explanation": "The application could not load the search result. A bounded read retry is allowed.",
+          "next_step": "Watch the recovery step. If it also fails, inspect the application."
+        },
+        "name": "condition",
+        "time": "2026-09-24T05:51:45.116945+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "7d7847aa-66bf-40b8-bcac-d6982122ac5b",
+    "name": "Click Search customers",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:45.014295+00:00",
+    "end_time": "2026-09-24 05:51:45.086839+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "click",
+      "action_number": 2,
+      "duration_ms": 63.0,
+      "operation": "browser.action",
+      "purpose": "Search the customer directory.",
+      "state": "completed",
+      "title": "Click Search customers"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "click",
+          "kind": "click",
+          "purpose": "Search the customer directory.",
+          "step": 1,
+          "title": "Click Search customers"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:45.015296+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "391cd2e3-8fa6-4643-afcc-92d9f3781b73",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:44.984883+00:00",
+    "end_time": "2026-09-24 05:51:45.013337+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 31.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "7922da38-485c-440f-aa6e-ff8894dcadb8",
+    "name": "Fill Customer ID",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:44.957021+00:00",
+    "end_time": "2026-09-24 05:51:44.983888+00:00",
+    "inputs": {},
+    "outputs": {
+      "action_kind": "fill",
+      "action_number": 1,
+      "duration_ms": 31.0,
+      "operation": "browser.action",
+      "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+      "state": "completed",
+      "title": "Fill Customer ID"
+    },
+    "events": [
+      {
+        "kwargs": {
+          "action_kind": "fill",
+          "kind": "fill",
+          "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+          "step": 0,
+          "title": "Fill Customer ID"
+        },
+        "name": "action",
+        "time": "2026-09-24T05:51:44.958046+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "browser.action"
+      }
+    }
+  },
+  {
+    "id": "c27ca782-5266-4c4d-91a8-4e8f405f7b9d",
+    "name": "Check page for errors",
+    "run_type": "tool",
+    "parent_run_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:44.913995+00:00",
+    "end_time": "2026-09-24 05:51:44.957021+00:00",
+    "inputs": {},
+    "outputs": {
+      "duration_ms": 47.0,
+      "operation": "page.check",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "state": "completed",
+      "title": "Check page for errors"
+    },
+    "events": [],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 1,
+        "operation": "page.check"
+      }
+    }
+  },
+  {
+    "id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "name": "Replay: Update mailing address",
+    "run_type": "chain",
+    "parent_run_id": null,
+    "trace_id": "fe1b6f32-92e8-45f8-a563-31dc88570e7f",
+    "start_time": "2026-09-24 05:51:44.403722+00:00",
+    "end_time": "2026-09-24 05:51:45.969218+00:00",
+    "inputs": {},
+    "outputs": {
+      "attempted_actions": 14,
+      "completed_actions": 14,
+      "elapsed_ms": 1055.77,
+      "error_code": null,
+      "human_assisted": false,
+      "input_tokens": 0,
+      "last_completed_action": "Read Saved postal code",
+      "limitations": "Customer values, raw model messages, and unreviewed labels are withheld. Token totals include reported successful responses. Durations of nested operations overlap.",
+      "mode": "replay",
+      "model_calls": 0,
+      "model_calls_basis": "transport attempts",
+      "next_step": "You can reuse this workflow with new inputs.",
+      "omitted_spans": 0,
+      "output_tokens": 0,
+      "outputs_count": 5,
+      "protected_write_attempts": 1,
+      "run_id": "c4c52efd-280b-4b6c-9dcc-c7d8af09056a",
+      "status": "success",
+      "step": 14,
+      "stopped_at": null,
+      "summary": "The workflow completed and the result passed its checks.",
+      "task": "Update mailing address",
+      "verification_passed": true,
+      "write_note": "A protected write was attempted. Check the saved state before retrying."
+    },
+    "events": [
+      {
+        "kwargs": {
+          "run_id": "c4c52efd-280b-4b6c-9dcc-c7d8af09056a",
+          "session_id": "517a05e0-9ddc-4a26-9a41-5231ab58c700",
+          "write_approval": true
+        },
+        "name": "run_started",
+        "time": "2026-09-24T05:51:44.849095+00:00"
+      },
+      {
+        "kwargs": {
+          "capability_version": 1,
+          "mode": "replay"
+        },
+        "name": "mode",
+        "time": "2026-09-24T05:51:44.913995+00:00"
+      },
+      {
+        "kwargs": {},
+        "name": "run_finished",
+        "time": "2026-09-24T05:51:45.904836+00:00"
+      }
+    ],
+    "error": null,
+    "extra": {
+      "metadata": {
+        "ls_run_depth": 0,
+        "operation": "workflow.replay"
+      }
+    }
+  }
+]

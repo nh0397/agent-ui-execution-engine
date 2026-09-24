@@ -100,6 +100,19 @@ class Condition(Contract):
     recovery: Action | None = None
 
 
+class TraceError(Contract):
+    code: str
+    explanation: str
+    next_step: str
+
+
+class TraceLabels(Contract):
+    # Reviewed static vocabulary, never populated from a model or a live page.
+    controls: dict[str, str] = Field(default_factory=dict)
+    workflows: dict[str, str] = Field(default_factory=dict)
+    errors: dict[str, TraceError] = Field(default_factory=dict)
+
+
 class Profile(Contract):
     app: str
     version: str
@@ -110,3 +123,4 @@ class Profile(Contract):
     automated_post_routes: list[str]
     risky_post_routes: list[str] = Field(default_factory=list)
     conditions: list[Condition] = Field(default_factory=list)
+    trace_labels: TraceLabels = Field(default_factory=TraceLabels)

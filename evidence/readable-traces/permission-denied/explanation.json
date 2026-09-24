@@ -1,0 +1,100 @@
+{
+  "task": "Update mailing address",
+  "mode": "replay",
+  "status": "failure",
+  "summary": "The application denied access to the requested operation.",
+  "next_step": "Check the operator's permissions. Do not retry with the same access.",
+  "error_code": "permission_denied",
+  "elapsed_ms": 418.91,
+  "completed_actions": 4,
+  "attempted_actions": 4,
+  "last_completed_action": "Click Edit mailing address",
+  "stopped_at": "Check page for errors",
+  "model_calls": 0,
+  "model_calls_basis": "transport attempts",
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "outputs_count": 0,
+  "verification_passed": false,
+  "human_assisted": false,
+  "protected_write_attempts": 0,
+  "write_note": "No protected write was attempted.",
+  "timeline": [
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 47.0
+    },
+    {
+      "title": "Fill Customer ID",
+      "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 16.0,
+      "action_number": 1
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 31.0
+    },
+    {
+      "title": "Click Search customers",
+      "purpose": "Search the customer directory.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 47.0,
+      "action_number": 2
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 31.0
+    },
+    {
+      "title": "Click Open customer",
+      "purpose": "Open the matching customer record.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 31.0,
+      "action_number": 3
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 31.0
+    },
+    {
+      "title": "Click Edit mailing address",
+      "purpose": "Open the mailing address form.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 63.0,
+      "action_number": 4
+    },
+    {
+      "title": "The application denied access to the requested operation.",
+      "operation": "condition",
+      "state": "failure",
+      "next_step": "Check the operator's permissions. Do not retry with the same access."
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "failure",
+      "duration_ms": 31.0,
+      "explanation": "The application denied access to the requested operation.",
+      "next_step": "Check the operator's permissions. Do not retry with the same access."
+    }
+  ],
+  "limitations": "Customer values, raw model messages, and unreviewed labels are withheld. Token totals include reported successful responses. Durations of nested operations overlap."
+}

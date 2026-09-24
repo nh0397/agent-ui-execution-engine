@@ -822,3 +822,23 @@
 .chat-main .agent-match > .button { margin-top:4px; }
 .chat-main .workflow-mode { font-size:12px; font-weight:650; color:#325a43; }
 @media(max-width:600px) { .chat-main .agent-match dl { grid-template-columns:1fr; gap:8px; } }
+/* The run explanation is readable without opening an external tracing tool. */
+.run-explanation { padding: 20px; margin: 0 0 20px; border: 1px solid #bdcfc7; border-radius: 12px; background: #f8fbf9; color: #193b32; min-width: 0; }
+.run-explanation h3 { margin: 6px 0 12px; font-size: 1.15rem; }
+.run-explanation p { line-height: 1.6; overflow-wrap: anywhere; }
+.run-summary { font-size: 1rem; }
+.run-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 20px 0; }
+.run-facts div { padding: 12px; border: 1px solid #d5e1db; border-radius: 8px; background: white; }
+.run-facts dt { font-size: .78rem; color: #52675f; }
+.run-facts dd { margin: 6px 0 0; font-weight: 650; }
+.run-next-step { padding: 12px; border-left: 3px solid #2d6652; background: #edf4f0; }
+.run-explanation details { margin-top: 16px; }
+.run-explanation summary { cursor: pointer; font-weight: 650; padding: 8px 0; }
+.run-explanation summary:focus-visible { outline: 2px solid #2d6652; outline-offset: 3px; }
+.run-timeline { padding-left: 24px; margin: 16px 0 0; }
+.run-step { margin-bottom: 12px; padding: 12px; border: 1px solid #d5e1db; border-radius: 8px; background: white; }
+.run-step-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
+.run-step-heading span { font-size: .78rem; color: #52675f; }
+.run-step p { font-size: .85rem; margin: 6px 0 0; }
+.run-step-failure { border-color: #c66b53; background: #fff5f1; }
+@media (max-width: 600px) { .run-explanation { padding: 12px; } .run-facts { grid-template-columns: 1fr; } }

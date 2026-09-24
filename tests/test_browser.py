@@ -73,10 +73,27 @@ def test_replay_browser_scenarios(tmp_path, server, scenario, customer, status, 
     result = replay(fixture_capability(), inputs, profile, origin, tmp_path / "runs", approve_writes=True)
     assert (result.status, result.code) == (status, code), result
     trace = trace_capture[0]
-    assert trace.record['name'] == 'workflow.replay'
+    assert trace.record['name'] == 'Replay: Update mailing address'
+    assert trace.record['extra']['metadata']['operation'] == 'workflow.replay'
     assert trace.record['outputs']['model_calls'] == 0
     assert trace.record['outputs']['status'] == status
     assert not any(s['run_type'] == 'llm' for s in trace.spans)
+    explanation = json.loads(next((tmp_path/'runs').rglob('explanation.json')).read_text())
+    assert explanation['status'] == status
+    assert any(s['name'] == 'Fill Customer ID' for s in trace.spans)
+    if scenario == 'permission-denied':
+        assert explanation['completed_actions'] == 4
+        assert explanation['stopped_at'] == 'Check page for errors'
+        assert explanation['last_completed_action'] == 'Click Edit mailing address'
+        assert explanation['error_code'] == 'permission_denied'
+        assert explanation['protected_write_attempts'] == 0
+        assert trace.record['error'] == 'The application denied access to the requested operation.'
+        assert any(s['name'] == 'Check page for errors' and s.get('error') for s in trace.spans)
+    if scenario in {'transient','uncertain-save'}:
+        assert any(s['name'].startswith('Recover: ') for s in trace.spans)
+    if status == 'business_outcome':
+        assert 'error' not in trace.record
+        assert not any(s.get('error') for s in trace.spans)
     exported = json.dumps(trace.spans, default=str)
     assert all(value not in exported for value in inputs.values())
     if status == "success":
@@ -194,7 +211,7 @@ def test_session_expiry_restores_same_session_with_scripted_operator(tmp_path, s
     assert len({e["session_id"] for e in owners}) == 1
     assert any(e["event"] == "human_action" for e in events)
     trace = trace_capture[0]
-    assert any(s['name'] == 'human.takeover' for s in trace.spans)
+    assert any(s['name'] == 'Wait for human review' for s in trace.spans)
     owners = [e['kwargs'] for s in trace.spans for e in s['events'] if e['name'] == 'ownership']
     assert [e['owner'] for e in owners] == ['human', 'automation']
     assert len({e['session_id'] for e in owners}) == 1

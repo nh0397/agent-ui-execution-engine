@@ -1,3 +1,4 @@
+import RunExplanation from './RunExplanation';
 import {
   useEffect,
   useRef,
@@ -881,6 +882,7 @@ export default function LiveWorkspace() {
                         }}
                       />
                       <section className="panel event-panel">
+                        <RunExplanation value={current.explanation} />
                         <div className="section-heading">
                           <h2>Live event log</h2>
                           <button
@@ -1411,6 +1413,7 @@ export default function LiveWorkspace() {
       )}
       {detail && (
         <Dialog title="Run result and evidence" close={() => setDetail(null)}>
+          <RunExplanation value={detail.explanation} />
           <Badge>{status(detail)}</Badge>
           <p className="mono muted">{detail.id}</p>
           <p>{detail.code}</p>
@@ -1418,13 +1421,13 @@ export default function LiveWorkspace() {
             {detail.trace.url ? <a className="button secondary" href={detail.trace.url} target="_blank" rel="noopener noreferrer">View LangSmith trace</a>
               : `LangSmith trace: ${detail.trace.state}. ${detail.trace.error || "The trace link appears after export. Reopen this run to refresh."}`}
           </p>}
-          <pre>
+          <details><summary>Technical result</summary><pre>
             {JSON.stringify(
               detail.result || { status: detail.status },
               null,
               2,
             )}
-          </pre>
+          </pre></details>
           <button
             className="button secondary"
             onClick={() => download(`run-${detail.id}.json`, detail)}

@@ -201,6 +201,8 @@ def create_app(root: Path | None = None):
         value["actions"] = sum(e["event"] == "action" or (e["event"] == "human_step" and bool(e.get("action"))) for e in events)
         value["model_decisions"] = sum(e["event"] == "model_decision" for e in events)
         value["events"] = events
+        from engine.observability import explain
+        value['explanation'] = explain(events, profile, job['status']) if events else None
         value["recording"] = control.recording if control else {}
         recording_files = list((runs_root / job["id"]).glob("*/recording.json"))
         if recording_files:

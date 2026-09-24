@@ -1,0 +1,249 @@
+{
+  "task": "Update mailing address",
+  "mode": "discovery",
+  "status": "success",
+  "summary": "The workflow completed and the result passed its checks.",
+  "next_step": "You can reuse this workflow with new inputs.",
+  "error_code": null,
+  "elapsed_ms": 130493.34,
+  "completed_actions": 14,
+  "attempted_actions": 14,
+  "last_completed_action": "Read Saved postal code",
+  "stopped_at": null,
+  "model_calls": 14,
+  "model_calls_basis": "transport attempts",
+  "input_tokens": 18441,
+  "output_tokens": 2863,
+  "outputs_count": 5,
+  "verification_passed": true,
+  "human_assisted": false,
+  "protected_write_attempts": 1,
+  "write_note": "A protected write was attempted. Check the saved state before retrying.",
+  "timeline": [
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 47.0
+    },
+    {
+      "title": "Fill Customer ID",
+      "purpose": "Find the requested customer using the supplied ID. The value stays private.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 47.0,
+      "action_number": 1
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 31.0
+    },
+    {
+      "title": "Click Search customers",
+      "purpose": "Search the customer directory.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 63.0,
+      "action_number": 2
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 47.0
+    },
+    {
+      "title": "Click Open customer",
+      "purpose": "Open the matching customer record.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 93.0,
+      "action_number": 3
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 32.0
+    },
+    {
+      "title": "Click Edit mailing address",
+      "purpose": "Open the mailing address form.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 78.0,
+      "action_number": 4
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 47.0
+    },
+    {
+      "title": "Fill Street address",
+      "purpose": "Enter the requested street address. The value stays private.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 16.0,
+      "action_number": 5
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 31.0
+    },
+    {
+      "title": "Fill City",
+      "purpose": "Enter the requested city. The value stays private.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 16.0,
+      "action_number": 6
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 15.0
+    },
+    {
+      "title": "Fill Postal code",
+      "purpose": "Enter the requested postal code. The value stays private.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 16.0,
+      "action_number": 7
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 15.0
+    },
+    {
+      "title": "Click Review changes",
+      "purpose": "Open the review screen before saving.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 62.0,
+      "action_number": 8
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 32.0
+    },
+    {
+      "title": "Click Save address",
+      "purpose": "Submit the address change. This is a protected write.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 78.0,
+      "action_number": 9
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 31.0
+    },
+    {
+      "title": "Read Saved customer ID",
+      "purpose": "Read the customer ID from the saved result for verification.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 31.0,
+      "action_number": 10
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 15.0
+    },
+    {
+      "title": "Read Confirmation reference",
+      "purpose": "Read the application's confirmation reference.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 16.0,
+      "action_number": 11
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 31.0
+    },
+    {
+      "title": "Read Saved street address",
+      "purpose": "Read the saved street address for comparison with the request.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 15.0,
+      "action_number": 12
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 32.0
+    },
+    {
+      "title": "Read Saved city",
+      "purpose": "Read the saved city for comparison with the request.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 31.0,
+      "action_number": 13
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 32.0
+    },
+    {
+      "title": "Read Saved postal code",
+      "purpose": "Read the saved postal code for comparison with the request.",
+      "operation": "browser.action",
+      "state": "completed",
+      "duration_ms": 32.0,
+      "action_number": 14
+    },
+    {
+      "title": "Check page for errors",
+      "purpose": "Check for known business outcomes, access problems, or recoverable errors.",
+      "operation": "page.check",
+      "state": "completed",
+      "duration_ms": 15.0
+    },
+    {
+      "title": "Verify the final result",
+      "purpose": "Check the success page and every required output against the contract.",
+      "operation": "result.verify",
+      "state": "completed",
+      "duration_ms": 0.0
+    }
+  ],
+  "limitations": "Customer values, raw model messages, and unreviewed labels are withheld. Token totals include reported successful responses. Durations of nested operations overlap."
+}

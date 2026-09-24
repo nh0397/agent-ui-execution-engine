@@ -2,6 +2,8 @@
 import re
 import time
 import uuid
+import json
+from contextlib import suppress
 from pathlib import Path
 
 from playwright.sync_api import Error as BrowserError
@@ -11,6 +13,8 @@ from engine.runtime import validate_values
 from engine.safety import Evidence, Policy, PolicyError
 from engine.surface import BrowserSurface
 from engine.telemetry import traced
+from engine import telemetry
+from engine.observability import explain
 
 
 class CaptureJournal:
@@ -66,7 +70,8 @@ def record(name, description, profile, entry, directory, draft_path, control, su
     actions, inputs, values = [], {}, {}
     journal = CaptureJournal(surface, evidence)
     result = Result(status='failure', code='Recording aborted', run_id=run_id, human_assisted=True)
-    evidence.event('run_started', run_id=run_id, session_id=surface.session_id, capability=name)
+    telemetry.describe_workflow('Record a browser workflow', profile)
+    evidence.event('run_started', run_id=run_id, session_id=surface.session_id, capability=name, task_title='Record a browser workflow')
     evidence.event('mode', mode='recording', source='human')
     def publish():
         control.frame = surface.frame()
@@ -134,6 +139,7 @@ def record(name, description, profile, entry, directory, draft_path, control, su
                     path=Path(draft_path);path.parent.mkdir(parents=True,exist_ok=True)
                     with path.open('x',encoding='utf-8') as f:f.write(text)
                     evidence.save('draft.json',cap.model_dump())
+                    evidence.event('recording_verified', outputs_count=len(outputs))
                     result=Result(status='success',code='Recording ready for review',run_id=run_id,step=len(actions),human_assisted=True)
                     break
                 action=None
@@ -213,5 +219,10 @@ def record(name, description, profile, entry, directory, draft_path, control, su
         control.recording['steps']=journal.entries
         evidence.save('result.json',result.model_dump())
         evidence.event('run_finished',result=result.model_dump())
+        with suppress(Exception):
+            events = [json.loads(line) for line in (evidence.directory/'events.jsonl').read_text(encoding='utf-8').splitlines()]
+            explanation = explain(events, profile)
+            evidence.save('explanation.json', explanation)
+            telemetry.describe_result(explanation)
         surface.close()
     return result

@@ -17,6 +17,7 @@ export type Capability = {
   discovery_run: string;
 };
 export type Run = {
+  explanation?: RunExplanation | null;
   trace?: {id: string; state: string; url: string | null; error: string | null} | null;
   return_details?: boolean | null;
   has_video?: boolean;
@@ -62,6 +63,16 @@ export type Run = {
     takeover_requested?: boolean;
     intervention?: { reason: string; expected: unknown };
   };
+};
+export type RunExplanation = {
+  task: string; mode: string; status: string; summary: string; next_step: string;
+  error_code: string | null; elapsed_ms: number | null;
+  completed_actions: number | null; attempted_actions: number;
+  last_completed_action: string | null; stopped_at: string | null;
+  model_calls: number; model_calls_basis: string; input_tokens: number; output_tokens: number;
+  outputs_count: number; verification_passed: boolean | null; human_assisted: boolean;
+  protected_write_attempts: number | null; write_note: string; limitations: string;
+  timeline: {title:string; purpose?:string; operation:string; state:string; duration_ms?:number; explanation?:string; next_step?:string; action_number?:number}[];
 };
 export type CatalogItem = { id: string; capability: Capability };
 export async function request<T>(

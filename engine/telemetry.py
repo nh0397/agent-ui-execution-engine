@@ -144,6 +144,7 @@ def safe_summary(value):
 class Span:
     def __init__(self, name, kind, parent, cfg):
         self.cfg = cfg
+        self.operation = name
         self.parent = parent
         self.root = parent.root if parent else self
         self.id = str(uuid.uuid4())
@@ -154,6 +155,11 @@ class Span:
                        "start_time": self.start, "trace_id": self.root.id,
                        "dotted_order": self.order, "session_name": cfg["project"],
                        "extra": {"metadata": {}}, "events": [], "outputs": {}}
+        readable = {'chat.match':'Find a saved workflow', 'chat.extract_inputs':'Read the requested workflow inputs',
+                    'chat.setup':'Understand the workflow setup choice', 'chat.prepare_discovery':'Prepare a new workflow request'}
+        if name in readable:
+            self.record['name'] = readable[name]
+            self.record['extra']['metadata']['operation'] = name
         if parent:
             self.record["parent_run_id"] = parent.id
         else:
@@ -176,7 +182,7 @@ class Span:
                 usage["total_tokens"] = sum(usage.values())
                 self.record["outputs"]["usage_metadata"] = usage
         if error or self.record["outputs"].get("status") == "failure":
-            self.record["error"] = "Operation failed; inspect local evidence for details"
+            self.record.setdefault("error", "Operation failed; inspect local evidence for details")
         if self is self.root:
             self.record["outputs"].update(model_calls=self.calls, omitted_spans=self.dropped)
 
@@ -216,7 +222,7 @@ def operation(name, kind="chain"):
         yield span
     except BaseException:
         if span:
-            span.finish(error=True)
+            span.finish(error=not getattr(span, 'expected_outcome', False))
         raise
     finally:
         if token is not None:
@@ -258,6 +264,33 @@ def model_sent(provider, model):
             span.root.calls += 1
             # Provider/model are deployment settings, never message content or credentials.
             span.record["extra"]["metadata"].update(ls_provider=provider, ls_model_name=model)
+            purpose = 'Choose the next UI action' if span.root.operation == 'workflow.discovery' else 'Understand the chat request'
+            span.record['name'] = purpose
+            span.record['outputs']['purpose'] = purpose
+            span.record['outputs']['timing_note'] = 'Duration includes any pre-request pacing wait.'
+
+
+def describe_workflow(title, profile):
+    """Called with a reviewed title, never the raw natural-language request."""
+    span = _current.get()
+    if span:
+        with contextlib.suppress(Exception):
+            root = span.root
+            root.profile = profile
+            mode = {'workflow.discovery':'Discover', 'workflow.replay':'Replay', 'workflow.recording':'Record'}.get(root.operation, 'Run')
+            root.record['name'] = f'{mode}: {title}'
+            root.record['extra']['metadata']['operation'] = root.operation
+            root.record['outputs']['task'] = title
+
+
+def describe_result(explanation):
+    span = _current.get()
+    if span:
+        with contextlib.suppress(Exception):
+            # This object comes from the deterministic reviewed-vocabulary renderer.
+            span.root.record['outputs'].update({k:v for k,v in explanation.items() if k != 'timeline'})
+            if explanation['status'] == 'failure':
+                span.root.record['error'] = explanation['summary']
 
 
 def event(name, data):
@@ -268,8 +301,26 @@ def event(name, data):
     if name not in allowed:
         return
     summary = safe_summary(data)
+    profile = getattr(span.root, 'profile', None)
+    if profile and name == 'condition':
+        from engine.observability import error_info
+        summary.update(error_info(data.get('code'), profile))
+    if profile and name == 'model_decision':
+        from engine.observability import action_info
+        chosen = (data.get('decision') or {}).get('action')
+        if chosen:
+            summary.update(action_info(chosen, profile))
+            summary['purpose'] = 'The model selected this allowed action from the current UI.'
+            model_span = next((s for s in reversed(span.root.spans) if s['run_type'] == 'llm'), None)
+            if model_span:
+                model_span['outputs']['selected_action'] = summary['title']
+        else:
+            summary['purpose'] = 'Discovery requested human help or reached its completion check.'
     if isinstance(data.get("action"), dict):
         summary.update(safe_summary(data["action"]))
+        if profile and name in {'action', 'recovery_action', 'human_step'}:
+            from engine.observability import action_info
+            summary.update(action_info(data['action'], profile))
     if name == "model_decision":
         summary.update(safe_summary((data.get("decision") or {}).get("action") or {}))
     if name == "observation":

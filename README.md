@@ -237,7 +237,7 @@ For Groq, a healthy configuration indicator means a key is present; it does not 
 
 ### Optional LangSmith tracing
 
-I added LangSmith to see where time goes during a request and which step failed. It does not choose actions or change how replay works. The app still runs when tracing is off or LangSmith is unavailable.
+I added LangSmith to see what happened during a request, where time went, and why a run stopped. It does not choose actions or change how replay works. The app still runs when tracing is off or LangSmith is unavailable.
 
 Create a project and API key in your own [LangSmith account](https://smith.langchain.com/). Add these settings to the root `.env` file, then restart the backend or recreate the Docker worker:
 
@@ -255,15 +255,52 @@ For an EU workspace, use `https://eu.api.smith.langchain.com`. Other endpoints a
 2. Start a discovery or replay. Once it finishes, open **Inspect result** or find the run in **Tools → Past runs**.
 3. Choose **View LangSmith trace**. Export happens in the background; reopen the result if the link is not ready yet. The link needs access to your private LangSmith project.
 
-Each trace contains timed steps for chat matching, input extraction, model requests, browser actions, result checks, or human takeover. Model spans include reported token counts. Replay traces show zero model calls. Chat requests carry the conversation ID; a workflow run carries its job ID so it can be matched to local evidence.
+Each trace is one request, with smaller steps underneath it. These steps are called spans. New runs use names such as **Replay: Update mailing address**, **Click Edit mailing address**, and **Verify the final result**. Model steps show the selected action and reported token counts. Replay traces show zero model calls. Chat requests carry the conversation ID; a workflow run carries its job ID so it can be matched to local evidence.
 
-I deliberately export only a small set of metadata. Chat text, model prompts and replies, customer values, page contents, screenshots, cookies, and keys are not included. Errors use a generic message. Use the local run evidence to investigate the actual page or failed check. Existing runs are not uploaded retroactively.
+Click the top row in LangSmith and open **Output** first. It tells you the task, outcome, last completed action, stopping point, result checks, model calls, and next step. Expand the steps on the left to find the slow or failed operation. Click a step and open **Output** to read its purpose and result. A completed click means the browser clicked the control. The following page check can still find a problem.
+
+For example, this is the sequence from the [verified permission-denied replay](evidence/readable-traces/permission-denied/explanation.json), with routine checks left out:
+
+```text
+Replay: Update mailing address
+  Fill Customer ID                Completed
+  Click Search customers         Completed
+  Click Open customer            Completed
+  Click Edit mailing address     Completed
+  Check page for errors          Stopped: access denied
+
+Result: No protected write was attempted.
+Next step: Check the operator's permissions.
+AI calls during replay: 0
+```
+
+This is what observability adds here. I can follow one request from the task to the browser action, the resulting page check, and the final outcome. I can tell an access problem from a failed model request or a slow browser step. I can also check whether a recovery worked and whether replay used the model.
+
+I export reviewed control names, fixed explanations, timing, status, and usage counts. Chat text, model prompts and replies, customer values, page contents, screenshots, cookies, keys, and raw exception text stay out of LangSmith. The `trace_labels` section in [the application profile](config/customer-service.json) defines safe names and error explanations. Unknown names and errors are withheld until reviewed. These descriptions explain what an action does. They are not the model's private reasoning and do not prescribe the discovery sequence.
+
+Existing cloud traces are not rewritten. Open a new run to see the readable names. Older local records can show attempted actions, but cannot reconstruct missing completion times or write checks.
 
 `LANGSMITH_TRACE_LIMIT` caps top-level traces per UTC month, with a default of 1,000 and a maximum of 5,000. One trace can contain several child steps. Failed uploads also count. At the cap, new exports stop and workflows keep running. **This is a local guard, not a readout of your account quota.** Other apps and separate installations can use the same account. Check [LangSmith usage and pricing](https://www.langchain.com/pricing) too.
 
 The local counter is `work/langsmith-usage.sqlite3`, shared by workspaces in the same checkout. Docker stores it in the persistent worker volume. `LANGSMITH_USAGE_DB` can override the path; keep a shared path if you want multiple workers to share a cap. Do not delete it to reset usage. A bounded background queue holds completed traces in memory. A full queue or process shutdown can lose an export, but the local run evidence remains available. No paid evaluators or extra model calls are added for tracing.
 
-The [LangSmith verification](evidence/langsmith/README.md) includes a fresh discovery, a new-input replay, and a permission-denied replay, with the actual trace records read back from the service.
+The [readable trace verification](evidence/readable-traces/README.md) includes a genuine Groq discovery, a new-input replay, permission denial, and recovery from a temporary page error. The actual trace records were read back from LangSmith. The [earlier integration verification](evidence/langsmith/README.md) is preserved too.
+
+### Understand a run without opening LangSmith
+
+Open **Inspect result**, or choose a run in **Tools → Past runs**. The **What happened** panel gives the same plain-English explanation inside the app. It works with tracing off too.
+
+![The app explains an access failure, the completed actions, and what to do next](docs/images/run-explanation.png)
+
+This screenshot comes from a real permission-denied replay against a separate synthetic bank database. It shows four completed actions, the failed page check, zero model calls, and no attempted protected write.
+
+Read the summary first. Then expand **See what the browser did** for the sequence and each action's purpose and duration. Routine page checks are grouped separately. **Technical details and privacy** contains the error code and reported token totals. Recovery and human control appear in the timeline when used.
+
+If a protected save was attempted before a failure, the explanation tells you to check the saved state before retrying. It does not assume that a timeout means nothing changed. When a person had control, inspect their recorded actions too.
+
+New completed runs save this summary as `explanation.json` beside `events.jsonl` and `result.json`. Run API responses include it in the `explanation` field. No extra model request is used to write it.
+
+There are limits. Nested step durations overlap, so adding them together is not the total run time. Token totals cover responses that reported usage, not a billing statement. The integration helps investigate individual runs; it does not add automated quality scores, account-wide quota tracking, or alerts.
 
 ## Try the main features
 

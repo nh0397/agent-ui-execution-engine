@@ -118,7 +118,7 @@ def discover(spec, inputs, profile, entry, directory, model, goal, capability_pa
                         filled_by_document.clear()
                         continue
                     schema = {"type": "object", "properties": {"choice": {"type": "string", "enum": ["HUMAN", *names]}, "reason": {"type": "string"}}, "required": ["choice", "reason"], "additionalProperties": False}
-                    body = chat_sync(client, {"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}}, wait_for_capacity=wait_for_capacity)
+                    body = chat_sync(client, {"model": model, "stream": False, "format": schema, "messages": [{"role": "system", "content": SYSTEM}, {"role": "user", "content": json.dumps(prompt)}], "options": {"temperature": 0, "num_predict": 150, "num_ctx": 8192}}, wait_for_capacity=wait_for_capacity, on_event=runtime.evidence.event)
                     waiting = False
                     choice = json.loads(body["message"]["content"])
                     selected = choice["choice"]

@@ -3,12 +3,15 @@ import re
 import threading
 import time
 import uuid
+from contextlib import suppress
 from pathlib import Path
 
 from engine.contracts import Result, Target
 from engine.safety import Evidence, Policy, PolicyError
 from engine.surface import BrowserSurface
 from engine.telemetry import traced
+from engine import telemetry
+from engine.observability import observed, workflow_title, explain
 
 
 def validate_values(parameters, values):
@@ -43,7 +46,8 @@ class Runtime:
         self.control = control
         self.surface = surface_factory(Policy(profile), self.evidence, headed)
         self.start = time.monotonic()
-        self.evidence.event("run_started", run_id=self.run_id, session_id=self.surface.session_id, capability=spec.name, write_approval=approve_writes)
+        telemetry.describe_workflow(workflow_title(spec, profile), profile)
+        self.evidence.event("run_started", run_id=self.run_id, session_id=self.surface.session_id, capability=spec.name, task_title=workflow_title(spec, profile), write_approval=approve_writes)
         try:
             if self.control is not None and hasattr(self.surface, "start_live_frames"):
                 self.surface.start_live_frames(lambda frame: setattr(self.control, "frame", frame))
@@ -78,7 +82,7 @@ class Runtime:
         if self.control is not None and self.control.cancel.is_set():
             raise PolicyError("Run cancelled by operator")
 
-    @traced("human.takeover", "tool")
+    @observed("human.takeover")
     def intervene(self, reason, expected=None):
         self.evidence.event("intervention_requested", step=self.step, reason=reason, expected=expected, state=self.surface.observe())
         if not self.headed and self.operator_port is None and self.control is None:
@@ -148,6 +152,7 @@ class Runtime:
             self.publish()
         self.evidence.event("ownership", owner="automation", session_id=self.surface.session_id, state=self.surface.observe())
 
+    @observed("page.check")
     def conditions(self, expected=None):
         self.check_cancel()
         for attempt in range(3):
@@ -163,15 +168,19 @@ class Runtime:
             if condition.category == "intervene":
                 self.intervene(condition.text, expected)
             elif condition.recovery and attempt < 2:
-                self.surface.write_authorized = False
-                self.evidence.event("recovery_action", action=condition.recovery.model_dump(), attempt=attempt)
-                self.surface.execute(condition.recovery, self.inputs)
-                self.publish()
+                self.recover(condition.recovery, attempt)
             else:
                 raise PolicyError("Recovery budget exhausted")
         raise PolicyError("Recovery budget exhausted")
 
-    @traced("browser.action", "tool")
+    @observed("browser.recovery")
+    def recover(self, action, attempt):
+        self.surface.write_authorized = False
+        self.evidence.event("recovery_action", action=action.model_dump(), attempt=attempt)
+        self.surface.execute(action, self.inputs)
+        self.publish()
+
+    @observed("browser.action")
     def act(self, action):
         self.check_cancel()
         self.check_takeover(action.target.model_dump())
@@ -185,6 +194,8 @@ class Runtime:
             return
         self.surface.write_authorized = action.kind == "click"
         self.surface.risky_authorized = risky and self.approve_writes
+        if risky:
+            self.evidence.event("protected_write_attempted", step=self.step)
         self.evidence.event("action", step=self.step, action=action.model_dump())
         value = self.surface.execute(action, self.inputs)
         self.surface.write_authorized = False
@@ -199,7 +210,7 @@ class Runtime:
         self.step += 1
         self.publish()
 
-    @traced("result.verify", "tool")
+    @observed("result.verify")
     def finish(self):
         if not self.surface.visible(self.spec.success):
             raise PolicyError("Success checkpoint not reached")
@@ -224,6 +235,11 @@ class Runtime:
                 persisted["outputs"][key] = "[REDACTED]"
         self.evidence.save("result.json", persisted)
         self.evidence.event("run_finished", result=persisted)
+        with suppress(Exception):
+            events = [json.loads(line) for line in (self.evidence.directory / 'events.jsonl').read_text(encoding='utf-8').splitlines()]
+            explanation = explain(events, self.profile)
+            self.evidence.save('explanation.json', explanation)
+            telemetry.describe_result(explanation)
         self.surface.close()
 
 

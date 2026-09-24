@@ -139,7 +139,7 @@ async def chat(payload):
     return complete(provider,call_id,response)
 
 @traced("model.request", "llm")
-def chat_sync(client,payload, wait_for_capacity=None):
+def chat_sync(client,payload, wait_for_capacity=None, on_event=None):
     url,headers,data=prepare(payload)
     while True:
         try:
@@ -153,6 +153,8 @@ def chat_sync(client,payload, wait_for_capacity=None):
             wait_for_capacity()
             time.sleep(.1)
     model_sent(provider, data['model'])
+    if on_event:
+        on_event('model_request', provider=provider)
     try: response=client.post(url,headers=headers,json=data)
     except httpx.HTTPError as exc: return complete(provider,call_id,error=exc)
     return complete(provider,call_id,response)
