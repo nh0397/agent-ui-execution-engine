@@ -10,6 +10,7 @@ from engine.contracts import Action, Capability, Parameter, Result, Target
 from engine.runtime import validate_values
 from engine.safety import Evidence, Policy, PolicyError
 from engine.surface import BrowserSurface
+from engine.telemetry import traced
 
 
 class CaptureJournal:
@@ -53,6 +54,7 @@ class CaptureJournal:
         self.evidence.event("human_step", **entry)
 
 
+@traced("workflow.recording")
 def record(name, description, profile, entry, directory, draft_path, control, surface_factory=None, recording_actor="human", return_details=None, **unused):
     run_id = str(uuid.uuid4())
     evidence = Evidence(Path(directory) / run_id, [])

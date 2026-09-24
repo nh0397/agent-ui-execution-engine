@@ -1414,6 +1414,10 @@ export default function LiveWorkspace() {
           <Badge>{status(detail)}</Badge>
           <p className="mono muted">{detail.id}</p>
           <p>{detail.code}</p>
+          {detail.trace && <p>
+            {detail.trace.url ? <a className="button secondary" href={detail.trace.url} target="_blank" rel="noopener noreferrer">View LangSmith trace</a>
+              : `LangSmith trace: ${detail.trace.state}. ${detail.trace.error || "The trace link appears after export. Reopen this run to refresh."}`}
+          </p>}
           <pre>
             {JSON.stringify(
               detail.result || { status: detail.status },

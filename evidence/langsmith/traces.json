@@ -1,0 +1,1419 @@
+[
+  {
+    "id": "47bddcd7-0c5f-4fb8-b63d-ed8deba14b4a",
+    "name": "result.verify",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:54.921533+00:00",
+    "end_time": "2026-09-24 05:07:54.932022+00:00",
+    "inputs": {},
+    "outputs": {
+      "human_assisted": false,
+      "outputs_count": 5,
+      "run_id": "4733ffe2-16f3-4eab-8896-e3b960ef70ca",
+      "status": "success",
+      "step": 14
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "4ddf3f03-1c5a-4cf4-bbb3-63a468f0d8a7",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:54.837933+00:00",
+    "end_time": "2026-09-24 05:07:54.870836+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 13
+        },
+        "name": "action",
+        "time": "2026-09-24T05:07:54.838934+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "c1d5ec75-d26f-4cb9-8299-e03ca7ee6b95",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:11.217614+00:00",
+    "end_time": "2026-09-24 05:07:54.836931+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 113,
+      "prompt_eval_count": 1199,
+      "usage_metadata": {
+        "input_tokens": 1199,
+        "output_tokens": 113,
+        "total_tokens": 1312
+      }
+    },
+    "events": [
+      {
+        "kwargs": {},
+        "name": "model_capacity_wait",
+        "time": "2026-09-24T05:07:11.219648+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "0b95c224-29be-4a08-bcda-fa2c42fd5293",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:11.180627+00:00",
+    "end_time": "2026-09-24 05:07:11.195207+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 12
+        },
+        "name": "action",
+        "time": "2026-09-24T05:07:11.181626+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "35e457f3-ccbe-4ebd-8dd8-e377a2c8c0c7",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:10.712584+00:00",
+    "end_time": "2026-09-24 05:07:11.179574+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 170,
+      "prompt_eval_count": 1222,
+      "usage_metadata": {
+        "input_tokens": 1222,
+        "output_tokens": 170,
+        "total_tokens": 1392
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "21a5b821-dc9f-4f14-8c4b-47b64d57b376",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:10.661858+00:00",
+    "end_time": "2026-09-24 05:07:10.678469+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 11
+        },
+        "name": "action",
+        "time": "2026-09-24T05:07:10.663282+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "a42c38e5-9d89-45fc-804b-1365cb4265fc",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:10.116265+00:00",
+    "end_time": "2026-09-24 05:07:10.661858+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 220,
+      "prompt_eval_count": 1245,
+      "usage_metadata": {
+        "input_tokens": 1245,
+        "output_tokens": 220,
+        "total_tokens": 1465
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "747a4bb3-3da4-4d64-a918-5a69fb5b7b55",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:10.050560+00:00",
+    "end_time": "2026-09-24 05:07:10.075207+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 10
+        },
+        "name": "action",
+        "time": "2026-09-24T05:07:10.052105+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "1c39ca3c-1ed8-4838-ba24-f7d9dd0f9328",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:09.511568+00:00",
+    "end_time": "2026-09-24 05:07:10.049579+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 237,
+      "prompt_eval_count": 1270,
+      "usage_metadata": {
+        "input_tokens": 1270,
+        "output_tokens": 237,
+        "total_tokens": 1507
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "243b931a-ec1b-494e-959a-7699f95b43f9",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:07:09.460410+00:00",
+    "end_time": "2026-09-24 05:07:09.486244+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 9
+        },
+        "name": "action",
+        "time": "2026-09-24T05:07:09.460410+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "78386a92-31a2-40e3-bc0e-42924d50a82d",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:30.286627+00:00",
+    "end_time": "2026-09-24 05:07:09.459138+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 292,
+      "prompt_eval_count": 1294,
+      "usage_metadata": {
+        "input_tokens": 1294,
+        "output_tokens": 292,
+        "total_tokens": 1586
+      }
+    },
+    "events": [
+      {
+        "kwargs": {},
+        "name": "model_capacity_wait",
+        "time": "2026-09-24T05:06:30.291782+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "72d8f2f3-b138-4de0-a23f-2256287d21c3",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:30.102080+00:00",
+    "end_time": "2026-09-24 05:06:30.202411+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 8
+        },
+        "name": "action",
+        "time": "2026-09-24T05:06:30.102080+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "37d1a8ee-d72a-49ee-84b0-8669d449572c",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:29.640837+00:00",
+    "end_time": "2026-09-24 05:06:30.101082+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 143,
+      "prompt_eval_count": 1140,
+      "usage_metadata": {
+        "input_tokens": 1140,
+        "output_tokens": 143,
+        "total_tokens": 1283
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "26ed9ad8-1e53-4d80-bcaf-589ffc95e3b9",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:29.519779+00:00",
+    "end_time": "2026-09-24 05:06:29.587171+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 7
+        },
+        "name": "action",
+        "time": "2026-09-24T05:06:29.520780+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "0c19ecc1-5f2c-459c-9791-17d4caed46f3",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:29.103586+00:00",
+    "end_time": "2026-09-24 05:06:29.519779+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 98,
+      "prompt_eval_count": 1238,
+      "usage_metadata": {
+        "input_tokens": 1238,
+        "output_tokens": 98,
+        "total_tokens": 1336
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "2d975527-e139-4ab2-ae53-9a1f4afe34e0",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:29.056123+00:00",
+    "end_time": "2026-09-24 05:06:29.075849+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 6
+        },
+        "name": "action",
+        "time": "2026-09-24T05:06:29.056123+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "f380e571-453b-41c8-b13b-b05eced4bbab",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:28.541035+00:00",
+    "end_time": "2026-09-24 05:06:29.054966+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 115,
+      "prompt_eval_count": 1241,
+      "usage_metadata": {
+        "input_tokens": 1241,
+        "output_tokens": 115,
+        "total_tokens": 1356
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "69e83edc-3dcd-4112-8248-fe568a738d67",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:06:28.492736+00:00",
+    "end_time": "2026-09-24 05:06:28.510442+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 5
+        },
+        "name": "action",
+        "time": "2026-09-24T05:06:28.492736+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "ddc94a65-ac86-4361-adf8-0ab3be4a4244",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:45.575916+00:00",
+    "end_time": "2026-09-24 05:06:28.491729+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 154,
+      "prompt_eval_count": 1247,
+      "usage_metadata": {
+        "input_tokens": 1247,
+        "output_tokens": 154,
+        "total_tokens": 1401
+      }
+    },
+    "events": [
+      {
+        "kwargs": {},
+        "name": "model_capacity_wait",
+        "time": "2026-09-24T05:05:45.578907+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "ed24f2c6-e5d8-461e-b61e-4a984e54ed30",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:45.492837+00:00",
+    "end_time": "2026-09-24 05:05:45.538261+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 4
+        },
+        "name": "action",
+        "time": "2026-09-24T05:05:45.493833+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "ecf955cb-07f4-40bc-abc4-50835a69f9bc",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:44.919556+00:00",
+    "end_time": "2026-09-24 05:05:45.491872+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 280,
+      "prompt_eval_count": 1255,
+      "usage_metadata": {
+        "input_tokens": 1255,
+        "output_tokens": 280,
+        "total_tokens": 1535
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "49a48fe6-03ea-4e85-8b26-db9c41fa1a1d",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:44.792179+00:00",
+    "end_time": "2026-09-24 05:05:44.859527+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 3
+        },
+        "name": "action",
+        "time": "2026-09-24T05:05:44.793179+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "f9bae49b-27f8-425a-b4c5-fed8e960aec0",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:44.369098+00:00",
+    "end_time": "2026-09-24 05:05:44.791240+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 130,
+      "prompt_eval_count": 1151,
+      "usage_metadata": {
+        "input_tokens": 1151,
+        "output_tokens": 130,
+        "total_tokens": 1281
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "c7a007bb-8841-49c2-89e6-50c3f8f70998",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:44.226344+00:00",
+    "end_time": "2026-09-24 05:05:44.299084+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 2
+        },
+        "name": "action",
+        "time": "2026-09-24T05:05:44.226344+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "772b64cc-91f0-4e92-8b36-e35e0326b778",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:07.453527+00:00",
+    "end_time": "2026-09-24 05:05:44.223342+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 140,
+      "prompt_eval_count": 1076,
+      "usage_metadata": {
+        "input_tokens": 1076,
+        "output_tokens": 140,
+        "total_tokens": 1216
+      }
+    },
+    "events": [
+      {
+        "kwargs": {},
+        "name": "model_capacity_wait",
+        "time": "2026-09-24T05:05:07.460747+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "c478bc02-25bf-4748-8221-3a6320903151",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:07.309121+00:00",
+    "end_time": "2026-09-24 05:05:07.393428+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 1
+        },
+        "name": "action",
+        "time": "2026-09-24T05:05:07.309121+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "9a2b94f3-15f8-4d75-a312-cae7219b5f0c",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:06.834518+00:00",
+    "end_time": "2026-09-24 05:05:07.308040+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 202,
+      "prompt_eval_count": 1933,
+      "usage_metadata": {
+        "input_tokens": 1933,
+        "output_tokens": 202,
+        "total_tokens": 2135
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "e4dfa52b-8f25-4209-a96a-b50c0132a3d2",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:06.737440+00:00",
+    "end_time": "2026-09-24 05:05:06.792934+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 0
+        },
+        "name": "action",
+        "time": "2026-09-24T05:05:06.738558+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "ff9d8516-99db-4232-90e4-348a6233dc5c",
+    "name": "model.request",
+    "run_type": "llm",
+    "parent_run_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:05.759770+00:00",
+    "end_time": "2026-09-24 05:05:06.736439+00:00",
+    "inputs": {},
+    "outputs": {
+      "eval_count": 405,
+      "prompt_eval_count": 1930,
+      "usage_metadata": {
+        "input_tokens": 1930,
+        "output_tokens": 405,
+        "total_tokens": 2335
+      }
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "name": "workflow.discovery",
+    "run_type": "chain",
+    "parent_run_id": null,
+    "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+    "start_time": "2026-09-24 05:05:04.464091+00:00",
+    "end_time": "2026-09-24 05:07:55.040126+00:00",
+    "inputs": {},
+    "outputs": {
+      "human_assisted": false,
+      "model_calls": 14,
+      "omitted_spans": 0,
+      "outputs_count": 5,
+      "run_id": "4733ffe2-16f3-4eab-8896-e3b960ef70ca",
+      "status": "success",
+      "step": 14
+    },
+    "events": [
+      {
+        "kwargs": {
+          "run_id": "4733ffe2-16f3-4eab-8896-e3b960ef70ca",
+          "session_id": "5a6b8ad6-165f-4df8-92cc-97e0e8c1af9a",
+          "write_approval": true
+        },
+        "name": "run_started",
+        "time": "2026-09-24T05:05:05.501040+00:00"
+      },
+      {
+        "kwargs": {
+          "mode": "discovery"
+        },
+        "name": "mode",
+        "time": "2026-09-24T05:05:05.641627+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 13,
+          "step": 0
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:05:05.754776+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "fill"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:05:06.737440+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 13,
+          "step": 1
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:05:06.830524+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "click"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:05:07.309121+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 8,
+          "step": 2
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:05:07.446313+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "click"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:05:44.225350+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 9,
+          "step": 3
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:05:44.364096+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "click"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:05:44.792179+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 4
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:05:44.913815+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "fill"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:05:45.492837+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 5
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:05:45.572931+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "fill"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:06:28.492736+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 6
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:06:28.537144+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "fill"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:06:29.054966+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 11,
+          "step": 7
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:06:29.100691+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "click"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:06:29.519779+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 8,
+          "step": 8
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:06:29.634837+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "click"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:06:30.102080+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 9
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:06:30.263819+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "read"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:07:09.460410+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 10
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:07:09.500403+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "read"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:07:10.050560+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 11
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:07:10.102492+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "read"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:07:10.661858+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 12
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:07:10.698835+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "read"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:07:11.180627+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 13
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:07:11.208649+00:00"
+      },
+      {
+        "kwargs": {
+          "kind": "read"
+        },
+        "name": "model_decision",
+        "time": "2026-09-24T05:07:54.837933+00:00"
+      },
+      {
+        "kwargs": {
+          "control_count": 12,
+          "step": 14
+        },
+        "name": "observation",
+        "time": "2026-09-24T05:07:54.913832+00:00"
+      },
+      {
+        "kwargs": {},
+        "name": "run_finished",
+        "time": "2026-09-24T05:07:54.938234+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "0ac2434a-772d-4cc6-a1cc-19b73880af02",
+    "name": "result.verify",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:26.273196+00:00",
+    "end_time": "2026-09-24 05:09:26.278150+00:00",
+    "inputs": {},
+    "outputs": {
+      "human_assisted": false,
+      "outputs_count": 5,
+      "run_id": "385ee20d-2df7-421d-927d-3e75d4a2d5d3",
+      "status": "success",
+      "step": 14
+    },
+    "events": [],
+    "error": null
+  },
+  {
+    "id": "05d7a259-717a-4c82-a5df-84911c3de4a5",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:26.246606+00:00",
+    "end_time": "2026-09-24 05:09:26.258287+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 13
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:26.246606+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "b136cc5b-f081-4da3-bbd1-c55ce31ee2e6",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:26.219599+00:00",
+    "end_time": "2026-09-24 05:09:26.231599+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 12
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:26.220540+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "b81f0af2-20c7-4677-b401-6e61a6a9cb07",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:26.193295+00:00",
+    "end_time": "2026-09-24 05:09:26.206386+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 11
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:26.194202+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "a0832671-8328-4acc-955d-e6a36b3a02cb",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:26.166055+00:00",
+    "end_time": "2026-09-24 05:09:26.179922+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 10
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:26.167058+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "d69a5bd9-32e3-4a8f-aa3e-ed0f58caaa29",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:26.125411+00:00",
+    "end_time": "2026-09-24 05:09:26.149287+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "read",
+          "step": 9
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:26.126249+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "51d4f3e9-ad47-4d8e-bc80-3440cbaadc8e",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.993925+00:00",
+    "end_time": "2026-09-24 05:09:26.088326+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 8
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.995928+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "74ede37d-0886-4959-9708-0cc74da49511",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.896646+00:00",
+    "end_time": "2026-09-24 05:09:25.958731+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 7
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.896646+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "5c072f58-bc0b-4e99-aec6-bfb3c8daa9e0",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.866375+00:00",
+    "end_time": "2026-09-24 05:09:25.879596+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 6
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.867413+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "cdaa6968-f08b-48c3-bf6b-2e2c17224737",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.835527+00:00",
+    "end_time": "2026-09-24 05:09:25.847776+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 5
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.835527+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "8d19272b-9923-48bc-b784-a8c84cfe3953",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.794422+00:00",
+    "end_time": "2026-09-24 05:09:25.817423+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 4
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.795421+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "64504866-abbe-4279-8d19-483f001986e7",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.697259+00:00",
+    "end_time": "2026-09-24 05:09:25.763388+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 3
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.698257+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "34cc93ea-28a7-41a3-b7be-70f67a9a36e1",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.590754+00:00",
+    "end_time": "2026-09-24 05:09:25.661236+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 2
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.591755+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "c85df60d-1165-4aaa-8336-b89c065e0ba8",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.464487+00:00",
+    "end_time": "2026-09-24 05:09:25.556755+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 1
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.465487+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "5306d9f7-06ed-4f3d-8fa4-20a7064f7c99",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:25.381814+00:00",
+    "end_time": "2026-09-24 05:09:25.428989+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 0
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:25.400816+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "name": "workflow.replay",
+    "run_type": "chain",
+    "parent_run_id": null,
+    "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+    "start_time": "2026-09-24 05:09:24.707256+00:00",
+    "end_time": "2026-09-24 05:09:26.344155+00:00",
+    "inputs": {},
+    "outputs": {
+      "human_assisted": false,
+      "model_calls": 0,
+      "omitted_spans": 0,
+      "outputs_count": 5,
+      "run_id": "385ee20d-2df7-421d-927d-3e75d4a2d5d3",
+      "status": "success",
+      "step": 14
+    },
+    "events": [
+      {
+        "kwargs": {
+          "run_id": "385ee20d-2df7-421d-927d-3e75d4a2d5d3",
+          "session_id": "736f713d-61c6-49f5-90bc-c70175621cfa",
+          "write_approval": true
+        },
+        "name": "run_started",
+        "time": "2026-09-24T05:09:25.166258+00:00"
+      },
+      {
+        "kwargs": {
+          "capability_version": 1,
+          "mode": "replay"
+        },
+        "name": "mode",
+        "time": "2026-09-24T05:09:25.341543+00:00"
+      },
+      {
+        "kwargs": {},
+        "name": "run_finished",
+        "time": "2026-09-24T05:09:26.280139+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "639bfdf2-d7d3-4a47-925f-362a2a55145c",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "trace_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "start_time": "2026-09-24 05:09:38.607189+00:00",
+    "end_time": "2026-09-24 05:09:38.675422+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 3
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:38.608301+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "b4073234-c4ae-49c1-ba94-ac4562ca720a",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "trace_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "start_time": "2026-09-24 05:09:38.507356+00:00",
+    "end_time": "2026-09-24 05:09:38.576423+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 2
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:38.508357+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "0f9fa326-fd21-48f8-9ffa-9d667921268a",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "trace_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "start_time": "2026-09-24 05:09:38.402608+00:00",
+    "end_time": "2026-09-24 05:09:38.475700+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "click",
+          "step": 1
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:38.403668+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "683041a3-f93a-4d89-a1d7-56712a352dcc",
+    "name": "browser.action",
+    "run_type": "tool",
+    "parent_run_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "trace_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "start_time": "2026-09-24 05:09:38.351976+00:00",
+    "end_time": "2026-09-24 05:09:38.375321+00:00",
+    "inputs": {},
+    "outputs": null,
+    "events": [
+      {
+        "kwargs": {
+          "kind": "fill",
+          "step": 0
+        },
+        "name": "action",
+        "time": "2026-09-24T05:09:38.351976+00:00"
+      }
+    ],
+    "error": null
+  },
+  {
+    "id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "name": "workflow.replay",
+    "run_type": "chain",
+    "parent_run_id": null,
+    "trace_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+    "start_time": "2026-09-24 05:09:37.762788+00:00",
+    "end_time": "2026-09-24 05:09:38.805551+00:00",
+    "inputs": {},
+    "outputs": {
+      "human_assisted": false,
+      "model_calls": 0,
+      "omitted_spans": 0,
+      "outputs_count": 0,
+      "run_id": "0fefa6b8-a0b8-4bb6-9d5d-cbd62edc2596",
+      "status": "failure",
+      "step": 4
+    },
+    "events": [
+      {
+        "kwargs": {
+          "run_id": "0fefa6b8-a0b8-4bb6-9d5d-cbd62edc2596",
+          "session_id": "0067f263-f707-4bf9-944c-2ab9eb713b93",
+          "write_approval": true
+        },
+        "name": "run_started",
+        "time": "2026-09-24T05:09:38.253403+00:00"
+      },
+      {
+        "kwargs": {
+          "capability_version": 1,
+          "mode": "replay"
+        },
+        "name": "mode",
+        "time": "2026-09-24T05:09:38.314873+00:00"
+      },
+      {
+        "kwargs": {
+          "attempt": 0,
+          "category": "failure"
+        },
+        "name": "condition",
+        "time": "2026-09-24T05:09:38.702885+00:00"
+      },
+      {
+        "kwargs": {},
+        "name": "run_finished",
+        "time": "2026-09-24T05:09:38.715217+00:00"
+      }
+    ],
+    "error": "Operation failed; inspect local evidence for details"
+  }
+]

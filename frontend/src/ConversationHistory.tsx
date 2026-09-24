@@ -48,7 +48,7 @@ export function useConversationHistory(snapshot:ChatSnapshot, restore:(s:ChatSna
   },[serialized,ready,id,csrf]);
   return {ready,error,id,items,load};
 }
-type UsageStatus = { provider:string; model:string; configured:boolean; requests_today:number; daily_request_limit:number; requests_per_minute:number; input_tokens_today:number; output_tokens_today:number; observation:null|{state:string; retry_at?:number; limits?:Record<string,string>} };
+type UsageStatus = { provider:string; model:string; configured:boolean; requests_today:number; daily_request_limit:number; requests_per_minute:number; input_tokens_today:number; output_tokens_today:number; observation:null|{state:string; retry_at?:number; limits?:Record<string,string>}; tracing?: {enabled:boolean; configured:boolean; endpoint_allowed?:boolean; traces_this_month?:number; monthly_limit?:number; error?:string; last_export?:{state:string;error:string|null}|null} };
 export function ModelStatus({csrf}:{csrf:string}) {
   const [value,setValue]=useState<UsageStatus|null>(null);
   const [error,setError]=useState(false);
@@ -63,6 +63,12 @@ export function ModelStatus({csrf}:{csrf:string}) {
       <p>App requests today: {value.requests_today} / {value.daily_request_limit}. Resets at 00:00 UTC.</p>
       <p>Maximum {value.requests_per_minute} calls per minute. Reported tokens today: {value.input_tokens_today} input / {value.output_tokens_today} output.</p>
       <p>Last response: {value.observation?.state || "No requests yet"}.</p>
+      {value.tracing && <div className="tracing-status">
+        <strong>LangSmith tracing</strong>
+        <p>{value.tracing.error || (!value.tracing.enabled ? "Off. Local evidence is still saved." : !value.tracing.configured ? "API key required." : !value.tracing.endpoint_allowed ? "Unsupported tracing endpoint." : (value.tracing.traces_this_month ?? 0) >= (value.tracing.monthly_limit ?? 0) ? "Monthly trace cap reached. New traces are paused. Workflows still run." : "On. Only safe metadata is exported after each request or run finishes.")}</p>
+        <p>{value.tracing.traces_this_month ?? 0} / {value.tracing.monthly_limit ?? 0} root traces reserved this UTC month. This local cap is separate from your LangSmith account allowance.</p>
+        {value.tracing.last_export && <p>Last export: {value.tracing.last_export.state}. {value.tracing.last_export.error}</p>}
+      </div>}
       {value.observation?.retry_at && <p>Retry after {new Date(value.observation.retry_at*1000).toLocaleTimeString()}.</p>}
       {value.observation?.limits ? <p>Provider-reported requests remaining: {value.observation.limits["x-ratelimit-remaining-requests"] ?? "unknown"}. Tokens remaining: {value.observation.limits["x-ratelimit-remaining-tokens"] ?? "unknown"}. These are the last observed limits, shared with other uses of your account.</p> : <p>Provider remaining quota is unknown. The app counter is not your account’s billing total.</p>}
     </> : <p>Loading status…</p>}

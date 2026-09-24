@@ -15,6 +15,7 @@ Start with **[groq-e2e/manifest.json](groq-e2e/manifest.json)** for the final Gr
 | [Dashboard API replay](groq-e2e/dashboard-replay/result.json) | Newly learned capability completed for C-306, with zero additional model calls; visible in local Past runs. |
 | [Expired handoff](groq-e2e/handoff-expired/result.json) | A real paused session expired safely without person input. This is not a successful human demonstration. |
 | [Catalog chat](groq-e2e/catalog-chat.json) | Genuine Groq matching and exact input extraction through FastAPI; no bank action. |
+| [LangSmith verification](langsmith/manifest.json) and [trace records](langsmith/traces.json) | A fresh genuine Groq discovery used 14 model calls. New-input replay and permission denial used zero with model transport blocked. All three traces were uploaded and read back, with input values and keys absent. |
 | [Failed discovery attempts](groq-e2e/failed-attempts/) | Six genuine failures encountered during the audit: targeting, model dead ends, provider rate limiting and timeouts. Changes were made between attempts; this is not a measured reliability sample. |
 
 The manifest links actual run IDs and the capability hash. Groq runs used the local SQLite bank. Existing **e2e/** and **docker-e2e/** contain genuine earlier Ollama discovery and paired replays; docker-e2e used PostgreSQL. Other scripted recorder/operator evidence is explicitly labeled. It is never a substitute for model discovery or actual human participation.

@@ -11,6 +11,7 @@ from engine.provider import chat_sync, config as provider_config
 from engine.contracts import Capability, Decision
 from engine.runtime import Runtime
 from engine.safety import PolicyError
+from engine.telemetry import traced
 
 
 def available_actions(observation, spec, outputs, filled=(), inputs=None, read_values=None):
@@ -71,6 +72,7 @@ Reasons are brief action purposes, not a reasoning transcript.
 """
 
 
+@traced("workflow.discovery")
 def discover(spec, inputs, profile, entry, directory, model, goal, capability_path, **options):
     runtime = Runtime(spec, inputs, profile, entry, directory, **options)
     waiting = False

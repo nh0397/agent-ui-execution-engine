@@ -21,6 +21,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from engine.contracts import Capability, Profile, WorkflowSpec
 from engine.runtime import replay, validate_values
 from engine.provider import ModelError, status as model_status, config as provider_config
+from engine import telemetry
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILES = [
@@ -47,6 +48,7 @@ def chat_error(exc):
 class Invocation(BaseModel):
     model_config = ConfigDict(extra="forbid")
     mode: Literal["discovery", "replay", "recording"]
+    conversation_id: uuid.UUID | None = None
     goal: str = Field(default="", max_length=2000)
     inputs: dict[str, str] = Field(default_factory=dict)
     name: str = Field(default="Recorded workflow", min_length=1, max_length=80)
@@ -85,6 +87,7 @@ class LiveControl:
 class AgentMessage(BaseModel):
     model_config = ConfigDict(extra="forbid")
     message: str = Field(min_length=1, max_length=2000)
+    conversation_id: uuid.UUID | None = None
     model: Literal["mistral:latest", "llama3.1:latest"] = "mistral:latest"
 
 
@@ -168,7 +171,7 @@ def create_app(root: Path | None = None):
     @app.get("/api/model/status")
     def provider_status(request: Request):
         session(request)
-        return model_status()
+        return {**model_status(), "tracing": telemetry.status()}
 
     def catalog():
         # A reset workspace can hide the bundled example without deleting evidence.
@@ -191,6 +194,7 @@ def create_app(root: Path | None = None):
 
     def public_job(job):
         value = dict(job)
+        value["trace"] = telemetry.lookup(job["trace_id"]) if job.get("trace_id") else None
         control = controls.get(job["id"])
         value["live"] = {**control.state, "intervention": control.intervention, "has_frame": bool(control.frame), "takeover_requested": control.takeover.is_set()} if control else None
         events = read_events(job)
@@ -274,7 +278,8 @@ def create_app(root: Path | None = None):
         from engine.catalog_agent import match_capabilities
         saved = {key: Capability.model_validate_json(path.read_text(encoding="utf-8")) for key, path in catalog().items()}
         try:
-            result = await match_capabilities(body.message.strip(), saved, body.model)
+            with telemetry.bind_context(conversation_id=body.conversation_id):
+                result = await match_capabilities(body.message.strip(), saved, body.model)
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
@@ -287,10 +292,15 @@ def create_app(root: Path | None = None):
         from engine.catalog_agent import match_capabilities, extract_inputs
         message = f"Earlier task context: {body.context}\nLatest user message: {body.message}" if body.context else body.message
         try:
-            selection = await match_capabilities(message, {"address-discovery": spec}, body.model)
-            if not selection["matches"]:
-                return {"supported": False}
-            values = await extract_inputs(message, spec, body.model)
+            with telemetry.bind_context(conversation_id=body.conversation_id), telemetry.operation("chat.prepare_discovery") as trace:
+                selection = await match_capabilities(message, {"address-discovery": spec}, body.model)
+                if not selection["matches"]:
+                    if trace:
+                        trace.finish({"supported": False})
+                    return {"supported": False}
+                values = await extract_inputs(message, spec, body.model)
+                if trace:
+                    trace.finish({"supported": True, "values": values})
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
@@ -302,7 +312,8 @@ def create_app(root: Path | None = None):
         session(request)
         from engine.catalog_agent import interpret_setup_reply
         try:
-            return {"choice": await interpret_setup_reply(body.message, body.stage, body.model)}
+            with telemetry.bind_context(conversation_id=body.conversation_id):
+                return {"choice": await interpret_setup_reply(body.message, body.stage, body.model)}
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
@@ -332,7 +343,8 @@ def create_app(root: Path | None = None):
         contract = spec if body.capability_id == "address-discovery" else Capability.model_validate_json(path.read_text(encoding="utf-8"))
         from engine.catalog_agent import extract_inputs
         try:
-            values = await extract_inputs(body.message, contract, body.model)
+            with telemetry.bind_context(conversation_id=body.conversation_id):
+                values = await extract_inputs(body.message, contract, body.model)
         except (httpx.HTTPError, ModelError) as exc:
             raise chat_error(exc) from None
         except (ValueError, KeyError, TypeError):
@@ -406,7 +418,7 @@ def create_app(root: Path | None = None):
             controls[job_id] = control
         save(job)
 
-        def execute():
+        def execute_workflow():
             try:
                 # This query sets a synthetic per-browser-session fault; no customer data API is used.
                 options = dict(inputs=invocation.inputs, profile=profile, entry=entry + "/?scenario=" + invocation.scenario, directory=runs_root / job_id, approve_writes=invocation.approve_writes, control=control)
@@ -434,6 +446,11 @@ def create_app(root: Path | None = None):
                     save(job)
                 finally:
                     active.release()
+
+        def execute():
+            with telemetry.bind_context(job_id=job_id, conversation_id=invocation.conversation_id,
+                                        on_start=lambda trace_id: job.update(trace_id=trace_id)):
+                execute_workflow()
 
         threading.Thread(target=execute, name=f"run-{job_id}", daemon=True).start()
         return {"id": job_id}

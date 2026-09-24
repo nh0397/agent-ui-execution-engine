@@ -7,6 +7,7 @@ from typing import Literal
 import httpx
 from pydantic import BaseModel, ConfigDict
 from engine.provider import chat
+from engine.telemetry import traced
 
 
 def conflicting_effect(message, capability):
@@ -38,6 +39,7 @@ class SetupChoice(BaseModel):
     choice: Literal["learn", "record", "details", "confirmation", "unclear"]
 
 
+@traced("chat.setup")
 async def interpret_setup_reply(message, stage, model):
     """Interpret a reply to a setup question. This never starts or authorizes a run."""
     allowed = ["learn", "record", "unclear"] if stage == "method" else ["details", "confirmation", "unclear"]
@@ -55,6 +57,7 @@ async def interpret_setup_reply(message, stage, model):
     return choice
 
 
+@traced("chat.extract_inputs")
 async def extract_inputs(message, capability, model):
     """Read only explicitly supplied values; never authorize or execute actions."""
     from engine.runtime import validate_values
@@ -79,6 +82,7 @@ async def extract_inputs(message, capability, model):
     return accepted
 
 
+@traced("chat.match")
 async def match_capabilities(message, catalog, model):
     if not catalog:
         return {"matches": [], "model_used": False}

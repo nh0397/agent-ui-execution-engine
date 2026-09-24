@@ -17,6 +17,7 @@ export type Capability = {
   discovery_run: string;
 };
 export type Run = {
+  trace?: {id: string; state: string; url: string | null; error: string | null} | null;
   return_details?: boolean | null;
   has_video?: boolean;
   id: string;

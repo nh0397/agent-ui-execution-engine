@@ -109,6 +109,32 @@ def test_dashboard_executes_replay_and_verifies_live_result(dashboard):
         page.get_by_role('button',name=name,exact=True).click()
         assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'),name
 
+
+def test_langsmith_status_and_run_link(trace_capture, dashboard, monkeypatch):
+    from engine import telemetry
+    # Export is a test double; execution below uses the actual UI and browser engine.
+    link = 'https://smith.langchain.com/test/project/run'
+    def exported(span):
+        trace_capture.append(span)
+        telemetry.update(span.cfg, span.id, 'exported', url=link)
+    monkeypatch.setattr(telemetry, '_submit', exported)
+    page = dashboard
+    page.locator('.model-status > summary').click()
+    expect(page.get_by_text('LangSmith tracing', exact=True)).to_be_visible()
+    expect(page.locator('.tracing-status')).to_contain_text('On. Only safe metadata')
+    setup_replay(page)
+    page.get_by_label('Authorize changes for this synthetic run').check()
+    page.get_by_role('button', name='Start replay', exact=True).click()
+    expect(page.locator('.result-banner.success')).to_be_visible(timeout=45000)
+    page.get_by_role('button', name='Inspect result', exact=False).click()
+    expect(page.get_by_role('link', name='View LangSmith trace')).to_have_attribute('href', link)
+    run = page.request.get(page.url.rstrip('/')+'/api/runs').json()[0]
+    assert run['trace']['state'] == 'exported'
+    assert run['trace']['id'] == trace_capture[0].id
+    assert trace_capture[0].record['extra']['metadata']['job_id'] == run['id']
+    assert trace_capture[0].record['outputs']['model_calls'] == 0
+    assert 'test-private-key' not in str(run)
+
 def test_scripted_operator_uses_same_live_session_and_resumes(dashboard):
     page=dashboard;setup_replay(page)
     page.get_by_role('button',name='Start replay',exact=True).click()

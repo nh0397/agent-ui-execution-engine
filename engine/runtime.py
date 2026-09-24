@@ -8,6 +8,7 @@ from pathlib import Path
 from engine.contracts import Result, Target
 from engine.safety import Evidence, Policy, PolicyError
 from engine.surface import BrowserSurface
+from engine.telemetry import traced
 
 
 def validate_values(parameters, values):
@@ -77,6 +78,7 @@ class Runtime:
         if self.control is not None and self.control.cancel.is_set():
             raise PolicyError("Run cancelled by operator")
 
+    @traced("human.takeover", "tool")
     def intervene(self, reason, expected=None):
         self.evidence.event("intervention_requested", step=self.step, reason=reason, expected=expected, state=self.surface.observe())
         if not self.headed and self.operator_port is None and self.control is None:
@@ -169,6 +171,7 @@ class Runtime:
                 raise PolicyError("Recovery budget exhausted")
         raise PolicyError("Recovery budget exhausted")
 
+    @traced("browser.action", "tool")
     def act(self, action):
         self.check_cancel()
         self.check_takeover(action.target.model_dump())
@@ -196,6 +199,7 @@ class Runtime:
         self.step += 1
         self.publish()
 
+    @traced("result.verify", "tool")
     def finish(self):
         if not self.surface.visible(self.spec.success):
             raise PolicyError("Success checkpoint not reached")
@@ -223,6 +227,7 @@ class Runtime:
         self.surface.close()
 
 
+@traced("workflow.replay")
 def replay(capability, inputs, profile, entry, directory, **options):
     if capability.app != profile.app or capability.app_version != profile.version:
         raise ValueError("Capability application version mismatch")

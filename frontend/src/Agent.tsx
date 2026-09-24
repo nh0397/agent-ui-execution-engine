@@ -86,8 +86,16 @@ export function Agent({
     void request<{message: string | null}>(`/runs/${execution.id}/answer`).then(reply => publish(reply.message || fallback)).catch(() => publish(fallback));
     return () => {disposed = true;};
   }, [execution?.id, execution?.status, history.ready, history.id, csrf, messages]);
+  const focusNewRequest = useRef(false);
+  useEffect(() => {
+    if (history.ready && focusNewRequest.current) {
+      focusNewRequest.current = false;
+      composer.current?.focus();
+    }
+  }, [history.ready, history.id]);
   function newRequest() {
-    void history.load("").then(() => composer.current?.focus());
+    focusNewRequest.current = true;
+    void history.load("");
   }
   async function readValues(
     item: CatalogItem,
@@ -100,7 +108,7 @@ export function Agent({
     try {
       if (checkIntent && item.id !== discoveryId && mayRequestLearning.test(message)) {
         const routing = await request<MatchReply>("/agent/match", {
-          method: "POST", body: JSON.stringify({message}),
+          method: "POST", body: JSON.stringify({message, conversation_id: history.id || undefined}),
         }, csrf);
         if (routing.intent === "discover") {
           const context = JSON.stringify({earlier_task: initialRequest, supplied_details: previous});
@@ -115,7 +123,7 @@ export function Agent({
         "/agent/inputs",
         {
           method: "POST",
-          body: JSON.stringify({ capability_id: item.id, message }),
+          body: JSON.stringify({ capability_id: item.id, message, conversation_id: history.id || undefined }),
         },
         csrf,
       );
@@ -178,7 +186,7 @@ export function Agent({
     setBusy(true);
     try {
       const reply = await request<{choice: "learn" | "record" | "details" | "confirmation" | "unclear"}>("/agent/setup", {
-        method:"POST", body:JSON.stringify({message:input,stage}),
+        method:"POST", body:JSON.stringify({message:input,stage,conversation_id:history.id || undefined}),
       }, csrf);
       if (stage === "method" && (reply.choice === "learn" || reply.choice === "record")) await chooseMethod(reply.choice === "learn" ? "discovery" : "recording", false);
       else if (stage === "result" && (reply.choice === "details" || reply.choice === "confirmation")) chooseResult(reply.choice === "details", false);
@@ -216,7 +224,7 @@ export function Agent({
   }
   async function prepareDiscovery(input: string, context?: string) {
     const prepared = await request<{supported: boolean; spec?: DiscoverySpec; values?: Record<string,string>}>(
-      "/agent/discovery", {method:"POST", body:JSON.stringify({message:input, context})}, csrf);
+      "/agent/discovery", {method:"POST", body:JSON.stringify({message:input, context, conversation_id:history.id || undefined})}, csrf);
     if (!prepared.supported || !prepared.spec) return false;
     const item = discoveryItem(prepared.spec);
     const extracted = prepared.values || {};
@@ -237,7 +245,7 @@ export function Agent({
     try {
       const reply = await request<MatchReply>(
         "/agent/match",
-        { method: "POST", body: JSON.stringify({ message: input }) },
+        { method: "POST", body: JSON.stringify({ message: input, conversation_id: history.id || undefined }) },
         csrf,
       );
       if (reply.intent === "discover") {
@@ -277,6 +285,7 @@ export function Agent({
             inputs: recording ? {} : values,
             approve_writes: approved,
             return_details: returnDetails,
+            conversation_id: history.id || undefined,
           }),
         },
         csrf,

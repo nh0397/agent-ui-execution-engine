@@ -7,17 +7,14 @@ import sqlite3
 import time
 from pathlib import Path
 import httpx
+from engine.settings import load_env
+from engine.telemetry import traced, model_sent
 
 ROOT = Path(__file__).resolve().parents[1]
 ENV_KEYS = {"LLM_PROVIDER", "GROQ_API_KEY", "GROQ_MODEL", "OLLAMA_URL", "LLM_DAILY_REQUEST_LIMIT", "LLM_REQUESTS_PER_MINUTE"}
 
 def config():
-    path = ROOT / ".env"
-    if path.exists():
-        for line in path.read_text(encoding="utf-8").splitlines():
-            key, sep, value = line.partition("=")
-            if sep and key.strip() in ENV_KEYS:
-                os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+    load_env(ENV_KEYS)
     provider = os.getenv("LLM_PROVIDER", "ollama").lower()
     if provider not in {"ollama", "groq"}:
         raise ModelError("configuration", "LLM_PROVIDER must be ollama or groq.", 503)
@@ -129,16 +126,19 @@ def complete(provider, call_id, response=None, error=None):
         return {'message':{'content':body['choices'][0]['message']['content']},'prompt_eval_count':usage.get('prompt_tokens'),'eval_count':usage.get('completion_tokens')}
     return body
 
+@traced("model.request", "llm")
 async def chat(payload):
     url,headers,data=prepare(payload)
     provider,call_id=reserve(data['model'], math.ceil(len(json.dumps(data.get('messages',[])).encode('utf-8'))/4)+data.get('max_completion_tokens',0))
     try:
         async with httpx.AsyncClient(timeout=90,trust_env=False) as client:
+            model_sent(provider, data['model'])
             response=await client.post(url,headers=headers,json=data)
     except httpx.HTTPError as exc:
         return complete(provider,call_id,error=exc)
     return complete(provider,call_id,response)
 
+@traced("model.request", "llm")
 def chat_sync(client,payload, wait_for_capacity=None):
     url,headers,data=prepare(payload)
     while True:
@@ -152,6 +152,7 @@ def chat_sync(client,payload, wait_for_capacity=None):
                 raise
             wait_for_capacity()
             time.sleep(.1)
+    model_sent(provider, data['model'])
     try: response=client.post(url,headers=headers,json=data)
     except httpx.HTTPError as exc: return complete(provider,call_id,error=exc)
     return complete(provider,call_id,response)

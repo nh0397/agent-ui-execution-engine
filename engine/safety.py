@@ -49,6 +49,11 @@ class Evidence:
         record = self.clean({"event": event, "time": datetime.datetime.now(datetime.timezone.utc).isoformat(), **data})
         with (self.directory / "events.jsonl").open("a", encoding="utf-8") as file:
             file.write(json.dumps(record) + "\n")
+        try:
+            from engine.telemetry import event as trace_event
+            trace_event(event, record)
+        except Exception:
+            pass  # Optional export cannot change local evidence or execution.
 
     def save(self, name: str, value):
         (self.directory / name).write_text(json.dumps(self.clean(value), indent=2), encoding="utf-8")

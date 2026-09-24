@@ -235,6 +235,36 @@ Discovery can wait before an unsent request when pacing or reported token capaci
 
 For Groq, a healthy configuration indicator means a key is present; it does not prove that the key or its remaining quota is valid. A real model request is needed to verify that.
 
+### Optional LangSmith tracing
+
+I added LangSmith to see where time goes during a request and which step failed. It does not choose actions or change how replay works. The app still runs when tracing is off or LangSmith is unavailable.
+
+Create a project and API key in your own [LangSmith account](https://smith.langchain.com/). Add these settings to the root `.env` file, then restart the backend or recreate the Docker worker:
+
+```dotenv
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=replace_with_your_langsmith_key
+LANGSMITH_PROJECT=agent-ui-execution-engine
+LANGSMITH_ENDPOINT=https://api.smith.langchain.com
+LANGSMITH_TRACE_LIMIT=1000
+```
+
+For an EU workspace, use `https://eu.api.smith.langchain.com`. Other endpoints are rejected. This is a separate key from Groq. Both keys stay on the backend. Set `LANGSMITH_TRACING=false` to switch tracing off.
+
+1. Open **Model status** in chat. Check that LangSmith is on and a key is configured. A successful export confirms the connection.
+2. Start a discovery or replay. Once it finishes, open **Inspect result** or find the run in **Tools → Past runs**.
+3. Choose **View LangSmith trace**. Export happens in the background; reopen the result if the link is not ready yet. The link needs access to your private LangSmith project.
+
+Each trace contains timed steps for chat matching, input extraction, model requests, browser actions, result checks, or human takeover. Model spans include reported token counts. Replay traces show zero model calls. Chat requests carry the conversation ID; a workflow run carries its job ID so it can be matched to local evidence.
+
+I deliberately export only a small set of metadata. Chat text, model prompts and replies, customer values, page contents, screenshots, cookies, and keys are not included. Errors use a generic message. Use the local run evidence to investigate the actual page or failed check. Existing runs are not uploaded retroactively.
+
+`LANGSMITH_TRACE_LIMIT` caps top-level traces per UTC month, with a default of 1,000 and a maximum of 5,000. One trace can contain several child steps. Failed uploads also count. At the cap, new exports stop and workflows keep running. **This is a local guard, not a readout of your account quota.** Other apps and separate installations can use the same account. Check [LangSmith usage and pricing](https://www.langchain.com/pricing) too.
+
+The local counter is `work/langsmith-usage.sqlite3`, shared by workspaces in the same checkout. Docker stores it in the persistent worker volume. `LANGSMITH_USAGE_DB` can override the path; keep a shared path if you want multiple workers to share a cap. Do not delete it to reset usage. A bounded background queue holds completed traces in memory. A full queue or process shutdown can lose an export, but the local run evidence remains available. No paid evaluators or extra model calls are added for tracing.
+
+The [LangSmith verification](evidence/langsmith/README.md) includes a fresh discovery, a new-input replay, and a permission-denied replay, with the actual trace records read back from the service.
+
 ## Try the main features
 
 After startup, use these examples to try replay, learning, human approval, and recording. All customer details below are synthetic.
@@ -453,6 +483,7 @@ These are the versions in [pyproject.toml](pyproject.toml), [package.json](front
 | Browser | Playwright **1.63.0** and its installed Chromium | Read and operate actual web pages. |
 | Data validation | Pydantic **2.13.5** | Validate actions, input/output contracts, capabilities, and results. |
 | Provider access | HTTPX **0.28.1**; Groq or Ollama | Send model requests from the Python backend. Groq evidence uses `openai/gpt-oss-20b`; Ollama supports `mistral:latest` and `llama3.1:latest`. |
+| Optional tracing | LangSmith Python SDK **0.14.0** | Export a limited set of metadata about timings, model usage, browser actions, and failures. |
 | Bank pages | Jinja2 **3.1.6**, python-multipart **0.0.32** | Render HTML and handle form submissions. |
 | Bank database | SQLite locally; PostgreSQL **16** in Docker with psycopg **3.2.9** | Store customers, accounts, cards, transactions, and service requests. |
 | Engine storage | Versioned JSON files and SQLite | JSON for workflows and run artifacts; SQLite for conversations and model usage. SQLite is supplied by the Python runtime. |
@@ -548,6 +579,7 @@ Workflows are **JSON files**, not rows in the banking database.
 | Run events, results, snapshots, recording documents and images | `work/dashboard/runs/<job-id>/<run-id>/` |
 | Saved conversations and entered values | `work/dashboard/conversations.sqlite3` |
 | Model request/token accounting | `work/dashboard/model-usage.sqlite3` |
+| Local LangSmith trace cap and links | `work/langsmith-usage.sqlite3`; Docker uses `work/dashboard/langsmith-usage.sqlite3` |
 | Standalone CLI output | `runs/<run-id>/` |
 | Bundled reference capability | `capabilities/update-address.v1.json` |
 | Reviewed, checked-in evidence | `evidence/` |
@@ -688,7 +720,7 @@ Open `/api/docs` for request fields, types, and schemas, or `/api/openapi.json` 
 | --- | --- |
 | `GET /api/health` | Check API readiness, bank reachability, and model configuration. No session required. |
 | `POST /api/session` | Choose a demo profile and receive a session cookie and CSRF token. Requires an allowed Origin. |
-| `GET /api/model/status` | Read usage and last observed limits without a model call. |
+| `GET /api/model/status` | Read model usage, last observed limits, and optional LangSmith export status without a model call. |
 | `GET /api/workflow-spec` | Read the built-in discovery input/output contract. |
 | `GET /api/capabilities` | List published workflows and their full contracts. |
 | `POST /api/agent/match` | Send `message`; suggest a saved capability and identify an explicit discovery request. Does not execute it. |

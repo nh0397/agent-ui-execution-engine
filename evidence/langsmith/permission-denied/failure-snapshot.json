@@ -1,0 +1,265 @@
+{
+  "observation": {
+    "text": "C Cedar BankSTAFF WORKSPACECustomer workspaceAccountsDebit cardsService requestsActivitySandbox institutionAll records are syntheticRetail banking / Customer serviceHomeCedar Bank / Customer operationsCustomer workspaceSynthetic sandbox Access deniedPermission denied Cedar Bank sandbox \u00b7 Synthetic demonstration data \u00b7 Scenario: permission-denied",
+    "controls": [
+      {
+        "role": "link",
+        "name": "Customer workspace",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Accounts",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Debit cards",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Service requests",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Activity",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "link",
+        "name": "Home",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      },
+      {
+        "role": "heading",
+        "name": "Access denied",
+        "readonly": false,
+        "filled": false,
+        "pattern": null,
+        "required": false,
+        "form": null
+      }
+    ],
+    "app": "customer-service",
+    "app_version": "1",
+    "document_id": 4
+  },
+  "dom": {
+    "tag": "BODY",
+    "role": null,
+    "label": null,
+    "children": [
+      {
+        "tag": "ASIDE",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "B",
+                "role": null,
+                "label": null,
+                "children": [
+                  "C"
+                ]
+              },
+              "Cedar Bank"
+            ]
+          },
+          {
+            "tag": "SMALL",
+            "role": null,
+            "label": null,
+            "children": [
+              "STAFF WORKSPACE"
+            ]
+          },
+          {
+            "tag": "NAV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Customer workspace"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Accounts"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Debit cards"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Service requests"
+                ]
+              },
+              {
+                "tag": "A",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Activity"
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              "Sandbox institution",
+              {
+                "tag": "BR",
+                "role": null,
+                "label": null,
+                "children": []
+              },
+              "All records are synthetic"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "HEADER",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "STRONG",
+            "role": null,
+            "label": null,
+            "children": [
+              "Retail banking / Customer service"
+            ]
+          },
+          {
+            "tag": "A",
+            "role": null,
+            "label": null,
+            "children": [
+              "Home"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "DIV",
+        "role": null,
+        "label": null,
+        "children": [
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              "Cedar Bank / Customer operations"
+            ]
+          },
+          {
+            "tag": "DIV",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "H2",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Customer workspace"
+                ]
+              },
+              {
+                "tag": "SPAN",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Synthetic sandbox"
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "MAIN",
+            "role": null,
+            "label": null,
+            "children": [
+              {
+                "tag": "H1",
+                "role": null,
+                "label": null,
+                "children": [
+                  "Access denied"
+                ]
+              },
+              {
+                "tag": "P",
+                "role": "alert",
+                "label": null,
+                "children": [
+                  "Permission denied"
+                ]
+              }
+            ]
+          },
+          {
+            "tag": "FOOTER",
+            "role": null,
+            "label": null,
+            "children": [
+              "Cedar Bank sandbox \u00b7 Synthetic demonstration data \u00b7 Scenario: permission-denied"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

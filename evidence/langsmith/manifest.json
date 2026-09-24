@@ -1,0 +1,49 @@
+{
+  "source": "Genuine Groq discovery and Playwright UI replay; LangSmith records read back through its API",
+  "privacy": "Published trace records omit project and account metadata. Exported content was checked for both input sets and configured keys.",
+  "model_transport_blocked_during_replay": true,
+  "runs": [
+    {
+      "label": "genuine_groq_discovery",
+      "status": "success",
+      "code": "completed",
+      "run_id": "4733ffe2-16f3-4eab-8896-e3b960ef70ca",
+      "trace_id": "9d874e79-f60b-4a52-b0c9-bc0605a71a7e",
+      "trace_state": "exported",
+      "privacy_check": true,
+      "model_calls": 14,
+      "spans": 30,
+      "llm_spans": 14,
+      "input_tokens": 18441,
+      "output_tokens": 2699
+    },
+    {
+      "label": "replay_normal",
+      "status": "success",
+      "code": "completed",
+      "run_id": "385ee20d-2df7-421d-927d-3e75d4a2d5d3",
+      "trace_id": "83981505-0fff-44e6-a169-327aa20f73ed",
+      "trace_state": "exported",
+      "privacy_check": true,
+      "model_calls": 0,
+      "spans": 16,
+      "llm_spans": 0,
+      "input_tokens": 0,
+      "output_tokens": 0
+    },
+    {
+      "label": "replay_permission-denied",
+      "status": "failure",
+      "code": "Permission denied",
+      "run_id": "0fefa6b8-a0b8-4bb6-9d5d-cbd62edc2596",
+      "trace_id": "eedeaaf9-6680-4980-8346-cfe3b46479ca",
+      "trace_state": "exported",
+      "privacy_check": true,
+      "model_calls": 0,
+      "spans": 5,
+      "llm_spans": 0,
+      "input_tokens": 0,
+      "output_tokens": 0
+    }
+  ]
+}

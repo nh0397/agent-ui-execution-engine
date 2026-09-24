@@ -29,6 +29,12 @@ services:
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       LLM_DAILY_REQUEST_LIMIT: ${LLM_DAILY_REQUEST_LIMIT:-100}
       LLM_REQUESTS_PER_MINUTE: ${LLM_REQUESTS_PER_MINUTE:-10}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-agent-ui-execution-engine}
+      LANGSMITH_ENDPOINT: ${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}
+      LANGSMITH_TRACE_LIMIT: ${LANGSMITH_TRACE_LIMIT:-1000}
+      LANGSMITH_USAGE_DB: /project/work/dashboard/langsmith-usage.sqlite3
       DASHBOARD_STORAGE: /project/work/dashboard
     volumes:
       - execution-data:/project/work/dashboard

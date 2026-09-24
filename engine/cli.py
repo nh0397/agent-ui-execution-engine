@@ -46,6 +46,8 @@ def main():
         result = replay(Capability.model_validate_json(Path(args.capability).read_text(encoding="utf-8")), **options)
     # Declared sensitive outputs are returned by the Python API, but not echoed to terminal logs.
     print(json.dumps({"status": result.status, "code": result.code, "run_id": result.run_id, "step": result.step}, indent=2))
+    from engine.telemetry import flush
+    flush()
     raise SystemExit(1 if result.status == "failure" else 0)
 
 

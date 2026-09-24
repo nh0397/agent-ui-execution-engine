@@ -59,7 +59,7 @@ def server(tmp_path):
     ("permission-denied", "C-205", "failure", "Permission denied"),
     ("session-expired", "C-205", "failure", "Human intervention requires a headed run"),
 ])
-def test_replay_browser_scenarios(tmp_path, server, scenario, customer, status, code, monkeypatch):
+def test_replay_browser_scenarios(tmp_path, server, scenario, customer, status, code, monkeypatch, trace_capture):
     import httpx
     def forbidden_model_transport(*args, **kwargs):
         raise AssertionError("Replay must not call the model HTTP transport")
@@ -72,6 +72,13 @@ def test_replay_browser_scenarios(tmp_path, server, scenario, customer, status, 
     inputs["customer_id"] = customer
     result = replay(fixture_capability(), inputs, profile, origin, tmp_path / "runs", approve_writes=True)
     assert (result.status, result.code) == (status, code), result
+    trace = trace_capture[0]
+    assert trace.record['name'] == 'workflow.replay'
+    assert trace.record['outputs']['model_calls'] == 0
+    assert trace.record['outputs']['status'] == status
+    assert not any(s['run_type'] == 'llm' for s in trace.spans)
+    exported = json.dumps(trace.spans, default=str)
+    assert all(value not in exported for value in inputs.values())
     if status == "success":
         assert result.outputs["customer_id"] == customer
         assert result.outputs["street"] == inputs["street"]
@@ -160,7 +167,7 @@ def test_unexpected_dialog_stops_and_sensitive_snapshot_is_clean(tmp_path, serve
         raise
 
 
-def test_session_expiry_restores_same_session_with_scripted_operator(tmp_path, server):
+def test_session_expiry_restores_same_session_with_scripted_operator(tmp_path, server, trace_capture):
     from engine.api import LiveControl
     from engine.surface import BrowserSurface
     os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", str(Path(".browsers").resolve()))
@@ -186,6 +193,11 @@ def test_session_expiry_restores_same_session_with_scripted_operator(tmp_path, s
     assert [e["owner"] for e in owners] == ["human", "automation"]
     assert len({e["session_id"] for e in owners}) == 1
     assert any(e["event"] == "human_action" for e in events)
+    trace = trace_capture[0]
+    assert any(s['name'] == 'human.takeover' for s in trace.spans)
+    owners = [e['kwargs'] for s in trace.spans for e in s['events'] if e['name'] == 'ownership']
+    assert [e['owner'] for e in owners] == ['human', 'automation']
+    assert len({e['session_id'] for e in owners}) == 1
 
 
 def test_live_screencast_updates_between_workflow_actions(tmp_path, server):
